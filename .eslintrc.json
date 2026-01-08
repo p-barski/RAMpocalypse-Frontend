@@ -1,0 +1,25 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:react/recommended", "prettier"],
+  "rules": {
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "@typescript-eslint/member-ordering": [
+      "error",
+      {
+        "default": [
+          "public-static-field",
+          "protected-static-field",
+          "private-static-field",
+          "public-instance-field",
+          "protected-instance-field",
+          "private-instance-field",
+          "constructor",
+          "public-instance-method",
+          "protected-instance-method",
+          "private-instance-method"
+        ]
+      }
+    ]
+  }
+}

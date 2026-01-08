@@ -1,0 +1,73 @@
+import { Player } from './messageInterfaces';
+import { GameState, StateManager } from './interfaces/stateManager';
+
+/**
+ * GameStateManager - Manages game state, winner tracking, and player data
+ *
+ * Tracks Player objects from the server for rendering health bars and game state.
+ */
+export class GameStateManager implements StateManager {
+  private gameState: GameState = 'waiting';
+  private winnerId = '';
+  private players: Map<string, Player> = new Map();
+
+  getGameState(): GameState {
+    return this.gameState;
+  }
+
+  setGameState(state: GameState): void {
+    this.gameState = state;
+  }
+
+  getWinnerId(): string {
+    return this.winnerId;
+  }
+
+  setWinnerId(winnerId: string): void {
+    this.winnerId = winnerId;
+  }
+
+  getPlayer(playerId: string): Player | undefined {
+    return this.players.get(playerId);
+  }
+
+  addPlayer(player: Player): void {
+    this.players.set(player.id, player);
+  }
+
+  updatePlayerHealth(playerId: string, health: number, isAlive?: boolean): void {
+    const player = this.players.get(playerId);
+    if (player) {
+      player.health = health;
+      if (isAlive !== undefined) {
+        player.isAlive = isAlive;
+      }
+    }
+  }
+
+  getAllPlayers(): Map<string, Player> {
+    return this.players;
+  }
+
+  removePlayer(playerId: string): void {
+    this.players.delete(playerId);
+  }
+
+  reset(): void {
+    this.gameState = 'waiting';
+    this.winnerId = '';
+    this.players.clear();
+  }
+
+  isPlaying(): boolean {
+    return this.gameState === 'playing';
+  }
+
+  hasEnded(): boolean {
+    return this.gameState === 'ended';
+  }
+
+  isWaiting(): boolean {
+    return this.gameState === 'waiting';
+  }
+}
