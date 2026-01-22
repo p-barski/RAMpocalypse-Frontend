@@ -78,7 +78,7 @@ export class PlayerMovementController implements MovementController {
     newY = this.clampToBoundary(newY, localPlayer.height, this.GAME_HEIGHT);
 
     // Update entity position
-    this.entityManager.updateLocalPlayerPosition({ x: newX, y: newY } as Position);
+    this.entityManager.updateLocalPlayerPosition({ x: newX, y: newY } satisfies Position);
 
     // Send position update to server (throttled)
     if (now - this.lastPositionUpdateTime >= this.POSITION_UPDATE_INTERVAL) {

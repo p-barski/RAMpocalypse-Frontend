@@ -8,7 +8,6 @@ export class PlayerEntityManager implements EntityManager {
   private readonly entities: Entity[] = [];
   private readonly otherPlayers: Map<string, Entity> = new Map();
   private localPlayer: Entity | null = null;
-  private localPlayerSpriteVariant = 1;
 
   constructor(spriteManager: SpriteManager) {
     this.spriteManager = spriteManager;
@@ -18,37 +17,8 @@ export class PlayerEntityManager implements EntityManager {
     return this.entities;
   }
 
-  getOtherPlayers(): Map<string, Entity> {
-    return this.otherPlayers;
-  }
-
   getLocalPlayer(): Entity | null {
     return this.localPlayer;
-  }
-
-  addEntity(entity: Entity): void {
-    this.entities.push(entity);
-  }
-
-  removeEntity(entity: Entity): void {
-    const index = this.entities.indexOf(entity);
-    if (index > -1) {
-      this.entities.splice(index, 1);
-    }
-
-    // Also remove from otherPlayers if it has a playerId
-    if (entity.playerId) {
-      this.otherPlayers.delete(entity.playerId);
-    }
-
-    // Clear local player reference if removed
-    if (entity === this.localPlayer) {
-      this.localPlayer = null;
-    }
-  }
-
-  getEntityByPlayerId(playerId: string): Entity | undefined {
-    return this.otherPlayers.get(playerId);
   }
 
   clearEntities(): void {
@@ -60,11 +30,8 @@ export class PlayerEntityManager implements EntityManager {
   /**
    * Creates and adds the local player entity
    */
-  async createLocalPlayer(position: Position, scale: number, spriteVariant?: number): Promise<Entity> {
-    const variant = spriteVariant ?? this.localPlayerSpriteVariant;
-    this.localPlayerSpriteVariant = variant;
-
-    const sprite = await this.spriteManager.getSpriteForVariant(variant);
+  async createLocalPlayer(position: Position, scale: number, spriteVariant: number): Promise<Entity> {
+    const sprite = await this.spriteManager.getSpriteForVariant(spriteVariant);
 
     const entity: Entity = {
       position,
@@ -72,7 +39,8 @@ export class PlayerEntityManager implements EntityManager {
       scale,
       width: sprite.width * scale,
       height: sprite.height * scale,
-      spriteVariant: variant,
+      playerId: '',
+      spriteVariant: spriteVariant,
     };
 
     this.localPlayer = entity;
@@ -80,17 +48,17 @@ export class PlayerEntityManager implements EntityManager {
     return entity;
   }
 
+  updateLocalPlayerId(playerId: string): void {
+    if (this.localPlayer) {
+      this.localPlayer.playerId = playerId;
+    }
+  }
+
   /**
    * Creates and adds an entity for another player
    */
-  async createOtherPlayer(
-    playerId: string,
-    position: Position,
-    scale: number,
-    spriteVariant?: number,
-  ): Promise<Entity> {
-    const variant = spriteVariant ?? 1;
-    const sprite = await this.spriteManager.getSpriteForVariant(variant);
+  async createOtherPlayer(playerId: string, position: Position, scale: number, spriteVariant: number): Promise<Entity> {
+    const sprite = await this.spriteManager.getSpriteForVariant(spriteVariant);
 
     const entity: Entity = {
       position,
@@ -99,7 +67,7 @@ export class PlayerEntityManager implements EntityManager {
       width: sprite.width * scale,
       height: sprite.height * scale,
       playerId,
-      spriteVariant: variant,
+      spriteVariant: spriteVariant,
     };
 
     this.otherPlayers.set(playerId, entity);
@@ -115,7 +83,7 @@ export class PlayerEntityManager implements EntityManager {
     playerId: string,
     position: Position,
     scale = 8,
-    spriteVariant?: number,
+    spriteVariant: number,
   ): Promise<{ entity: Entity; wasCreated: boolean }> {
     const existingEntity = this.otherPlayers.get(playerId);
 
@@ -143,7 +111,6 @@ export class PlayerEntityManager implements EntityManager {
   async updateLocalPlayerSprite(spriteVariant: number): Promise<void> {
     if (!this.localPlayer) return;
 
-    this.localPlayerSpriteVariant = spriteVariant;
     const sprite = await this.spriteManager.getSpriteForVariant(spriteVariant);
     this.localPlayer.image = sprite;
     this.localPlayer.spriteVariant = spriteVariant;
@@ -191,17 +158,20 @@ export class PlayerEntityManager implements EntityManager {
     }
   }
 
-  /**
-   * Gets the local player's sprite variant
-   */
-  getLocalPlayerSpriteVariant(): number {
-    return this.localPlayerSpriteVariant;
-  }
+  private removeEntity(entity: Entity): void {
+    const index = this.entities.indexOf(entity);
+    if (index > -1) {
+      this.entities.splice(index, 1);
+    }
 
-  /**
-   * Sets the local player's sprite variant (for tracking before entity creation)
-   */
-  setLocalPlayerSpriteVariant(variant: number): void {
-    this.localPlayerSpriteVariant = variant;
+    // Also remove from otherPlayers if it has a playerId
+    if (entity.playerId) {
+      this.otherPlayers.delete(entity.playerId);
+    }
+
+    // Clear local player reference if removed
+    if (entity === this.localPlayer) {
+      this.localPlayer = null;
+    }
   }
 }

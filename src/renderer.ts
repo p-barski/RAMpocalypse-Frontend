@@ -131,14 +131,14 @@ export class Renderer implements RenderingService {
   }
 
   private drawEntityHealthBar(entity: Entity, canvasX: number, canvasY: number, scaleX: number): void {
-    const playerId = entity.playerId ?? this.localPlayerId;
+    const playerId = entity.playerId;
     if (!playerId) return;
 
     const player = this.gameStateManager.getPlayer(playerId);
     if (!player) return;
 
-    const health = player.health ?? 100;
-    const maxHealth = player.maxHealth ?? 100;
+    const health = player.health;
+    const maxHealth = player.maxHealth;
 
     this.drawHealthBar(canvasX, canvasY - this.HEALTH_BAR_OFFSET_Y, entity.width * scaleX, health, maxHealth);
   }

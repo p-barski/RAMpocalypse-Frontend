@@ -97,6 +97,7 @@ export class Game implements CallbacksHandler {
   async connect(): Promise<void> {
     try {
       this.playerId = await this.communicationService.connect(this);
+      this.entityManager.updateLocalPlayerId(this.playerId);
       this.renderingService.setLocalPlayerId(this.playerId);
     } catch (error) {
       if (this.abortSignal.aborted) return;
@@ -128,7 +129,7 @@ export class Game implements CallbacksHandler {
    * Creates the local player entity.
    * Called from App.tsx after loading the initial sprite.
    */
-  async addEntity(image: ImageBitmap, position: Position, scale: number, spriteVariant?: number): Promise<void> {
+  async addEntity(image: ImageBitmap, position: Position, scale: number, spriteVariant: number): Promise<void> {
     await this.entityManager.createLocalPlayer(position, scale, spriteVariant);
   }
 
@@ -156,28 +157,23 @@ export class Game implements CallbacksHandler {
       return;
     }
 
-    // Store local player sprite variant
-    if (currentPlayer.spriteVariant) {
-      this.entityManager.setLocalPlayerSpriteVariant(currentPlayer.spriteVariant);
-    }
-
     // Initialize health for all players in game state
     for (const player of players) {
       this.gameStateManager.addPlayer({
         id: player.id,
         position: player.position,
         spriteVariant: player.spriteVariant,
-        health: player.health ?? 100,
-        maxHealth: player.maxHealth ?? 100,
+        health: player.health,
+        maxHealth: player.maxHealth,
         isAlive: player.isAlive !== false,
-      });
+      } satisfies Player);
     }
 
     // Update local player position and sprite
     const localPlayer = this.entityManager.getLocalPlayer();
     if (localPlayer) {
       this.entityManager.updateLocalPlayerPosition(currentPlayer.position);
-      await this.entityManager.updateLocalPlayerSprite(this.entityManager.getLocalPlayerSpriteVariant());
+      await this.entityManager.updateLocalPlayerSprite(currentPlayer.spriteVariant);
     }
 
     // Reset position tracking
@@ -281,7 +277,7 @@ export class Game implements CallbacksHandler {
   onPlayerRespawned = (playerId: string, position: Position): void => {
     const player = this.gameStateManager.getPlayer(playerId);
     if (player) {
-      this.gameStateManager.updatePlayerHealth(playerId, player.maxHealth ?? 100, true);
+      this.gameStateManager.updatePlayerHealth(playerId, player.maxHealth, true);
     }
     this.entityManager.showPlayer(playerId, position);
     console.log('Player respawned:', { playerId, position });

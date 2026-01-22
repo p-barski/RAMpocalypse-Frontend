@@ -6,6 +6,6 @@ export interface Entity {
   scale: number; // Scale in game world units
   width: number; // Width in game world units
   height: number; // Height in game world units
-  playerId?: string; // Optional player ID for remote players
-  spriteVariant?: number; // Sprite variant for player
+  playerId: string; // Player ID for remote players
+  spriteVariant: number; // Sprite variant for player
 }

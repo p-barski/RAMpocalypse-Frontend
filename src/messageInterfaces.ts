@@ -6,10 +6,10 @@ export interface Position {
 export interface Player {
   id: string;
   position: Position;
-  spriteVariant?: number;
-  health?: number;
-  maxHealth?: number;
-  isAlive?: boolean;
+  spriteVariant: number;
+  health: number;
+  maxHealth: number;
+  isAlive: boolean;
 }
 
 export enum AttackType {
