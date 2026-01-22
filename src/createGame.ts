@@ -61,6 +61,6 @@ export async function createGame(
     renderingService,
     attackManager,
   );
-  game.addEntity(fallbackImage, 100, 100, 8, 1);
+  game.addEntity(fallbackImage, { x: 100, y: 100 }, 8, 1);
   return game;
 }

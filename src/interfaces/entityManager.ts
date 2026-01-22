@@ -1,4 +1,5 @@
 import { Entity } from '../entity';
+import { Position } from '../messageInterfaces';
 
 export interface EntityManager {
   getEntities(): Entity[];
@@ -8,20 +9,19 @@ export interface EntityManager {
   removeEntity(entity: Entity): void;
   getEntityByPlayerId(playerId: string): Entity | undefined;
   clearEntities(): void;
-  createLocalPlayer(x: number, y: number, scale: number, spriteVariant?: number): Promise<Entity>;
-  updateLocalPlayerPosition(x: number, y: number): void;
+  createLocalPlayer(position: Position, scale: number, spriteVariant?: number): Promise<Entity>;
+  updateLocalPlayerPosition(position: Position): void;
   updateLocalPlayerSprite(spriteVariant: number): Promise<void>;
   getLocalPlayerSpriteVariant(): number;
   setLocalPlayerSpriteVariant(variant: number): void;
-  createOtherPlayer(playerId: string, x: number, y: number, scale: number, spriteVariant?: number): Promise<Entity>;
+  createOtherPlayer(playerId: string, position: Position, scale: number, spriteVariant?: number): Promise<Entity>;
   updateOrCreateOtherPlayer(
     playerId: string,
-    x: number,
-    y: number,
+    position: Position,
     scale?: number,
     spriteVariant?: number,
   ): Promise<{ entity: Entity; wasCreated: boolean }>;
   removeOtherPlayer(playerId: string): boolean;
   hidePlayer(playerId: string): void;
-  showPlayer(playerId: string, x?: number, y?: number): void;
+  showPlayer(playerId: string, position?: Position): void;
 }

@@ -1,6 +1,7 @@
 import { EntityManager } from './interfaces/entityManager';
 import { SpriteManager } from './interfaces/spriteManager';
 import { Entity } from './entity';
+import { Position } from './messageInterfaces';
 
 export class PlayerEntityManager implements EntityManager {
   private readonly spriteManager: SpriteManager;
@@ -59,15 +60,14 @@ export class PlayerEntityManager implements EntityManager {
   /**
    * Creates and adds the local player entity
    */
-  async createLocalPlayer(x: number, y: number, scale: number, spriteVariant?: number): Promise<Entity> {
+  async createLocalPlayer(position: Position, scale: number, spriteVariant?: number): Promise<Entity> {
     const variant = spriteVariant ?? this.localPlayerSpriteVariant;
     this.localPlayerSpriteVariant = variant;
 
     const sprite = await this.spriteManager.getSpriteForVariant(variant);
 
     const entity: Entity = {
-      x,
-      y,
+      position,
       image: sprite,
       scale,
       width: sprite.width * scale,
@@ -85,8 +85,7 @@ export class PlayerEntityManager implements EntityManager {
    */
   async createOtherPlayer(
     playerId: string,
-    x: number,
-    y: number,
+    position: Position,
     scale: number,
     spriteVariant?: number,
   ): Promise<Entity> {
@@ -94,8 +93,7 @@ export class PlayerEntityManager implements EntityManager {
     const sprite = await this.spriteManager.getSpriteForVariant(variant);
 
     const entity: Entity = {
-      x,
-      y,
+      position,
       image: sprite,
       scale,
       width: sprite.width * scale,
@@ -115,30 +113,27 @@ export class PlayerEntityManager implements EntityManager {
    */
   async updateOrCreateOtherPlayer(
     playerId: string,
-    x: number,
-    y: number,
+    position: Position,
     scale = 8,
     spriteVariant?: number,
   ): Promise<{ entity: Entity; wasCreated: boolean }> {
     const existingEntity = this.otherPlayers.get(playerId);
 
     if (existingEntity) {
-      existingEntity.x = x;
-      existingEntity.y = y;
+      existingEntity.position = position;
       return { entity: existingEntity, wasCreated: false };
     }
 
-    const entity = await this.createOtherPlayer(playerId, x, y, scale, spriteVariant);
+    const entity = await this.createOtherPlayer(playerId, position, scale, spriteVariant);
     return { entity, wasCreated: true };
   }
 
   /**
    * Updates the local player's position
    */
-  updateLocalPlayerPosition(x: number, y: number): void {
+  updateLocalPlayerPosition(position: Position): void {
     if (this.localPlayer) {
-      this.localPlayer.x = x;
-      this.localPlayer.y = y;
+      this.localPlayer.position = position;
     }
   }
 
@@ -183,11 +178,12 @@ export class PlayerEntityManager implements EntityManager {
   /**
    * Shows a previously hidden player entity
    */
-  showPlayer(playerId: string, x?: number, y?: number): void {
+  showPlayer(playerId: string, position?: Position): void {
     const entity = this.otherPlayers.get(playerId);
     if (entity) {
-      if (x !== undefined) entity.x = x;
-      if (y !== undefined) entity.y = y;
+      if (position !== undefined) {
+        entity.position = position;
+      }
 
       if (!this.entities.includes(entity)) {
         this.entities.push(entity);

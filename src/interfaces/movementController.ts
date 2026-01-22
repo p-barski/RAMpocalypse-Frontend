@@ -5,6 +5,6 @@ export interface MovementController {
   sendPositionUpdate(position: Position): Promise<void>;
   getSpeed(): number;
   setSpeed(speed: number): void;
-  onPositionCorrected(x: number, y: number): void;
+  onPositionCorrected(position: Position): void;
   resetPositionTracking(): void;
 }

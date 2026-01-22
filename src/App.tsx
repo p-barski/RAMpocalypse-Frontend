@@ -3,7 +3,13 @@ import './App.css';
 import { Game } from './game';
 
 import { createGame } from './createGame';
+declare global {
+  interface Window {
+    game?: Game | null;
+  }
+}
 
+export {};
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
@@ -20,6 +26,7 @@ function App() {
         // Load fallback image first (needed for SpriteManager)
         const game = await createGame(serverUrl, abortController, canvas);
         gameRef.current = game;
+        window.game = game;
 
         await game.connect();
         if (abortController.signal.aborted) return;

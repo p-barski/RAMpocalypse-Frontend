@@ -79,10 +79,6 @@ export class Renderer implements RenderingService {
     this.drawUI();
   }
 
-  getCanvasContext(): CanvasRenderingContext2D {
-    return this.ctx;
-  }
-
   setLocalPlayerId(playerId: string): void {
     this.localPlayerId = playerId;
   }
@@ -123,8 +119,8 @@ export class Renderer implements RenderingService {
   }
 
   private drawEntity(entity: Entity, scaleX: number): void {
-    const canvasX = Math.round(this.viewportManager.gameToCanvasX(entity.x));
-    const canvasY = Math.round(this.viewportManager.gameToCanvasY(entity.y));
+    const canvasX = Math.round(this.viewportManager.gameToCanvasX(entity.position.x));
+    const canvasY = Math.round(this.viewportManager.gameToCanvasY(entity.position.y));
     const canvasScale = this.viewportManager.gameToCanvasSize(entity.scale);
 
     // Draw the entity sprite

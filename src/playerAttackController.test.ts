@@ -85,7 +85,7 @@ describe('PlayerAttackController', () => {
 
   describe('performMeleeAttack', () => {
     it('should call communicationService.performMeleeAttack with correct parameters', () => {
-      const mockPlayer = { x: 100, y: 200 } as Entity;
+      const mockPlayer = { position: { x: 100, y: 200 } } as Entity;
 
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);
@@ -99,7 +99,7 @@ describe('PlayerAttackController', () => {
     });
 
     it('should not attack when game is not playing', () => {
-      const mockPlayer = { x: 100, y: 200 } as Entity;
+      const mockPlayer = { position: { x: 100, y: 200 } } as Entity;
 
       mockGameStateManager.isPlaying.mockReturnValue(false);
       mockCommunicationService.isConnected.mockReturnValue(true);
@@ -111,7 +111,7 @@ describe('PlayerAttackController', () => {
     });
 
     it('should not attack when not connected', () => {
-      const mockPlayer = { x: 100, y: 200 } as Entity;
+      const mockPlayer = { position: { x: 100, y: 200 } } as Entity;
 
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(false);
@@ -133,7 +133,7 @@ describe('PlayerAttackController', () => {
     });
 
     it('should calculate normalized direction towards mouse position', () => {
-      const mockPlayer = { x: 0, y: 0 } as Entity;
+      const mockPlayer = { position: { x: 0, y: 0 } } as Entity;
 
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);
@@ -147,7 +147,7 @@ describe('PlayerAttackController', () => {
     });
 
     it('should respect cooldown and not attack during cooldown period', () => {
-      const mockPlayer = { x: 100, y: 200 } as Entity;
+      const mockPlayer = { position: { x: 100, y: 200 } } as Entity;
 
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);

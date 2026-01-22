@@ -21,16 +21,16 @@ import { RenderingService } from './interfaces/renderingService';
  */
 export class Game implements CallbacksHandler {
   // Dependencies
-  private readonly communicationService: CommunicationService;
-  private readonly abortSignal: AbortSignal;
-  private readonly entityManager: EntityManager;
-  private readonly gameStateManager: StateManager;
-  private readonly inputHandler: InputHandler;
-  private readonly viewportManager: ViewportManager;
-  private readonly movementController: MovementController;
-  private readonly attackController: AttackController;
-  private readonly renderingService: RenderingService;
-  private readonly attackManager: AttackManager;
+  public readonly communicationService: CommunicationService;
+  public readonly abortSignal: AbortSignal;
+  public readonly entityManager: EntityManager;
+  public readonly gameStateManager: StateManager;
+  public readonly inputHandler: InputHandler;
+  public readonly viewportManager: ViewportManager;
+  public readonly movementController: MovementController;
+  public readonly attackController: AttackController;
+  public readonly renderingService: RenderingService;
+  public readonly attackManager: AttackManager;
 
   // Game loop state
   private animationFrameId: number | null = null;
@@ -128,8 +128,8 @@ export class Game implements CallbacksHandler {
    * Creates the local player entity.
    * Called from App.tsx after loading the initial sprite.
    */
-  async addEntity(image: ImageBitmap, x: number, y: number, scale: number, spriteVariant?: number): Promise<void> {
-    await this.entityManager.createLocalPlayer(x, y, scale, spriteVariant);
+  async addEntity(image: ImageBitmap, position: Position, scale: number, spriteVariant?: number): Promise<void> {
+    await this.entityManager.createLocalPlayer(position, scale, spriteVariant);
   }
 
   // ============================================
@@ -176,7 +176,7 @@ export class Game implements CallbacksHandler {
     // Update local player position and sprite
     const localPlayer = this.entityManager.getLocalPlayer();
     if (localPlayer) {
-      this.entityManager.updateLocalPlayerPosition(currentPlayer.position.x, currentPlayer.position.y);
+      this.entityManager.updateLocalPlayerPosition(currentPlayer.position);
       await this.entityManager.updateLocalPlayerSprite(this.entityManager.getLocalPlayerSpriteVariant());
     }
 
@@ -191,8 +191,7 @@ export class Game implements CallbacksHandler {
       if (player.id !== this.playerId) {
         const { wasCreated } = await this.entityManager.updateOrCreateOtherPlayer(
           player.id,
-          player.position.x,
-          player.position.y,
+          player.position,
           8,
           player.spriteVariant,
         );
@@ -201,8 +200,8 @@ export class Game implements CallbacksHandler {
     }
   };
 
-  onOtherPlayerPositionUpdated = async (playerId: string, x: number, y: number): Promise<void> => {
-    const { wasCreated } = await this.entityManager.updateOrCreateOtherPlayer(playerId, x, y);
+  onOtherPlayerPositionUpdated = async (playerId: string, position: Position): Promise<void> => {
+    const { wasCreated } = await this.entityManager.updateOrCreateOtherPlayer(playerId, position);
     if (wasCreated) {
       console.warn('Received position update for unknown player, created entity:', playerId);
     }
@@ -216,10 +215,10 @@ export class Game implements CallbacksHandler {
     this.gameStateManager.removePlayer(playerId);
   };
 
-  onPositionCorrected = (x: number, y: number): void => {
-    this.entityManager.updateLocalPlayerPosition(x, y);
-    this.movementController.onPositionCorrected(x, y);
-    console.log('Position corrected by server:', { x, y });
+  onPositionCorrected = (correctedPosition: Position): void => {
+    this.entityManager.updateLocalPlayerPosition(correctedPosition);
+    this.movementController.onPositionCorrected(correctedPosition);
+    console.log('Position corrected by server:', correctedPosition);
   };
 
   onAttackPerformed = (
@@ -279,13 +278,13 @@ export class Game implements CallbacksHandler {
     console.log('Player died:', playerId);
   };
 
-  onPlayerRespawned = (playerId: string, x: number, y: number): void => {
+  onPlayerRespawned = (playerId: string, position: Position): void => {
     const player = this.gameStateManager.getPlayer(playerId);
     if (player) {
       this.gameStateManager.updatePlayerHealth(playerId, player.maxHealth ?? 100, true);
     }
-    this.entityManager.showPlayer(playerId, x, y);
-    console.log('Player respawned:', { playerId, x, y });
+    this.entityManager.showPlayer(playerId, position);
+    console.log('Player respawned:', { playerId, position });
   };
 
   onGameEnded = (winnerId: string, _players: Player[]): void => {

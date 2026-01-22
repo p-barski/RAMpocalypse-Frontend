@@ -113,9 +113,9 @@ export class SignalRService implements CommunicationService {
     }
   }
 
-  async reportProjectileHit(projectileOwnerId: string, hitPlayerId: string, x: number, y: number): Promise<void> {
+  async reportProjectileHit(projectileOwnerId: string, hitPlayerId: string): Promise<void> {
     try {
-      await this.connection.invoke('ProjectileHitPlayer', projectileOwnerId, hitPlayerId, x, y);
+      await this.connection.invoke('ProjectileHitPlayer', projectileOwnerId, hitPlayerId);
     } catch (error) {
       console.error('SignalR: Failed to report projectile hit', error);
     }

@@ -10,6 +10,6 @@ export interface CommunicationService {
   performMeleeAttack: (attackDirection: Position) => Promise<void>;
   performProjectileAttack: (direction: Position) => Promise<void>;
   performSpecialAttack: (position: Position) => Promise<void>;
-  reportProjectileHit: (projectileOwnerId: string, hitPlayerId: string, x: number, y: number) => Promise<void>;
+  reportProjectileHit: (projectileOwnerId: string, hitPlayerId: string) => Promise<void>;
   leaveGame: () => Promise<void>;
 }

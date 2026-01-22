@@ -57,8 +57,8 @@ export class PlayerMovementController implements MovementController {
     const now = Date.now();
 
     // Calculate new position based on input
-    let newX = localPlayer.x;
-    let newY = localPlayer.y;
+    let newX = localPlayer.position.x;
+    let newY = localPlayer.position.y;
 
     if (this.inputHandler.isUpPressed()) {
       newY -= this.speed;
@@ -78,7 +78,7 @@ export class PlayerMovementController implements MovementController {
     newY = this.clampToBoundary(newY, localPlayer.height, this.GAME_HEIGHT);
 
     // Update entity position
-    this.entityManager.updateLocalPlayerPosition(newX, newY);
+    this.entityManager.updateLocalPlayerPosition({ x: newX, y: newY } as Position);
 
     // Send position update to server (throttled)
     if (now - this.lastPositionUpdateTime >= this.POSITION_UPDATE_INTERVAL) {
@@ -122,11 +122,11 @@ export class PlayerMovementController implements MovementController {
    * @param x The corrected X position
    * @param y The corrected Y position
    */
-  onPositionCorrected(x: number, y: number): void {
+  onPositionCorrected(position: Position): void {
     // Update last known position to match server-corrected position
     // This prevents sending incorrect positions after a correction
-    this.lastPositionX = x;
-    this.lastPositionY = y;
+    this.lastPositionX = position.x;
+    this.lastPositionY = position.y;
   }
 
   /**

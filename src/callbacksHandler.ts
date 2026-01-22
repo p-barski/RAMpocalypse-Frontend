@@ -2,9 +2,9 @@ import { Player, Position } from './messageInterfaces';
 
 export interface CallbacksHandler {
   onLobbyStart: (lobbyId: string, players: Player[]) => void;
-  onOtherPlayerPositionUpdated: (playerId: string, x: number, y: number) => void;
+  onOtherPlayerPositionUpdated: (playerId: string, position: Position) => void;
   onPlayerLeftLobby: (playerId: string) => void;
-  onPositionCorrected: (x: number, y: number) => void;
+  onPositionCorrected: (correctedPosition: Position) => void;
   onAttackPerformed: (
     playerId: string,
     attackType: number,
@@ -13,6 +13,6 @@ export interface CallbacksHandler {
   ) => void;
   onPlayerDamaged: (playerId: string, damage: number, newHealth: number) => void;
   onPlayerDied: (playerId: string) => void;
-  onPlayerRespawned: (playerId: string, x: number, y: number) => void;
+  onPlayerRespawned: (playerId: string, position: Position) => void;
   onGameEnded: (winnerId: string, players: Player[]) => void;
 }

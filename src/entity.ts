@@ -1,6 +1,7 @@
+import { Position } from './messageInterfaces';
+
 export interface Entity {
-  x: number; // Game world coordinates
-  y: number; // Game world coordinates
+  position: Position; // Game world coordinates
   image: ImageBitmap;
   scale: number; // Scale in game world units
   width: number; // Width in game world units

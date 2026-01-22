@@ -39,7 +39,7 @@ export class PlayerAttackController implements AttackController {
     const localPlayer = this.entityManager.getLocalPlayer();
     if (!localPlayer) return;
 
-    const direction = this.calculateAttackDirection(localPlayer.x, localPlayer.y);
+    const direction = this.calculateAttackDirection(localPlayer.position.x, localPlayer.position.y);
 
     this.setCooldown(AttackType.Melee);
     this.communicationService.performMeleeAttack(direction);
@@ -51,7 +51,7 @@ export class PlayerAttackController implements AttackController {
     const localPlayer = this.entityManager.getLocalPlayer();
     if (!localPlayer) return;
 
-    const direction = this.calculateAttackDirection(localPlayer.x, localPlayer.y);
+    const direction = this.calculateAttackDirection(localPlayer.position.x, localPlayer.position.y);
 
     this.setCooldown(AttackType.Projectile);
     this.communicationService.performProjectileAttack(direction);
@@ -64,7 +64,7 @@ export class PlayerAttackController implements AttackController {
     if (!localPlayer) return;
 
     this.setCooldown(AttackType.Special);
-    this.communicationService.performSpecialAttack({ x: localPlayer.x, y: localPlayer.y });
+    this.communicationService.performSpecialAttack({ x: localPlayer.position.x, y: localPlayer.position.y });
   }
 
   getCooldown(attackType: AttackType): number {
