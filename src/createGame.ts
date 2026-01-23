@@ -1,5 +1,4 @@
 import { PlayerAttackController } from './playerAttackController';
-import { AttackManager } from './attackSystem';
 import { PlayerEntityManager } from './playerEntityManager';
 import { Game } from './game';
 import { GameStateManager } from './gameStateManager';
@@ -38,15 +37,7 @@ export async function createGame(
     signalRService,
   );
   const attackController = new PlayerAttackController(entityManager, signalRService, gameStateManager, inputHandler);
-  const attackManager = new AttackManager();
-  const renderingService = new Renderer(
-    canvas,
-    entityManager,
-    viewportManager,
-    gameStateManager,
-    attackManager,
-    attackController,
-  );
+  const renderingService = new Renderer(canvas, entityManager, viewportManager, gameStateManager, attackController);
 
   // Create game with all dependencies injected
   const game = new Game(
@@ -59,7 +50,6 @@ export async function createGame(
     movementController,
     attackController,
     renderingService,
-    attackManager,
   );
   game.addEntity(fallbackImage, { x: 100, y: 100 }, 8, 1);
   return game;

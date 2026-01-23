@@ -1,4 +1,19 @@
-import { AttackType } from '../messageInterfaces';
+import { AttackType, Position } from '../messageInterfaces';
+
+export interface AttackEntity {
+  id: string;
+  type: AttackType;
+  currentPosition: Position;
+  direction: Position;
+  ownerId: string;
+  lifetime: number; // Time in ms the attack should exist
+  createdAt: number; // Timestamp when attack was created
+}
+
+export interface Projectile extends AttackEntity {
+  type: AttackType.Projectile;
+  speed: number;
+}
 
 export interface AttackController {
   performMeleeAttack(): void;
@@ -7,4 +22,9 @@ export interface AttackController {
   getCooldown(attackType: AttackType): number;
   getCooldownRemaining(attackType: AttackType): number;
   canPerformAttack(attackType: AttackType): boolean;
+  addAttack(attack: Omit<AttackEntity, 'id' | 'createdAt'>): string;
+  getAttacks(): AttackEntity[];
+  update(deltaTime: number): void;
+  removeAttack(id: string): void;
+  clear(): void;
 }

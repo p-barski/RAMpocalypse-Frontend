@@ -2,8 +2,7 @@ import { RenderingService } from './interfaces/renderingService';
 import { EntityManager } from './interfaces/entityManager';
 import { ViewportManager } from './interfaces/viewportManager';
 import { StateManager } from './interfaces/stateManager';
-import { AttackController } from './interfaces/attackController';
-import { AttackManager, AttackEntity } from './attackSystem';
+import { AttackController, AttackEntity } from './interfaces/attackController';
 import { AttackType } from './messageInterfaces';
 import { Entity } from './entity';
 import { drawImageToCanvas } from './canvasUtils';
@@ -23,7 +22,6 @@ export class Renderer implements RenderingService {
   private readonly entityManager: EntityManager;
   private readonly viewportManager: ViewportManager;
   private readonly gameStateManager: StateManager;
-  private readonly attackManager: AttackManager;
   private readonly attackController: AttackController;
 
   // Visual constants
@@ -54,7 +52,6 @@ export class Renderer implements RenderingService {
     entityManager: EntityManager,
     viewportManager: ViewportManager,
     gameStateManager: StateManager,
-    attackManager: AttackManager,
     attackController: AttackController,
   ) {
     const ctx = canvas.getContext('2d');
@@ -65,7 +62,6 @@ export class Renderer implements RenderingService {
     this.entityManager = entityManager;
     this.viewportManager = viewportManager;
     this.gameStateManager = gameStateManager;
-    this.attackManager = attackManager;
     this.attackController = attackController;
   }
 
@@ -164,7 +160,7 @@ export class Renderer implements RenderingService {
   }
 
   private drawAttacks(): void {
-    const attacks = this.attackManager.getAttacks();
+    const attacks = this.attackController.getAttacks();
     for (const attack of attacks) {
       this.drawAttack(attack);
     }

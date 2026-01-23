@@ -1,5 +1,4 @@
 import { Player, AttackType, Position } from './messageInterfaces';
-import { AttackManager } from './attackSystem';
 import { CallbacksHandler } from './callbacksHandler';
 import { CommunicationService } from './communicatonService';
 import { EntityManager } from './interfaces/entityManager';
@@ -30,7 +29,6 @@ export class Game implements CallbacksHandler {
   public readonly movementController: MovementController;
   public readonly attackController: AttackController;
   public readonly renderingService: RenderingService;
-  public readonly attackManager: AttackManager;
 
   // Game loop state
   private animationFrameId: number | null = null;
@@ -49,7 +47,6 @@ export class Game implements CallbacksHandler {
     movementController: MovementController,
     attackController: AttackController,
     renderingService: RenderingService,
-    attackManager: AttackManager,
   ) {
     this.communicationService = communicationService;
     this.abortSignal = abortSignal;
@@ -60,7 +57,6 @@ export class Game implements CallbacksHandler {
     this.movementController = movementController;
     this.attackController = attackController;
     this.renderingService = renderingService;
-    this.attackManager = attackManager;
   }
 
   /**
@@ -257,7 +253,7 @@ export class Game implements CallbacksHandler {
         attackData.speed = speed;
       }
 
-      this.attackManager.addAttack(attackData);
+      this.attackController.addAttack(attackData);
     } catch (error) {
       console.error('Error creating attack:', error);
     }
@@ -332,8 +328,8 @@ export class Game implements CallbacksHandler {
     const deltaTime = now - this.lastFrameTime;
     this.lastFrameTime = now;
 
-    // Update attack manager
-    this.attackManager.update(deltaTime);
+    // Update attack controller
+    this.attackController.update(deltaTime);
 
     // Update movement (handles input processing and server communication)
     this.movementController.update(deltaTime);
