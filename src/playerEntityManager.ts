@@ -7,6 +7,8 @@ export class PlayerEntityManager implements EntityManager {
   private readonly spriteManager: SpriteManager;
   private readonly entities: Entity[] = [];
   private readonly otherPlayers: Map<string, Entity> = new Map();
+  private readonly defaultScale = 8;
+  private readonly defaultSpriteVariant = 1;
   private localPlayer: Entity | null = null;
 
   constructor(spriteManager: SpriteManager) {
@@ -30,7 +32,11 @@ export class PlayerEntityManager implements EntityManager {
   /**
    * Creates and adds the local player entity
    */
-  async createLocalPlayer(position: Position, scale: number, spriteVariant: number): Promise<Entity> {
+  async createLocalPlayer(
+    position: Position,
+    scale = this.defaultScale,
+    spriteVariant = this.defaultSpriteVariant,
+  ): Promise<Entity> {
     const sprite = await this.spriteManager.getSpriteForVariant(spriteVariant);
 
     const entity: Entity = {
@@ -82,8 +88,8 @@ export class PlayerEntityManager implements EntityManager {
   async updateOrCreateOtherPlayer(
     playerId: string,
     position: Position,
-    scale = 8,
-    spriteVariant: number,
+    scale = this.defaultScale,
+    spriteVariant = this.defaultSpriteVariant,
   ): Promise<{ entity: Entity; wasCreated: boolean }> {
     const existingEntity = this.otherPlayers.get(playerId);
 
@@ -145,7 +151,7 @@ export class PlayerEntityManager implements EntityManager {
   /**
    * Shows a previously hidden player entity
    */
-  showPlayer(playerId: string, position?: Position): void {
+  showPlayer(playerId: string, position: Position): void {
     const entity = this.otherPlayers.get(playerId);
     if (entity) {
       if (position !== undefined) {

@@ -125,13 +125,9 @@ export class Game implements CallbacksHandler {
    * Creates the local player entity.
    * Called from App.tsx after loading the initial sprite.
    */
-  async addEntity(image: ImageBitmap, position: Position, scale: number, spriteVariant: number): Promise<void> {
-    await this.entityManager.createLocalPlayer(position, scale, spriteVariant);
+  async addEntity(image: ImageBitmap, position: Position, spriteVariant: number): Promise<void> {
+    await this.entityManager.createLocalPlayer(position, undefined, spriteVariant);
   }
-
-  // ============================================
-  // CallbacksHandler Implementation
-  // ============================================
 
   onLobbyStart = async (lobbyId: string, players: Player[]): Promise<void> => {
     if (this.abortSignal.aborted) return;
@@ -184,7 +180,7 @@ export class Game implements CallbacksHandler {
         const { wasCreated } = await this.entityManager.updateOrCreateOtherPlayer(
           player.id,
           player.position,
-          8,
+          undefined,
           player.spriteVariant,
         );
         console.log(wasCreated ? 'Created new entity for player:' : 'Updated existing entity for player:', player.id);
