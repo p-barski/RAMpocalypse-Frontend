@@ -131,6 +131,7 @@ export class Game implements CallbacksHandler {
 
   onLobbyStart = async (lobbyId: string, players: Player[]): Promise<void> => {
     if (this.abortSignal.aborted) return;
+    await this.delay();
     console.log('Lobby started:', { lobbyId, players });
 
     if (!this.playerId) {
@@ -189,13 +190,15 @@ export class Game implements CallbacksHandler {
   };
 
   onOtherPlayerPositionUpdated = async (playerId: string, position: Position): Promise<void> => {
+    await this.delay();
     const { wasCreated } = await this.entityManager.updateOrCreateOtherPlayer(playerId, position);
     if (wasCreated) {
       console.warn('Received position update for unknown player, created entity:', playerId);
     }
   };
 
-  onPlayerLeftLobby = (playerId: string): void => {
+  onPlayerLeftLobby = async (playerId: string): Promise<void> => {
+    await this.delay();
     const removed = this.entityManager.removeOtherPlayer(playerId);
     if (removed) {
       console.log('Removed player from game:', playerId);
@@ -203,18 +206,20 @@ export class Game implements CallbacksHandler {
     this.gameStateManager.removePlayer(playerId);
   };
 
-  onPositionCorrected = (correctedPosition: Position): void => {
+  onPositionCorrected = async (correctedPosition: Position): Promise<void> => {
+    await this.delay();
     this.entityManager.updateLocalPlayerPosition(correctedPosition);
     this.movementController.onPositionCorrected(correctedPosition);
     console.log('Position corrected by server:', correctedPosition);
   };
 
-  onAttackPerformed = (
+  onAttackPerformed = async (
     playerId: string,
     attackType: number,
     attackPosition: Position,
     attackDirection: Position,
-  ): void => {
+  ): Promise<void> => {
+    await this.delay();
     try {
       const type = attackType as AttackType;
       let lifetime = 500;
@@ -255,18 +260,21 @@ export class Game implements CallbacksHandler {
     }
   };
 
-  onPlayerDamaged = (playerId: string, damage: number, newHealth: number): void => {
+  onPlayerDamaged = async (playerId: string, damage: number, newHealth: number): Promise<void> => {
+    await this.delay();
     this.gameStateManager.updatePlayerHealth(playerId, newHealth);
     console.log('Player damaged:', { playerId, damage, newHealth });
   };
 
-  onPlayerDied = (playerId: string): void => {
+  onPlayerDied = async (playerId: string): Promise<void> => {
+    await this.delay();
     this.gameStateManager.updatePlayerHealth(playerId, 0, false);
     this.entityManager.hidePlayer(playerId);
     console.log('Player died:', playerId);
   };
 
-  onPlayerRespawned = (playerId: string, position: Position): void => {
+  onPlayerRespawned = async (playerId: string, position: Position): Promise<void> => {
+    await this.delay();
     const player = this.gameStateManager.getPlayer(playerId);
     if (player) {
       this.gameStateManager.updatePlayerHealth(playerId, player.maxHealth, true);
@@ -275,7 +283,8 @@ export class Game implements CallbacksHandler {
     console.log('Player respawned:', { playerId, position });
   };
 
-  onGameEnded = (winnerId: string, _players: Player[]): void => {
+  onGameEnded = async (winnerId: string, _players: Player[]): Promise<void> => {
+    await this.delay();
     this.gameStateManager.setGameState('ended');
     this.gameStateManager.setWinnerId(winnerId);
     console.log('Game ended, winner:', winnerId);
@@ -339,5 +348,9 @@ export class Game implements CallbacksHandler {
     this.update();
     this.render();
     this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
+  }
+
+  private async delay(): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }

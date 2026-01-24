@@ -6,9 +6,9 @@ import { CommunicationService } from './communicatonService';
 import { AttackType, Position } from './messageInterfaces';
 
 export class PlayerAttackController implements AttackController {
-  private readonly MELEE_COOLDOWN = 500;
-  private readonly PROJECTILE_COOLDOWN = 1000;
-  private readonly SPECIAL_COOLDOWN = 3000;
+  private readonly MELEE_COOLDOWN = 50;
+  private readonly PROJECTILE_COOLDOWN = 100;
+  private readonly SPECIAL_COOLDOWN = 300;
   private readonly entityManager: EntityManager;
   private readonly communicationService: CommunicationService;
   private readonly gameStateManager: StateManager;
@@ -42,6 +42,7 @@ export class PlayerAttackController implements AttackController {
     if (!localPlayer) return;
 
     const direction = this.calculateAttackDirection(localPlayer.position.x, localPlayer.position.y);
+    console.log(`Performing melee attack in direction: ${direction.x}, ${direction.y}`);
 
     this.setCooldown(AttackType.Melee);
     this.communicationService.performMeleeAttack(direction);
