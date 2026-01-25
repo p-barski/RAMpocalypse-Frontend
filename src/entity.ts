@@ -1,4 +1,4 @@
-import { Position } from './messageInterfaces';
+import { Position, SpriteData } from './messageInterfaces';
 
 export interface Entity {
   position: Position; // Game world coordinates
@@ -7,5 +7,5 @@ export interface Entity {
   width: number; // Width in game world units
   height: number; // Height in game world units
   playerId: string; // Player ID for remote players
-  spriteVariant: number; // Sprite variant for player
+  spriteData: SpriteData; // Sprite data for player
 }

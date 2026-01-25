@@ -3,10 +3,16 @@ export interface Position {
   y: number;
 }
 
+export interface SpriteData {
+  url: string;
+  width: number;
+  height: number;
+}
+
 export interface Player {
   id: string;
   position: Position;
-  spriteVariant: number;
+  spriteData: SpriteData;
   health: number;
   maxHealth: number;
   isAlive: boolean;

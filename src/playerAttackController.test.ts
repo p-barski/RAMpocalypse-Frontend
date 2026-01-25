@@ -22,7 +22,7 @@ describe('PlayerAttackController', () => {
       updateLocalPlayerPosition: jest.fn(),
       updateLocalPlayerSprite: jest.fn(),
       createOtherPlayer: jest.fn(),
-      updateOrCreateOtherPlayer: jest.fn(),
+      updatePlayerPosition: jest.fn(),
       removeOtherPlayer: jest.fn(),
       hidePlayer: jest.fn(),
       showPlayer: jest.fn(),

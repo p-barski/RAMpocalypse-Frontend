@@ -1,4 +1,4 @@
-import { Player, AttackType, Position } from './messageInterfaces';
+import { Player, AttackType, Position, SpriteData } from './messageInterfaces';
 import { CallbacksHandler } from './callbacksHandler';
 import { CommunicationService } from './communicatonService';
 import { EntityManager } from './interfaces/entityManager';
@@ -125,8 +125,8 @@ export class Game implements CallbacksHandler {
    * Creates the local player entity.
    * Called from App.tsx after loading the initial sprite.
    */
-  async addEntity(image: ImageBitmap, position: Position, spriteVariant: number): Promise<void> {
-    await this.entityManager.createLocalPlayer(position, undefined, spriteVariant);
+  async addEntity(image: ImageBitmap, position: Position, spriteData: SpriteData): Promise<void> {
+    await this.entityManager.createLocalPlayer(position, spriteData);
   }
 
   onLobbyStart = async (lobbyId: string, players: Player[]): Promise<void> => {
@@ -152,21 +152,14 @@ export class Game implements CallbacksHandler {
 
     // Initialize health for all players in game state
     for (const player of players) {
-      this.gameStateManager.addPlayer({
-        id: player.id,
-        position: player.position,
-        spriteVariant: player.spriteVariant,
-        health: player.health,
-        maxHealth: player.maxHealth,
-        isAlive: player.isAlive !== false,
-      } satisfies Player);
+      this.gameStateManager.addPlayer(player);
     }
 
     // Update local player position and sprite
     const localPlayer = this.entityManager.getLocalPlayer();
     if (localPlayer) {
       this.entityManager.updateLocalPlayerPosition(currentPlayer.position);
-      await this.entityManager.updateLocalPlayerSprite(currentPlayer.spriteVariant);
+      await this.entityManager.updateLocalPlayerSprite(currentPlayer.spriteData);
     }
 
     // Reset position tracking
@@ -178,22 +171,17 @@ export class Game implements CallbacksHandler {
     // Create entities for other players
     for (const player of players) {
       if (player.id !== this.playerId) {
-        const { wasCreated } = await this.entityManager.updateOrCreateOtherPlayer(
-          player.id,
-          player.position,
-          undefined,
-          player.spriteVariant,
-        );
-        console.log(wasCreated ? 'Created new entity for player:' : 'Updated existing entity for player:', player.id);
+        const entity = await this.entityManager.createOtherPlayer(player.id, player.position, player.spriteData);
       }
     }
   };
 
   onOtherPlayerPositionUpdated = async (playerId: string, position: Position): Promise<void> => {
     await this.delay();
-    const { wasCreated } = await this.entityManager.updateOrCreateOtherPlayer(playerId, position);
-    if (wasCreated) {
-      console.warn('Received position update for unknown player, created entity:', playerId);
+    try {
+      const entity = await this.entityManager.updatePlayerPosition(playerId, position);
+    } catch (error) {
+      console.error('Error updating player position:', error);
     }
   };
 

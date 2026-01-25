@@ -22,7 +22,12 @@ export async function createGame(
   abortController: AbortController,
   canvas: HTMLCanvasElement,
 ): Promise<Game> {
-  const fallbackImage = await ResourceLoader.loadImage(`${serverUrl}/assets/sprites/player_1.png`);
+  const spriteData = {
+    url: `${serverUrl}/assets/sprites/player_1.png`,
+    width: 64,
+    height: 32,
+  };
+  const fallbackImage = await ResourceLoader.loadImage(spriteData.url);
   // Create all services with dependency injection
   const signalRService = new SignalRService(serverUrl, abortController.signal);
   const spriteManager = new SpriteLoader(serverUrl, fallbackImage);
@@ -51,6 +56,6 @@ export async function createGame(
     attackController,
     renderingService,
   );
-  game.addEntity(fallbackImage, { x: 100, y: 100 }, 1);
+  game.addEntity(fallbackImage, { x: 100, y: 100 }, spriteData);
   return game;
 }

@@ -1,14 +1,13 @@
 import { EntityManager } from './interfaces/entityManager';
 import { SpriteManager } from './interfaces/spriteManager';
 import { Entity } from './entity';
-import { Position } from './messageInterfaces';
+import { Position, SpriteData } from './messageInterfaces';
 
 export class PlayerEntityManager implements EntityManager {
   private readonly spriteManager: SpriteManager;
   private readonly entities: Entity[] = [];
   private readonly otherPlayers: Map<string, Entity> = new Map();
   private readonly defaultScale = 8;
-  private readonly defaultSpriteVariant = 1;
   private localPlayer: Entity | null = null;
 
   constructor(spriteManager: SpriteManager) {
@@ -32,12 +31,8 @@ export class PlayerEntityManager implements EntityManager {
   /**
    * Creates and adds the local player entity
    */
-  async createLocalPlayer(
-    position: Position,
-    scale = this.defaultScale,
-    spriteVariant = this.defaultSpriteVariant,
-  ): Promise<Entity> {
-    const sprite = await this.spriteManager.getSpriteForVariant(spriteVariant);
+  async createLocalPlayer(position: Position, spriteData: SpriteData, scale = this.defaultScale): Promise<Entity> {
+    const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
 
     const entity: Entity = {
       position,
@@ -46,7 +41,7 @@ export class PlayerEntityManager implements EntityManager {
       width: sprite.width * scale,
       height: sprite.height * scale,
       playerId: '',
-      spriteVariant: spriteVariant,
+      spriteData: spriteData,
     };
 
     this.localPlayer = entity;
@@ -63,17 +58,17 @@ export class PlayerEntityManager implements EntityManager {
   /**
    * Creates and adds an entity for another player
    */
-  async createOtherPlayer(playerId: string, position: Position, scale: number, spriteVariant: number): Promise<Entity> {
-    const sprite = await this.spriteManager.getSpriteForVariant(spriteVariant);
+  async createOtherPlayer(playerId: string, position: Position, spriteData: SpriteData): Promise<Entity> {
+    const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
 
     const entity: Entity = {
       position,
       image: sprite,
-      scale,
-      width: sprite.width * scale,
-      height: sprite.height * scale,
+      scale: this.defaultScale,
+      width: sprite.width * this.defaultScale,
+      height: sprite.height * this.defaultScale,
       playerId,
-      spriteVariant: spriteVariant,
+      spriteData: spriteData,
     };
 
     this.otherPlayers.set(playerId, entity);
@@ -85,21 +80,14 @@ export class PlayerEntityManager implements EntityManager {
    * Updates or creates an entity for another player
    * Returns true if the entity already existed, false if it was created
    */
-  async updateOrCreateOtherPlayer(
-    playerId: string,
-    position: Position,
-    scale = this.defaultScale,
-    spriteVariant = this.defaultSpriteVariant,
-  ): Promise<{ entity: Entity; wasCreated: boolean }> {
+  async updatePlayerPosition(playerId: string, position: Position): Promise<Entity> {
     const existingEntity = this.otherPlayers.get(playerId);
 
     if (existingEntity) {
       existingEntity.position = position;
-      return { entity: existingEntity, wasCreated: false };
+      return existingEntity;
     }
-
-    const entity = await this.createOtherPlayer(playerId, position, scale, spriteVariant);
-    return { entity, wasCreated: true };
+    throw new Error(`Player with id ${playerId} not found`);
   }
 
   /**
@@ -114,12 +102,12 @@ export class PlayerEntityManager implements EntityManager {
   /**
    * Updates the local player's sprite
    */
-  async updateLocalPlayerSprite(spriteVariant: number): Promise<void> {
+  async updateLocalPlayerSprite(spriteData: SpriteData): Promise<void> {
     if (!this.localPlayer) return;
 
-    const sprite = await this.spriteManager.getSpriteForVariant(spriteVariant);
+    const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
     this.localPlayer.image = sprite;
-    this.localPlayer.spriteVariant = spriteVariant;
+    this.localPlayer.spriteData = spriteData;
   }
 
   /**

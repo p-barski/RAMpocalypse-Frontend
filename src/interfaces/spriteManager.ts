@@ -1,3 +1,5 @@
+import { SpriteData } from '../messageInterfaces';
+
 export interface SpriteManager {
-  getSpriteForVariant(variant: number): Promise<ImageBitmap>;
+  getSpriteForVariant(spriteData: SpriteData): Promise<ImageBitmap>;
 }
