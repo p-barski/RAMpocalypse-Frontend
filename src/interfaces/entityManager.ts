@@ -5,7 +5,7 @@ export interface EntityManager {
   getEntities(): Entity[];
   getLocalPlayer(): Entity | null;
   clearEntities(): void;
-  createLocalPlayer(position: Position, spriteData: SpriteData, scale?: number): Promise<Entity>;
+  createLocalPlayer(position: Position, spriteData: SpriteData): Promise<Entity>;
   updateLocalPlayerId(playerId: string): void;
   updateLocalPlayerPosition(position: Position): void;
   updateLocalPlayerSprite(spriteData: SpriteData): Promise<void>;

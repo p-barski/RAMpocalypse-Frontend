@@ -7,7 +7,6 @@ export class PlayerEntityManager implements EntityManager {
   private readonly spriteManager: SpriteManager;
   private readonly entities: Entity[] = [];
   private readonly otherPlayers: Map<string, Entity> = new Map();
-  private readonly defaultScale = 8;
   private localPlayer: Entity | null = null;
 
   constructor(spriteManager: SpriteManager) {
@@ -31,15 +30,14 @@ export class PlayerEntityManager implements EntityManager {
   /**
    * Creates and adds the local player entity
    */
-  async createLocalPlayer(position: Position, spriteData: SpriteData, scale = this.defaultScale): Promise<Entity> {
+  async createLocalPlayer(position: Position, spriteData: SpriteData): Promise<Entity> {
     const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
 
     const entity: Entity = {
       position,
       image: sprite,
-      scale,
-      width: sprite.width * scale,
-      height: sprite.height * scale,
+      width: sprite.width * spriteData.scaleFactor,
+      height: sprite.height * spriteData.scaleFactor,
       playerId: '',
       spriteData: spriteData,
     };
@@ -64,9 +62,8 @@ export class PlayerEntityManager implements EntityManager {
     const entity: Entity = {
       position,
       image: sprite,
-      scale: this.defaultScale,
-      width: sprite.width * this.defaultScale,
-      height: sprite.height * this.defaultScale,
+      width: sprite.width * spriteData.scaleFactor,
+      height: sprite.height * spriteData.scaleFactor,
       playerId,
       spriteData: spriteData,
     };
@@ -108,6 +105,8 @@ export class PlayerEntityManager implements EntityManager {
     const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
     this.localPlayer.image = sprite;
     this.localPlayer.spriteData = spriteData;
+    this.localPlayer.width = sprite.width * spriteData.scaleFactor;
+    this.localPlayer.height = sprite.height * spriteData.scaleFactor;
   }
 
   /**

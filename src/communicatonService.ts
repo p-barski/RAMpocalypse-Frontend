@@ -5,7 +5,7 @@ export interface CommunicationService {
   connect: (callbacksHandler: CallbacksHandler) => Promise<string>;
   isConnected: () => boolean;
   disconnect: () => Promise<void>;
-  requestMatchmaking: () => Promise<boolean>;
+  requestMatchmaking: () => Promise<void>;
   updatePlayerPosition: (position: Position) => Promise<void>;
   performMeleeAttack: (attackDirection: Position) => Promise<void>;
   performProjectileAttack: (direction: Position) => Promise<void>;

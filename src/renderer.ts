@@ -117,7 +117,7 @@ export class Renderer implements RenderingService {
   private drawEntity(entity: Entity, scaleX: number): void {
     const canvasX = Math.round(this.viewportManager.gameToCanvasX(entity.position.x));
     const canvasY = Math.round(this.viewportManager.gameToCanvasY(entity.position.y));
-    const canvasScale = this.viewportManager.gameToCanvasSize(entity.scale);
+    const canvasScale = this.viewportManager.gameToCanvasSize(entity.spriteData.scaleFactor);
 
     // Draw the entity sprite
     drawImageToCanvas(this.ctx, entity.image, canvasX, canvasY, canvasScale);

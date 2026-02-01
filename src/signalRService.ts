@@ -69,13 +69,12 @@ export class SignalRService implements CommunicationService {
     console.log('SignalR: Disconnected');
   }
 
-  async requestMatchmaking(): Promise<boolean> {
+  async requestMatchmaking(): Promise<void> {
     try {
-      const result = await this.connection.invoke<boolean>('RequestMatchmaking');
-      console.log('SignalR: Matchmaking requested', result);
-      return result;
+      await this.connection.invoke('RequestMatchmaking');
+      console.log('SignalR: Matchmaking requested');
     } catch (error) {
-      if (this.abortSignal.aborted) return false;
+      if (this.abortSignal.aborted) return;
       console.error('SignalR: Failed to request matchmaking', error);
       throw error;
     }

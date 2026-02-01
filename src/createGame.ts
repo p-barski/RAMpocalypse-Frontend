@@ -26,6 +26,7 @@ export async function createGame(
     url: `${serverUrl}/assets/sprites/player_1.png`,
     width: 64,
     height: 32,
+    scaleFactor: 8,
   };
   const fallbackImage = await ResourceLoader.loadImage(spriteData.url);
   // Create all services with dependency injection

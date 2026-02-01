@@ -7,6 +7,7 @@ export interface SpriteData {
   url: string;
   width: number;
   height: number;
+  scaleFactor: number;
 }
 
 export interface Player {
