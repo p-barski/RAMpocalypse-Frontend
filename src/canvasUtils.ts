@@ -4,18 +4,27 @@ export function drawImageToCanvas(
   x: number,
   y: number,
   scale: number,
-) {
-  // Ensure image smoothing is disabled for pixel art
+  angle?: number,
+): void {
   ctx.imageSmoothingEnabled = false;
 
-  // Round dimensions to avoid sub-pixel rendering
   const drawWidth = Math.round(image.width * scale);
   const drawHeight = Math.round(image.height * scale);
   const drawX = Math.round(x);
   const drawY = Math.round(y);
 
-  // Draw the image
-  ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+  if (angle !== undefined && angle !== 0) {
+    const centerX = drawX + drawWidth / 2;
+    const centerY = drawY + drawHeight / 2;
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(angle);
+    ctx.translate(-drawWidth / 2, -drawHeight / 2);
+    ctx.drawImage(image, 0, 0, drawWidth, drawHeight);
+    ctx.restore();
+  } else {
+    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+  }
 }
 
 export function loadImage(src: string): Promise<HTMLImageElement> {

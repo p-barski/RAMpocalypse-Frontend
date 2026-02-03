@@ -67,7 +67,7 @@ export class PlayerAttackController implements AttackController {
     if (!localPlayer) return;
 
     this.setCooldown(AttackType.Special);
-    this.communicationService.performSpecialAttack({ x: localPlayer.position.x, y: localPlayer.position.y });
+    this.communicationService.performSpecialAttack(localPlayer.position);
   }
 
   getCooldown(attackType: AttackType): number {
@@ -161,12 +161,13 @@ export class PlayerAttackController implements AttackController {
 
     // Default to up direction if mouse is exactly on player
     if (length === 0) {
-      return { x: 0, y: -1 };
+      return { x: 0, y: -1, angle: 0 };
     }
 
     return {
       x: directionX / length,
       y: directionY / length,
+      angle: 0,
     };
   }
 }

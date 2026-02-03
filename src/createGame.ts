@@ -57,6 +57,6 @@ export async function createGame(
     attackController,
     renderingService,
   );
-  game.addEntity(fallbackImage, { x: 100, y: 100 }, spriteData);
+  game.addEntity(fallbackImage, { x: 100, y: 100, angle: 0 }, spriteData);
   return game;
 }

@@ -1,6 +1,7 @@
 export interface Position {
   x: number;
   y: number;
+  angle: number;
 }
 
 export interface SpriteData {

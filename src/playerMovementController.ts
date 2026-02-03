@@ -26,8 +26,7 @@ export class PlayerMovementController implements MovementController {
   private readonly communicationService: CommunicationService;
 
   private speed = 5;
-  private lastPositionX = -1;
-  private lastPositionY = -1;
+  private lastPosition: Position = { x: -1, y: -1, angle: 0 };
   private lastPositionUpdateTime = 0;
 
   constructor(
@@ -77,17 +76,23 @@ export class PlayerMovementController implements MovementController {
     newX = this.clampToBoundary(newX, localPlayer.width, this.GAME_WIDTH);
     newY = this.clampToBoundary(newY, localPlayer.height, this.GAME_HEIGHT);
 
-    // Update entity position
-    this.entityManager.updateLocalPlayerPosition({ x: newX, y: newY } satisfies Position);
+    // Angle from player to mouse (radians)
+    const mouseX = this.inputHandler.getMouseX();
+    const mouseY = this.inputHandler.getMouseY();
+    const angle = Math.atan2(mouseX - newX - localPlayer.width / 2, -(mouseY - newY - localPlayer.height / 2));
+
+    const position: Position = { x: newX, y: newY, angle };
+
+    // Update entity position (including rotation)
+    this.entityManager.updateLocalPlayerPosition(position);
 
     // Send position update to server (throttled)
-    if (now - this.lastPositionUpdateTime >= this.POSITION_UPDATE_INTERVAL) {
-      if (newX !== this.lastPositionX || newY !== this.lastPositionY) {
-        this.sendPositionUpdate({ x: newX, y: newY });
-        this.lastPositionX = newX;
-        this.lastPositionY = newY;
-        this.lastPositionUpdateTime = now;
-      }
+    const positionChanged =
+      newX !== this.lastPosition.x || newY !== this.lastPosition.y || angle !== this.lastPosition.angle;
+    if (now - this.lastPositionUpdateTime >= this.POSITION_UPDATE_INTERVAL && positionChanged) {
+      this.sendPositionUpdate(position);
+      this.lastPosition = position;
+      this.lastPositionUpdateTime = now;
     }
   }
 
@@ -125,8 +130,7 @@ export class PlayerMovementController implements MovementController {
   onPositionCorrected(position: Position): void {
     // Update last known position to match server-corrected position
     // This prevents sending incorrect positions after a correction
-    this.lastPositionX = position.x;
-    this.lastPositionY = position.y;
+    this.lastPosition = position;
   }
 
   /**
@@ -134,8 +138,7 @@ export class PlayerMovementController implements MovementController {
    * Useful when starting a new game or lobby.
    */
   resetPositionTracking(): void {
-    this.lastPositionX = -1;
-    this.lastPositionY = -1;
+    this.lastPosition = { x: -1, y: -1, angle: 0 };
     this.lastPositionUpdateTime = 0;
   }
 

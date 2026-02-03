@@ -119,10 +119,10 @@ export class Renderer implements RenderingService {
     const canvasY = Math.round(this.viewportManager.gameToCanvasY(entity.position.y));
     const canvasScale = this.viewportManager.gameToCanvasSize(entity.spriteData.scaleFactor);
 
-    // Draw the entity sprite
-    drawImageToCanvas(this.ctx, entity.image, canvasX, canvasY, canvasScale);
+    // Draw the entity sprite (rotated around its center)
+    drawImageToCanvas(this.ctx, entity.image, canvasX, canvasY, canvasScale, entity.position.angle);
 
-    // Draw health bar for the entity
+    // Draw health bar for the entity (not rotated)
     this.drawEntityHealthBar(entity, canvasX, canvasY, scaleX);
   }
 
