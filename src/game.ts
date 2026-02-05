@@ -1,4 +1,4 @@
-import { Player, AttackType, Position, SpriteData } from './messageInterfaces';
+import { Player, AttackType, Position } from './messageInterfaces';
 import { CallbacksHandler } from './callbacksHandler';
 import { CommunicationService } from './communicatonService';
 import { EntityManager } from './interfaces/entityManager';
@@ -59,9 +59,6 @@ export class Game implements CallbacksHandler {
     this.renderingService = renderingService;
   }
 
-  /**
-   * Starts the game loop
-   */
   start(): void {
     if (this.animationFrameId === null) {
       this.lastFrameTime = Date.now();
@@ -69,9 +66,6 @@ export class Game implements CallbacksHandler {
     }
   }
 
-  /**
-   * Stops the game loop and disconnects from the server
-   */
   stop(): void {
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
@@ -81,15 +75,11 @@ export class Game implements CallbacksHandler {
     this.inputHandler.cleanup();
     this.viewportManager.cleanup();
 
-    // Disconnect from server
     this.communicationService.disconnect().catch((error) => {
       console.warn('Game: Error during disconnect (ignored)', error);
     });
   }
 
-  /**
-   * Connects to the game server
-   */
   async connect(): Promise<void> {
     try {
       this.playerId = await this.communicationService.connect(this);
@@ -100,33 +90,19 @@ export class Game implements CallbacksHandler {
       throw error;
     }
     this.setupInput();
-    // this.setupResize();
   }
 
-  /**
-   * Requests matchmaking from the server
-   */
   async requestMatchmaking(): Promise<void> {
-    if (this.communicationService.isConnected()) {
-      await this.communicationService.requestMatchmaking();
-    }
+    // TODO check if already playing
+    this.gameStateManager.setGameState('waiting');
+    this.gameStateManager.setWinnerId('');
+    await this.communicationService.requestMatchmaking();
   }
 
-  /**
-   * Leaves the current game
-   */
   async leaveGame(): Promise<void> {
-    if (this.communicationService.isConnected()) {
-      await this.communicationService.leaveGame();
-    }
-  }
-
-  /**
-   * Creates the local player entity.
-   * Called from App.tsx after loading the initial sprite.
-   */
-  async addEntity(image: ImageBitmap, position: Position, spriteData: SpriteData): Promise<void> {
-    await this.entityManager.createLocalPlayer(position, spriteData);
+    await this.communicationService.leaveGame();
+    this.entityManager.clearOtherPlayers();
+    this.gameStateManager.reset();
   }
 
   onLobbyStart = async (lobbyId: string, players: Player[]): Promise<void> => {
@@ -156,11 +132,8 @@ export class Game implements CallbacksHandler {
     }
 
     // Update local player position and sprite
-    const localPlayer = this.entityManager.getLocalPlayer();
-    if (localPlayer) {
-      this.entityManager.updateLocalPlayerPosition(currentPlayer.position);
-      await this.entityManager.updateLocalPlayerSprite(currentPlayer.spriteData);
-    }
+    this.entityManager.updateLocalPlayerPosition(currentPlayer.position);
+    await this.entityManager.updateLocalPlayerSprite(currentPlayer.spriteData);
 
     // Reset position tracking
     this.movementController.resetPositionTracking();
@@ -171,27 +144,24 @@ export class Game implements CallbacksHandler {
     // Create entities for other players
     for (const player of players) {
       if (player.id !== this.playerId) {
-        const entity = await this.entityManager.createOtherPlayer(player.id, player.position, player.spriteData);
+        await this.entityManager.createOtherPlayer(player.id, player.position, player.spriteData);
       }
     }
   };
 
   onOtherPlayerPositionUpdated = async (playerId: string, position: Position): Promise<void> => {
     await this.delay();
-    try {
-      const entity = await this.entityManager.updatePlayerPosition(playerId, position);
-    } catch (error) {
-      console.error('Error updating player position:', error);
-    }
+    this.entityManager.updatePlayerPosition(playerId, position);
   };
 
   onPlayerLeftLobby = async (playerId: string): Promise<void> => {
     await this.delay();
-    const removed = this.entityManager.removeOtherPlayer(playerId);
-    if (removed) {
-      console.log('Removed player from game:', playerId);
-    }
+    this.entityManager.removeOtherPlayer(playerId);
     this.gameStateManager.removePlayer(playerId);
+    if (this.gameStateManager.getAllPlayers().size === 1) {
+      this.entityManager.clearOtherPlayers();
+      this.gameStateManager.reset();
+    }
   };
 
   onPositionCorrected = async (correctedPosition: Position): Promise<void> => {
@@ -271,8 +241,10 @@ export class Game implements CallbacksHandler {
     console.log('Player respawned:', { playerId, position });
   };
 
-  onGameEnded = async (winnerId: string, _players: Player[]): Promise<void> => {
+  onGameEnded = async (winnerId: string): Promise<void> => {
     await this.delay();
+    this.entityManager.clearOtherPlayers();
+    this.gameStateManager.reset();
     this.gameStateManager.setGameState('ended');
     this.gameStateManager.setWinnerId(winnerId);
     console.log('Game ended, winner:', winnerId);
@@ -287,15 +259,6 @@ export class Game implements CallbacksHandler {
     this.inputHandler.setAttackCallback(this.handleAttackInput);
     this.inputHandler.setup();
   }
-
-  // private setupResize(): void {
-  //   window.addEventListener('resize', this.boundResize);
-  //   this.viewportManager.resizeCanvas();
-  // }
-
-  // private handleResize(): void {
-  //   this.viewportManager.resizeCanvas();
-  // }
 
   private handleAttackInput = (attackType: AttackInputType): void => {
     // Only allow attacks when playing
@@ -328,13 +291,9 @@ export class Game implements CallbacksHandler {
     this.movementController.update(deltaTime);
   }
 
-  private render(): void {
-    this.renderingService.render();
-  }
-
   private gameLoop(): void {
     this.update();
-    this.render();
+    this.renderingService.render();
     this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
   }
 

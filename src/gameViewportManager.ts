@@ -10,14 +10,12 @@ import { ViewportManager } from './interfaces/viewportManager';
  * - Viewport positioning (centering the game world on the canvas)
  */
 export class GameViewportManager implements ViewportManager {
+  public readonly GAME_WIDTH = 1920;
+  public readonly GAME_HEIGHT = 1080;
+  private readonly BORDER_WIDTH = 2;
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
   private readonly guid = crypto.randomUUID();
-
-  // Game world dimensions (fixed)
-  private readonly GAME_WIDTH = 1920;
-  private readonly GAME_HEIGHT = 1080;
-  private readonly BORDER_WIDTH = 2;
 
   // Viewport state (calculated on resize)
   private viewportX = 0;

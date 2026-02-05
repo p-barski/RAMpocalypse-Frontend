@@ -16,8 +16,7 @@ describe('PlayerAttackController', () => {
     mockEntityManager = {
       getLocalPlayer: jest.fn(),
       getEntities: jest.fn(),
-      clearEntities: jest.fn(),
-      createLocalPlayer: jest.fn(),
+      clearOtherPlayers: jest.fn(),
       updateLocalPlayerId: jest.fn(),
       updateLocalPlayerPosition: jest.fn(),
       updateLocalPlayerSprite: jest.fn(),
@@ -120,7 +119,14 @@ describe('PlayerAttackController', () => {
     it('should not attack when local player is null', () => {
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);
-      mockEntityManager.getLocalPlayer.mockReturnValue(null);
+      mockEntityManager.getLocalPlayer.mockReturnValue({
+        position: { x: 100, y: 200, angle: 0 },
+        image: new ImageBitmap(),
+        width: 100,
+        height: 100,
+        playerId: '1',
+        spriteData: { url: 'test.png', width: 100, height: 100, scaleFactor: 1 },
+      } satisfies Entity);
 
       attackController.performMeleeAttack();
 

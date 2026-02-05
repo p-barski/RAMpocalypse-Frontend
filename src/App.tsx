@@ -53,21 +53,13 @@ function App() {
 
   const handleRequestMatchmaking = async () => {
     if (gameRef.current) {
-      try {
-        await gameRef.current.requestMatchmaking();
-      } catch (error) {
-        console.error('Error requesting matchmaking:', error);
-      }
+      await gameRef.current.requestMatchmaking();
     }
   };
 
   const handleLeaveGame = async () => {
     if (gameRef.current) {
-      try {
-        await gameRef.current.leaveGame();
-      } catch (error) {
-        console.error('Error leaving game:', error);
-      }
+      await gameRef.current.leaveGame();
     }
   };
 

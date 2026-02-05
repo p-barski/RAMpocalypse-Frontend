@@ -39,7 +39,6 @@ export class PlayerAttackController implements AttackController {
     if (!this.canPerformAttack(AttackType.Melee)) return;
 
     const localPlayer = this.entityManager.getLocalPlayer();
-    if (!localPlayer) return;
 
     const direction = this.calculateAttackDirection(localPlayer.position.x, localPlayer.position.y);
     console.log(`Performing melee attack in direction: ${direction.x}, ${direction.y}`);

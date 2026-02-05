@@ -7,33 +7,11 @@ export class PlayerEntityManager implements EntityManager {
   private readonly spriteManager: SpriteManager;
   private readonly entities: Entity[] = [];
   private readonly otherPlayers: Map<string, Entity> = new Map();
-  private localPlayer: Entity | null = null;
+  private readonly localPlayer: Entity;
 
-  constructor(spriteManager: SpriteManager) {
+  constructor(spriteManager: SpriteManager, position: Position, spriteData: SpriteData, sprite: ImageBitmap) {
     this.spriteManager = spriteManager;
-  }
-
-  getEntities(): Entity[] {
-    return this.entities;
-  }
-
-  getLocalPlayer(): Entity | null {
-    return this.localPlayer;
-  }
-
-  clearEntities(): void {
-    this.entities.length = 0;
-    this.otherPlayers.clear();
-    this.localPlayer = null;
-  }
-
-  /**
-   * Creates and adds the local player entity
-   */
-  async createLocalPlayer(position: Position, spriteData: SpriteData): Promise<Entity> {
-    const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
-
-    const entity: Entity = {
+    this.localPlayer = {
       position,
       image: sprite,
       width: sprite.width * spriteData.scaleFactor,
@@ -41,21 +19,27 @@ export class PlayerEntityManager implements EntityManager {
       playerId: '',
       spriteData: spriteData,
     };
-
-    this.localPlayer = entity;
-    this.entities.push(entity);
-    return entity;
+    this.entities.push(this.localPlayer);
   }
 
-  updateLocalPlayerId(playerId: string): void {
-    if (this.localPlayer) {
-      this.localPlayer.playerId = playerId;
+  getEntities(): Entity[] {
+    return this.entities;
+  }
+
+  getLocalPlayer(): Entity {
+    return this.localPlayer;
+  }
+
+  clearOtherPlayers(): void {
+    for (const entity of Array.from(this.otherPlayers.values())) {
+      this.removeEntity(entity);
     }
   }
 
-  /**
-   * Creates and adds an entity for another player
-   */
+  updateLocalPlayerId(playerId: string): void {
+    this.localPlayer.playerId = playerId;
+  }
+
   async createOtherPlayer(playerId: string, position: Position, spriteData: SpriteData): Promise<Entity> {
     const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
 
@@ -73,35 +57,21 @@ export class PlayerEntityManager implements EntityManager {
     return entity;
   }
 
-  /**
-   * Updates or creates an entity for another player
-   * Returns true if the entity already existed, false if it was created
-   */
-  async updatePlayerPosition(playerId: string, position: Position): Promise<Entity> {
+  updatePlayerPosition(playerId: string, position: Position): void {
     const existingEntity = this.otherPlayers.get(playerId);
 
     if (existingEntity) {
       existingEntity.position = position;
-      return existingEntity;
+    } else {
+      console.error(`PlayerEntityManager.updatePlayerPosition:Player with id ${playerId} not found`);
     }
-    throw new Error(`Player with id ${playerId} not found`);
   }
 
-  /**
-   * Updates the local player's position
-   */
   updateLocalPlayerPosition(position: Position): void {
-    if (this.localPlayer) {
-      this.localPlayer.position = position;
-    }
+    this.localPlayer.position = position;
   }
 
-  /**
-   * Updates the local player's sprite
-   */
   async updateLocalPlayerSprite(spriteData: SpriteData): Promise<void> {
-    if (!this.localPlayer) return;
-
     const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
     this.localPlayer.image = sprite;
     this.localPlayer.spriteData = spriteData;
@@ -109,9 +79,6 @@ export class PlayerEntityManager implements EntityManager {
     this.localPlayer.height = sprite.height * spriteData.scaleFactor;
   }
 
-  /**
-   * Removes another player by their playerId
-   */
   removeOtherPlayer(playerId: string): boolean {
     const entity = this.otherPlayers.get(playerId);
     if (entity) {
@@ -121,10 +88,6 @@ export class PlayerEntityManager implements EntityManager {
     return false;
   }
 
-  /**
-   * Temporarily hides a player entity (e.g., when they die)
-   * The entity remains in otherPlayers but is removed from the visible entities list
-   */
   hidePlayer(playerId: string): void {
     const entity = this.otherPlayers.get(playerId);
     if (entity) {
@@ -135,9 +98,6 @@ export class PlayerEntityManager implements EntityManager {
     }
   }
 
-  /**
-   * Shows a previously hidden player entity
-   */
   showPlayer(playerId: string, position: Position): void {
     const entity = this.otherPlayers.get(playerId);
     if (entity) {
@@ -160,11 +120,6 @@ export class PlayerEntityManager implements EntityManager {
     // Also remove from otherPlayers if it has a playerId
     if (entity.playerId) {
       this.otherPlayers.delete(entity.playerId);
-    }
-
-    // Clear local player reference if removed
-    if (entity === this.localPlayer) {
-      this.localPlayer = null;
     }
   }
 }

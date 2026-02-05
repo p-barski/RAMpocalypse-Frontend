@@ -76,7 +76,6 @@ export class SignalRService implements CommunicationService {
     } catch (error) {
       if (this.abortSignal.aborted) return;
       console.error('SignalR: Failed to request matchmaking', error);
-      throw error;
     }
   }
 

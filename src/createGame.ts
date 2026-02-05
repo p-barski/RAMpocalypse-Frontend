@@ -30,11 +30,13 @@ export async function createGame(
   };
   const fallbackImage = await ResourceLoader.loadImage(spriteData.url);
   // Create all services with dependency injection
-  const signalRService = new SignalRService(serverUrl, abortController.signal);
-  const spriteManager = new SpriteLoader(serverUrl, fallbackImage);
-  const entityManager = new PlayerEntityManager(spriteManager);
   const gameStateManager = new GameStateManager();
   const viewportManager = new GameViewportManager(canvas);
+  const signalRService = new SignalRService(serverUrl, abortController.signal);
+  const spriteManager = new SpriteLoader(serverUrl, fallbackImage);
+  const localPlayerSprite = await spriteManager.getSpriteForVariant(spriteData);
+  const localPlayerPosition = { x: viewportManager.GAME_WIDTH / 2, y: viewportManager.GAME_HEIGHT / 2, angle: 0 };
+  const entityManager = new PlayerEntityManager(spriteManager, localPlayerPosition, spriteData, localPlayerSprite);
   const inputHandler = new PlayerInputHandler(canvas, viewportManager);
   const movementController = new PlayerMovementController(
     entityManager,
@@ -57,6 +59,5 @@ export async function createGame(
     attackController,
     renderingService,
   );
-  game.addEntity(fallbackImage, { x: 100, y: 100, angle: 0 }, spriteData);
   return game;
 }
