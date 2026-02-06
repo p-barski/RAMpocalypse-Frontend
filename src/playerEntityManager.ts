@@ -22,6 +22,23 @@ export class PlayerEntityManager implements EntityManager {
     this.entities.push(this.localPlayer);
   }
 
+  async createEntity(position: Position, spriteData: SpriteData, startAtFront = false): Promise<void> {
+    const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
+    const entity: Entity = {
+      position,
+      image: sprite,
+      width: sprite.width * spriteData.scaleFactor,
+      height: sprite.height * spriteData.scaleFactor,
+      playerId: '',
+      spriteData: spriteData,
+    };
+    if (startAtFront) {
+      this.entities.unshift(entity);
+    } else {
+      this.entities.push(entity);
+    }
+  }
+
   getEntities(): Entity[] {
     return this.entities;
   }

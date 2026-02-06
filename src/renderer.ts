@@ -79,10 +79,6 @@ export class Renderer implements RenderingService {
     this.localPlayerId = playerId;
   }
 
-  getLocalPlayerId(): string | null {
-    return this.localPlayerId;
-  }
-
   private clearCanvas(): void {
     const displayWidth = this.viewportManager.getDisplayWidth();
     const displayHeight = this.viewportManager.getDisplayHeight();

@@ -51,7 +51,6 @@ export class PlayerAttackController implements AttackController {
     if (!this.canPerformAttack(AttackType.Projectile)) return;
 
     const localPlayer = this.entityManager.getLocalPlayer();
-    if (!localPlayer) return;
 
     const direction = this.calculateAttackDirection(localPlayer.position.x, localPlayer.position.y);
 
@@ -63,7 +62,6 @@ export class PlayerAttackController implements AttackController {
     if (!this.canPerformAttack(AttackType.Special)) return;
 
     const localPlayer = this.entityManager.getLocalPlayer();
-    if (!localPlayer) return;
 
     this.setCooldown(AttackType.Special);
     this.communicationService.performSpecialAttack(localPlayer.position);
@@ -91,9 +89,6 @@ export class PlayerAttackController implements AttackController {
   canPerformAttack(attackType: AttackType): boolean {
     if (!this.gameStateManager.isPlaying()) return false;
     if (!this.communicationService.isConnected()) return false;
-
-    const localPlayer = this.entityManager.getLocalPlayer();
-    if (!localPlayer) return false;
 
     const cooldownEnd = this.attackCooldowns.get(attackType) || 0;
     return Date.now() >= cooldownEnd;

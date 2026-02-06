@@ -22,21 +22,38 @@ export async function createGame(
   abortController: AbortController,
   canvas: HTMLCanvasElement,
 ): Promise<Game> {
-  const spriteData = {
+  const playerSpriteData = {
     url: `${serverUrl}/assets/sprites/player_1.png`,
     width: 64,
     height: 32,
     scaleFactor: 8,
   };
-  const fallbackImage = await ResourceLoader.loadImage(spriteData.url);
-  // Create all services with dependency injection
+  const arenaSpriteData = {
+    url: 'arena_1.png',
+    width: 1920,
+    height: 1080,
+    scaleFactor: 1,
+  };
+  let fallbackImage: ImageBitmap;
+  try {
+    fallbackImage = await ResourceLoader.loadImage(playerSpriteData.url);
+  } catch (error) {
+    fallbackImage = await createImageBitmap(new ImageData(64, 32));
+  }
+
   const gameStateManager = new GameStateManager();
   const viewportManager = new GameViewportManager(canvas);
   const signalRService = new SignalRService(serverUrl, abortController.signal);
-  const spriteManager = new SpriteLoader(serverUrl, fallbackImage);
-  const localPlayerSprite = await spriteManager.getSpriteForVariant(spriteData);
+  const spriteManager = new SpriteLoader(fallbackImage);
+  const localPlayerSprite = await spriteManager.getSpriteForVariant(playerSpriteData);
   const localPlayerPosition = { x: viewportManager.GAME_WIDTH / 2, y: viewportManager.GAME_HEIGHT / 2, angle: 0 };
-  const entityManager = new PlayerEntityManager(spriteManager, localPlayerPosition, spriteData, localPlayerSprite);
+  const entityManager = new PlayerEntityManager(
+    spriteManager,
+    localPlayerPosition,
+    playerSpriteData,
+    localPlayerSprite,
+  );
+  await entityManager.createEntity({ x: 0, y: 0, angle: 0 }, arenaSpriteData, true);
   const inputHandler = new PlayerInputHandler(canvas, viewportManager);
   const movementController = new PlayerMovementController(
     entityManager,
@@ -47,7 +64,6 @@ export async function createGame(
   const attackController = new PlayerAttackController(entityManager, signalRService, gameStateManager, inputHandler);
   const renderingService = new Renderer(canvas, entityManager, viewportManager, gameStateManager, attackController);
 
-  // Create game with all dependencies injected
   const game = new Game(
     signalRService,
     abortController.signal,

@@ -10,5 +10,4 @@
 export interface RenderingService {
   render(): void;
   setLocalPlayerId(playerId: string): void;
-  getLocalPlayerId(): string | null;
 }
