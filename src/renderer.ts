@@ -5,7 +5,6 @@ import { StateManager } from './interfaces/stateManager';
 import { AttackController, AttackEntity } from './interfaces/attackController';
 import { AttackType } from './messageInterfaces';
 import { Entity } from './entity';
-import { drawImageToCanvas } from './canvasUtils';
 
 /**
  * Renderer - Handles all rendering operations for the game
@@ -24,17 +23,14 @@ export class Renderer implements RenderingService {
   private readonly gameStateManager: StateManager;
   private readonly attackController: AttackController;
 
-  // Visual constants
   private readonly BORDER_WIDTH = 2;
   private readonly HEALTH_BAR_HEIGHT = 8;
   private readonly HEALTH_BAR_OFFSET_Y = 20;
 
-  // Attack visual constants
   private readonly MELEE_RADIUS = 30;
   private readonly PROJECTILE_RADIUS = 10;
   private readonly SPECIAL_RADIUS = 50;
 
-  // Colors
   private readonly COLOR_BORDER = '#ffffff';
   private readonly COLOR_HEALTH_BG = '#ff0000';
   private readonly COLOR_HEALTH_FG = '#00ff00';
@@ -44,20 +40,13 @@ export class Renderer implements RenderingService {
   private readonly COLOR_UI_TEXT = '#ffffff';
   private readonly COLOR_OVERLAY_BG = 'rgba(0, 0, 0, 0.7)';
 
-  // Local player tracking for UI
-  private localPlayerId: string | null = null;
-
   constructor(
-    canvas: HTMLCanvasElement,
+    ctx: CanvasRenderingContext2D,
     entityManager: EntityManager,
     viewportManager: ViewportManager,
     gameStateManager: StateManager,
     attackController: AttackController,
   ) {
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Could not get 2D context from canvas');
-    }
     this.ctx = ctx;
     this.entityManager = entityManager;
     this.viewportManager = viewportManager;
@@ -73,10 +62,6 @@ export class Renderer implements RenderingService {
     this.drawEntities();
     this.drawAttacks();
     this.drawUI();
-  }
-
-  setLocalPlayerId(playerId: string): void {
-    this.localPlayerId = playerId;
   }
 
   private clearCanvas(): void {
@@ -115,11 +100,28 @@ export class Renderer implements RenderingService {
     const canvasY = Math.round(this.viewportManager.gameToCanvasY(entity.position.y));
     const canvasScale = this.viewportManager.gameToCanvasSize(entity.spriteData.scaleFactor);
 
-    // Draw the entity sprite (rotated around its center)
-    drawImageToCanvas(this.ctx, entity.image, canvasX, canvasY, canvasScale, entity.position.angle);
-
-    // Draw health bar for the entity (not rotated)
+    this.drawImageToCanvas(entity.image, canvasX, canvasY, canvasScale, entity.position.angle);
     this.drawEntityHealthBar(entity, canvasX, canvasY, scaleX);
+  }
+
+  private drawImageToCanvas(image: ImageBitmap, x: number, y: number, scale: number, angle: number): void {
+    const drawWidth = Math.round(image.width * scale);
+    const drawHeight = Math.round(image.height * scale);
+    const drawX = Math.round(x);
+    const drawY = Math.round(y);
+
+    if (angle === 0) {
+      this.ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+      return;
+    }
+    const centerX = drawX + drawWidth / 2;
+    const centerY = drawY + drawHeight / 2;
+    this.ctx.save();
+    this.ctx.translate(centerX, centerY);
+    this.ctx.rotate(angle);
+    this.ctx.translate(-drawWidth / 2, -drawHeight / 2);
+    this.ctx.drawImage(image, 0, 0, drawWidth, drawHeight);
+    this.ctx.restore();
   }
 
   private drawEntityHealthBar(entity: Entity, canvasX: number, canvasY: number, scaleX: number): void {
@@ -135,9 +137,6 @@ export class Renderer implements RenderingService {
     this.drawHealthBar(canvasX, canvasY - this.HEALTH_BAR_OFFSET_Y, entity.width * scaleX, health, maxHealth);
   }
 
-  /**
-   * Draws a health bar at the specified position
-   */
   private drawHealthBar(x: number, y: number, width: number, health: number, maxHealth: number): void {
     const healthPercent = Math.max(0, Math.min(1, health / maxHealth));
 
@@ -188,9 +187,6 @@ export class Renderer implements RenderingService {
     this.ctx.stroke();
   }
 
-  /**
-   * Draws a projectile attack as a cyan filled circle
-   */
   private drawProjectileAttack(canvasX: number, canvasY: number, scaleX: number): void {
     this.ctx.fillStyle = this.COLOR_PROJECTILE;
     this.ctx.beginPath();
@@ -198,9 +194,6 @@ export class Renderer implements RenderingService {
     this.ctx.fill();
   }
 
-  /**
-   * Draws a special attack as a magenta circle outline
-   */
   private drawSpecialAttack(canvasX: number, canvasY: number, scaleX: number): void {
     this.ctx.strokeStyle = this.COLOR_SPECIAL;
     this.ctx.lineWidth = 4;
@@ -250,7 +243,7 @@ export class Renderer implements RenderingService {
     this.ctx.textAlign = 'center';
 
     const winnerId = this.gameStateManager.getWinnerId();
-    const message = winnerId === this.localPlayerId ? 'You Win!' : 'You Lose!';
+    const message = winnerId === this.entityManager.getLocalPlayer().playerId ? 'You Win!' : 'You Lose!';
     this.ctx.fillText(message, displayWidth / 2, displayHeight / 2);
   }
 
@@ -258,16 +251,10 @@ export class Renderer implements RenderingService {
     this.ctx.fillStyle = this.COLOR_UI_TEXT;
     this.ctx.font = '16px Arial';
     this.ctx.textAlign = 'left';
-
     let y = 30;
 
-    // Melee cooldown
     y = this.drawCooldownLine('Melee (Space)', AttackType.Melee, y);
-
-    // Projectile cooldown
     y = this.drawCooldownLine('Projectile (E)', AttackType.Projectile, y);
-
-    // Special cooldown
     this.drawCooldownLine('Special (Q)', AttackType.Special, y);
   }
 

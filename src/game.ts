@@ -84,7 +84,6 @@ export class Game implements CallbacksHandler {
     try {
       this.playerId = await this.communicationService.connect(this);
       this.entityManager.updateLocalPlayerId(this.playerId);
-      this.renderingService.setLocalPlayerId(this.playerId);
     } catch (error) {
       if (this.abortSignal.aborted) return;
       throw error;

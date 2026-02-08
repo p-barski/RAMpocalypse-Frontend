@@ -22,6 +22,10 @@ export async function createGame(
   abortController: AbortController,
   canvas: HTMLCanvasElement,
 ): Promise<Game> {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Could not get 2D context from canvas');
+  }
   const playerSpriteData = {
     url: `${serverUrl}/assets/sprites/player_1.png`,
     width: 64,
@@ -62,7 +66,7 @@ export async function createGame(
     signalRService,
   );
   const attackController = new PlayerAttackController(entityManager, signalRService, gameStateManager, inputHandler);
-  const renderingService = new Renderer(canvas, entityManager, viewportManager, gameStateManager, attackController);
+  const renderingService = new Renderer(ctx, entityManager, viewportManager, gameStateManager, attackController);
 
   const game = new Game(
     signalRService,
