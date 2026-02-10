@@ -125,25 +125,20 @@ export class Game implements CallbacksHandler {
       return;
     }
 
-    // Initialize health for all players in game state
     for (const player of players) {
       this.gameStateManager.addPlayer(player);
     }
 
-    // Update local player position and sprite
     this.entityManager.updateLocalPlayerPosition(currentPlayer.position);
     await this.entityManager.updateLocalPlayerSprite(currentPlayer.spriteData);
+    await this.entityManager.updateLocalPlayerSubEntities(currentPlayer.subEntities);
 
-    // Reset position tracking
     this.movementController.resetPositionTracking();
-
-    // Start the game
     this.gameStateManager.setGameState('playing');
 
-    // Create entities for other players
     for (const player of players) {
       if (player.id !== this.playerId) {
-        await this.entityManager.createOtherPlayer(player.id, player.position, player.spriteData);
+        await this.entityManager.createOtherPlayer(player.id, player.position, player.spriteData, player.subEntities);
       }
     }
   };

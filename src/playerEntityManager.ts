@@ -1,7 +1,7 @@
 import { EntityManager } from './interfaces/entityManager';
 import { SpriteManager } from './interfaces/spriteManager';
 import { Entity } from './entity';
-import { Position, SpriteData } from './messageInterfaces';
+import { Position, SpriteData, SubEntity } from './messageInterfaces';
 
 export class PlayerEntityManager implements EntityManager {
   private readonly spriteManager: SpriteManager;
@@ -18,20 +18,19 @@ export class PlayerEntityManager implements EntityManager {
       height: sprite.height * spriteData.scaleFactor,
       playerId: '',
       spriteData: spriteData,
+      subEntities: [],
     };
     this.entities.push(this.localPlayer);
   }
 
-  async createEntity(position: Position, spriteData: SpriteData, startAtFront = false): Promise<void> {
-    const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
-    const entity: Entity = {
-      position,
-      image: sprite,
-      width: sprite.width * spriteData.scaleFactor,
-      height: sprite.height * spriteData.scaleFactor,
-      playerId: '',
-      spriteData: spriteData,
-    };
+  async createEntity(
+    position: Position,
+    spriteData: SpriteData,
+    playerId: string,
+    subEntities: SubEntity[] = [],
+    startAtFront = false,
+  ): Promise<void> {
+    const entity = await this.createEntityInternal(position, spriteData, playerId, subEntities);
     if (startAtFront) {
       this.entities.unshift(entity);
     } else {
@@ -57,21 +56,15 @@ export class PlayerEntityManager implements EntityManager {
     this.localPlayer.playerId = playerId;
   }
 
-  async createOtherPlayer(playerId: string, position: Position, spriteData: SpriteData): Promise<Entity> {
-    const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
-
-    const entity: Entity = {
-      position,
-      image: sprite,
-      width: sprite.width * spriteData.scaleFactor,
-      height: sprite.height * spriteData.scaleFactor,
-      playerId,
-      spriteData: spriteData,
-    };
-
+  async createOtherPlayer(
+    playerId: string,
+    position: Position,
+    spriteData: SpriteData,
+    subEntities: SubEntity[] = [],
+  ): Promise<void> {
+    const entity = await this.createEntityInternal(position, spriteData, playerId, subEntities);
     this.otherPlayers.set(playerId, entity);
     this.entities.push(entity);
-    return entity;
   }
 
   updatePlayerPosition(playerId: string, position: Position): void {
@@ -86,6 +79,19 @@ export class PlayerEntityManager implements EntityManager {
 
   updateLocalPlayerPosition(position: Position): void {
     this.localPlayer.position = position;
+  }
+
+  async updateLocalPlayerSubEntities(subEntities: SubEntity[]): Promise<void> {
+    this.localPlayer.subEntities = [];
+    for (const subEntity of subEntities) {
+      const entity = await this.createEntityInternal(
+        subEntity.position,
+        subEntity.spriteData,
+        subEntity.id,
+        subEntity.subEntities,
+      );
+      this.localPlayer.subEntities.push(entity);
+    }
   }
 
   async updateLocalPlayerSprite(spriteData: SpriteData): Promise<void> {
@@ -138,5 +144,33 @@ export class PlayerEntityManager implements EntityManager {
     if (entity.playerId) {
       this.otherPlayers.delete(entity.playerId);
     }
+  }
+
+  private async createEntityInternal(
+    position: Position,
+    spriteData: SpriteData,
+    playerId: string,
+    subEntities: SubEntity[] = [],
+  ): Promise<Entity> {
+    const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
+    const entity: Entity = {
+      position,
+      image: sprite,
+      width: sprite.width * spriteData.scaleFactor,
+      height: sprite.height * spriteData.scaleFactor,
+      playerId,
+      spriteData,
+      subEntities: [],
+    };
+    for (const subEntity of subEntities) {
+      const subEntityEntity = await this.createEntityInternal(
+        subEntity.position,
+        subEntity.spriteData,
+        subEntity.id,
+        subEntity.subEntities,
+      );
+      entity.subEntities.push(subEntityEntity);
+    }
+    return entity;
   }
 }

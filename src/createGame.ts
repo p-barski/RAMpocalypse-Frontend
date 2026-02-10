@@ -38,6 +38,12 @@ export async function createGame(
     height: 1080,
     scaleFactor: 1,
   };
+  const weaponSpriteData = {
+    url: 'lightning_1.png',
+    width: 17,
+    height: 53,
+    scaleFactor: 6,
+  };
   let fallbackImage: ImageBitmap;
   try {
     fallbackImage = await ResourceLoader.loadImage(playerSpriteData.url);
@@ -57,7 +63,15 @@ export async function createGame(
     playerSpriteData,
     localPlayerSprite,
   );
-  await entityManager.createEntity({ x: 0, y: 0, angle: 0 }, arenaSpriteData, true);
+  entityManager.updateLocalPlayerSubEntities([
+    {
+      position: { x: playerSpriteData.width * playerSpriteData.scaleFactor - 10, y: 0, angle: 0 },
+      spriteData: weaponSpriteData,
+      id: 'weapon',
+      subEntities: [],
+    },
+  ]);
+  await entityManager.createEntity({ x: 0, y: 0, angle: 0 }, arenaSpriteData, 'arena', [], true);
   const inputHandler = new PlayerInputHandler(canvas, viewportManager);
   const movementController = new PlayerMovementController(
     entityManager,

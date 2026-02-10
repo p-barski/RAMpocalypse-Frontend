@@ -11,10 +11,18 @@ export interface SpriteData {
   scaleFactor: number;
 }
 
+export interface SubEntity {
+  position: Position;
+  spriteData: SpriteData;
+  id: string;
+  subEntities: SubEntity[];
+}
+
 export interface Player {
   id: string;
   position: Position;
   spriteData: SpriteData;
+  subEntities: SubEntity[];
   health: number;
   maxHealth: number;
   isAlive: boolean;

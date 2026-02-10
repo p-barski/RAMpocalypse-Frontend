@@ -7,4 +7,5 @@ export interface Entity {
   height: number;
   playerId: string;
   spriteData: SpriteData;
+  subEntities: Entity[];
 }

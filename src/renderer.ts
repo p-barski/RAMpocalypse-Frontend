@@ -95,13 +95,22 @@ export class Renderer implements RenderingService {
     }
   }
 
-  private drawEntity(entity: Entity, scaleX: number): void {
-    const canvasX = Math.round(this.viewportManager.gameToCanvasX(entity.position.x));
-    const canvasY = Math.round(this.viewportManager.gameToCanvasY(entity.position.y));
+  private drawEntity(entity: Entity, scaleX: number, offsetX = 0, offsetY = 0, offsetAngle = 0): void {
+    const canvasX = Math.round(this.viewportManager.gameToCanvasX(entity.position.x + offsetX));
+    const canvasY = Math.round(this.viewportManager.gameToCanvasY(entity.position.y + offsetY));
     const canvasScale = this.viewportManager.gameToCanvasSize(entity.spriteData.scaleFactor);
 
-    this.drawImageToCanvas(entity.image, canvasX, canvasY, canvasScale, entity.position.angle);
+    this.drawImageToCanvas(entity.image, canvasX, canvasY, canvasScale, entity.position.angle + offsetAngle);
     this.drawEntityHealthBar(entity, canvasX, canvasY, scaleX);
+    for (const subEntity of entity.subEntities) {
+      this.drawEntity(
+        subEntity,
+        scaleX,
+        offsetX + entity.position.x,
+        offsetY + entity.position.y,
+        offsetAngle + entity.position.angle,
+      );
+    }
   }
 
   private drawImageToCanvas(image: ImageBitmap, x: number, y: number, scale: number, angle: number): void {
@@ -127,6 +136,7 @@ export class Renderer implements RenderingService {
   private drawEntityHealthBar(entity: Entity, canvasX: number, canvasY: number, scaleX: number): void {
     const playerId = entity.playerId;
     if (!playerId) return;
+    if (!playerId.startsWith('player_')) return;
 
     const player = this.gameStateManager.getPlayer(playerId);
     if (!player) return;

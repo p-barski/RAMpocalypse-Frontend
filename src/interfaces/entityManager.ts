@@ -1,5 +1,5 @@
 import { Entity } from '../entity';
-import { Position, SpriteData } from '../messageInterfaces';
+import { Position, SpriteData, SubEntity } from '../messageInterfaces';
 
 export interface EntityManager {
   getEntities(): Entity[];
@@ -8,7 +8,13 @@ export interface EntityManager {
   updateLocalPlayerId(playerId: string): void;
   updateLocalPlayerPosition(position: Position): void;
   updateLocalPlayerSprite(spriteData: SpriteData): Promise<void>;
-  createOtherPlayer(playerId: string, position: Position, spriteData: SpriteData): Promise<Entity>;
+  updateLocalPlayerSubEntities(subEntities: SubEntity[]): Promise<void>;
+  createOtherPlayer(
+    playerId: string,
+    position: Position,
+    spriteData: SpriteData,
+    subEntities: SubEntity[],
+  ): Promise<void>;
   updatePlayerPosition(playerId: string, position: Position): void;
   removeOtherPlayer(playerId: string): boolean;
   hidePlayer(playerId: string): void;

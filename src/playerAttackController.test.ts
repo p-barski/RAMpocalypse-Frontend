@@ -20,6 +20,7 @@ describe('PlayerAttackController', () => {
       updateLocalPlayerId: jest.fn(),
       updateLocalPlayerPosition: jest.fn(),
       updateLocalPlayerSprite: jest.fn(),
+      updateLocalPlayerSubEntities: jest.fn(),
       createOtherPlayer: jest.fn(),
       updatePlayerPosition: jest.fn(),
       removeOtherPlayer: jest.fn(),
@@ -126,6 +127,7 @@ describe('PlayerAttackController', () => {
         height: 100,
         playerId: '1',
         spriteData: { url: 'test.png', width: 100, height: 100, scaleFactor: 1 },
+        subEntities: [],
       } satisfies Entity);
 
       attackController.performMeleeAttack();
