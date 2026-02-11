@@ -37,10 +37,7 @@ export class PlayerAttackController implements AttackController {
 
   performMeleeAttack(): void {
     if (!this.canPerformAttack(AttackType.Melee)) return;
-
-    const localPlayer = this.entityManager.getLocalPlayer();
-
-    const direction = this.calculateAttackDirection(localPlayer.position.x, localPlayer.position.y);
+    const direction = this.calculateAttackDirection();
     console.log(`Performing melee attack in direction: ${direction.x}, ${direction.y}`);
 
     this.setCooldown(AttackType.Melee);
@@ -49,10 +46,7 @@ export class PlayerAttackController implements AttackController {
 
   performProjectileAttack(): void {
     if (!this.canPerformAttack(AttackType.Projectile)) return;
-
-    const localPlayer = this.entityManager.getLocalPlayer();
-
-    const direction = this.calculateAttackDirection(localPlayer.position.x, localPlayer.position.y);
+    const direction = this.calculateAttackDirection();
 
     this.setCooldown(AttackType.Projectile);
     this.communicationService.performProjectileAttack(direction);
@@ -145,12 +139,13 @@ export class PlayerAttackController implements AttackController {
     this.attackCooldowns.set(attackType, Date.now() + cooldownDuration);
   }
 
-  private calculateAttackDirection(playerX: number, playerY: number): Position {
+  private calculateAttackDirection(): Position {
+    const localPlayer = this.entityManager.getLocalPlayer();
     const mouseX = this.inputHandler.getMouseX();
     const mouseY = this.inputHandler.getMouseY();
 
-    const directionX = mouseX - playerX;
-    const directionY = mouseY - playerY;
+    const directionX = mouseX - localPlayer.position.x;
+    const directionY = mouseY - localPlayer.position.y;
     const length = Math.sqrt(directionX * directionX + directionY * directionY);
 
     // Default to up direction if mouse is exactly on player
