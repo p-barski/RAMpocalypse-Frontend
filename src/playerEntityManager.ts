@@ -95,7 +95,7 @@ export class PlayerEntityManager implements EntityManager {
   }
 
   async updateLocalPlayerSprite(spriteData: SpriteData): Promise<void> {
-    const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
+    const sprite = await this.spriteManager.getSpriteImage(spriteData);
     this.localPlayer.image = sprite;
     this.localPlayer.spriteData = spriteData;
     this.localPlayer.width = sprite.width * spriteData.scaleFactor;
@@ -152,7 +152,7 @@ export class PlayerEntityManager implements EntityManager {
     playerId: string,
     subEntities: SubEntity[] = [],
   ): Promise<Entity> {
-    const sprite = await this.spriteManager.getSpriteForVariant(spriteData);
+    const sprite = await this.spriteManager.getSpriteImage(spriteData);
     const entity: Entity = {
       position,
       image: sprite,

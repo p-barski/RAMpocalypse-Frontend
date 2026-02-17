@@ -5,18 +5,10 @@ import { GameStateManager } from './gameStateManager';
 import { PlayerInputHandler } from './playerInputHandler';
 import { PlayerMovementController } from './playerMovementController';
 import { Renderer } from './renderer';
-import { ResourceLoader } from './resourceLoader';
 import { SignalRService } from './signalRService';
 import { SpriteLoader } from './spriteLoader';
 import { GameViewportManager } from './gameViewportManager';
 
-/**
- * Factory method to create a new game instance with all dependencies injected.
- * @param serverUrl - The URL of the server to connect to.
- * @param abortController - The abort controller to abort the game.
- * @param canvas - The canvas element to render the game to.
- * @returns A new game instance.
- */
 export async function createGame(
   serverUrl: string,
   abortController: AbortController,
@@ -27,7 +19,7 @@ export async function createGame(
     throw new Error('Could not get 2D context from canvas');
   }
   const playerSpriteData = {
-    url: `${serverUrl}/assets/sprites/player_1.png`,
+    url: 'dability.png',
     width: 64,
     height: 32,
     scaleFactor: 8,
@@ -44,18 +36,13 @@ export async function createGame(
     height: 53,
     scaleFactor: 6,
   };
-  let fallbackImage: ImageBitmap;
-  try {
-    fallbackImage = await ResourceLoader.loadImage(playerSpriteData.url);
-  } catch (error) {
-    fallbackImage = await createImageBitmap(new ImageData(64, 32));
-  }
+  const missingSprite = await SpriteLoader.loadMissingSprite();
 
   const gameStateManager = new GameStateManager();
   const viewportManager = new GameViewportManager(canvas);
   const signalRService = new SignalRService(serverUrl, abortController.signal);
-  const spriteManager = new SpriteLoader(fallbackImage);
-  const localPlayerSprite = await spriteManager.getSpriteForVariant(playerSpriteData);
+  const spriteManager = new SpriteLoader(missingSprite);
+  const localPlayerSprite = await spriteManager.getSpriteImage(playerSpriteData);
   const localPlayerPosition = { x: viewportManager.GAME_WIDTH / 2, y: viewportManager.GAME_HEIGHT / 2, angle: 0 };
   const entityManager = new PlayerEntityManager(
     spriteManager,
