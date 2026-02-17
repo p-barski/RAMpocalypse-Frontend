@@ -13,17 +13,17 @@ export {};
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const serverUrl = process.env.REACT_APP_SERVER_URL || 'http://localhost:5027';
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     (async () => {
       try {
-        // Load fallback image first (needed for SpriteManager)
         const game = await createGame(serverUrl, abortController, canvas);
         gameRef.current = game;
         window.game = game;
@@ -41,12 +41,11 @@ function App() {
     })();
 
     return () => {
-      // Use the ref to ensure we're stopping the current game instance
-      // This prevents stopping a game that hasn't started yet
-      abortController.abort();
       if (gameRef.current) {
         gameRef.current.stop();
+        abortControllerRef.current?.abort();
         gameRef.current = null;
+        abortControllerRef.current = null;
       }
     };
   }, []);
