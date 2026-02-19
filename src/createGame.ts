@@ -8,6 +8,7 @@ import { Renderer } from './renderer';
 import { SignalRService } from './signalRService';
 import { SpriteLoader } from './spriteLoader';
 import { GameViewportManager } from './gameViewportManager';
+import { GameAudioController } from './gameAudioController';
 
 export async function createGame(
   serverUrl: string,
@@ -38,6 +39,7 @@ export async function createGame(
   };
   const missingSprite = await SpriteLoader.loadMissingSprite();
 
+  const audioController = new GameAudioController();
   const gameStateManager = new GameStateManager();
   const viewportManager = new GameViewportManager(canvas);
   const signalRService = new SignalRService(serverUrl, abortController.signal);
@@ -79,6 +81,7 @@ export async function createGame(
     movementController,
     attackController,
     renderingService,
+    audioController,
   );
   return game;
 }

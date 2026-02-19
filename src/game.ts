@@ -8,18 +8,9 @@ import { ViewportManager } from './interfaces/viewportManager';
 import { MovementController } from './interfaces/movementController';
 import { AttackController } from './interfaces/attackController';
 import { RenderingService } from './interfaces/renderingService';
+import { AudioController } from './interfaces/audioController';
 
-/**
- * Game class - Orchestrates all game services and handles server callbacks.
- *
- * This class is the central coordinator that:
- * - Wires together all the services via dependency injection
- * - Implements CallbacksHandler to receive server events
- * - Manages the game loop (update -> render cycle)
- * - Manages connection lifecycle
- */
 export class Game implements CallbacksHandler {
-  // Dependencies
   public readonly communicationService: CommunicationService;
   public readonly abortSignal: AbortSignal;
   public readonly entityManager: EntityManager;
@@ -29,12 +20,9 @@ export class Game implements CallbacksHandler {
   public readonly movementController: MovementController;
   public readonly attackController: AttackController;
   public readonly renderingService: RenderingService;
-
-  // Game loop state
+  public readonly audioController: AudioController;
   private animationFrameId: number | null = null;
   private lastFrameTime = 0;
-
-  // Player ID (set after connection)
   private playerId: string | null = null;
 
   constructor(
@@ -47,6 +35,7 @@ export class Game implements CallbacksHandler {
     movementController: MovementController,
     attackController: AttackController,
     renderingService: RenderingService,
+    audioController: AudioController,
   ) {
     this.communicationService = communicationService;
     this.abortSignal = abortSignal;
@@ -57,6 +46,7 @@ export class Game implements CallbacksHandler {
     this.movementController = movementController;
     this.attackController = attackController;
     this.renderingService = renderingService;
+    this.audioController = audioController;
   }
 
   start(): void {
@@ -74,6 +64,7 @@ export class Game implements CallbacksHandler {
 
     this.inputHandler.cleanup();
     this.viewportManager.cleanup();
+    this.audioController.cleanup();
 
     this.communicationService.disconnect().catch((error) => {
       console.warn('Game: Error during disconnect (ignored)', error);
@@ -88,7 +79,8 @@ export class Game implements CallbacksHandler {
       if (this.abortSignal.aborted) return;
       throw error;
     }
-    this.setupInput();
+    this.inputHandler.setAttackCallback(this.handleAttackInput);
+    this.inputHandler.setup();
   }
 
   async requestMatchmaking(): Promise<void> {
@@ -201,12 +193,11 @@ export class Game implements CallbacksHandler {
         lifetime,
       };
 
-      // Only add speed for projectiles
       if (type === AttackType.Projectile) {
         attackData.speed = speed;
       }
-
       this.attackController.addAttack(attackData);
+      this.audioController.playShortRunningSound('attack_swing.mp3');
     } catch (error) {
       console.error('Error creating attack:', error);
     }
@@ -214,12 +205,15 @@ export class Game implements CallbacksHandler {
 
   onPlayerDamaged = async (playerId: string, damage: number, newHealth: number): Promise<void> => {
     await this.delay();
+    this.audioController.playShortRunningSound('attack_damage.mp3', 0.4);
     this.gameStateManager.updatePlayerHealth(playerId, newHealth);
     console.log('Player damaged:', { playerId, damage, newHealth });
   };
 
   onPlayerDied = async (playerId: string): Promise<void> => {
     await this.delay();
+    this.audioController.playShortRunningSound('attack_damage.mp3', 0.4);
+    this.audioController.playShortRunningSound('player_died.mp3');
     this.gameStateManager.updatePlayerHealth(playerId, 0, false);
     this.entityManager.hidePlayer(playerId);
     console.log('Player died:', playerId);
@@ -244,18 +238,7 @@ export class Game implements CallbacksHandler {
     console.log('Game ended, winner:', winnerId);
   };
 
-  // ============================================
-  // Private Methods
-  // ============================================
-
-  private setupInput(): void {
-    // Setup input handler with attack callback
-    this.inputHandler.setAttackCallback(this.handleAttackInput);
-    this.inputHandler.setup();
-  }
-
   private handleAttackInput = (attackType: AttackInputType): void => {
-    // Only allow attacks when playing
     if (!this.gameStateManager.isPlaying()) return;
 
     switch (attackType) {
@@ -277,11 +260,7 @@ export class Game implements CallbacksHandler {
     const now = Date.now();
     const deltaTime = now - this.lastFrameTime;
     this.lastFrameTime = now;
-
-    // Update attack controller
     this.attackController.update(deltaTime);
-
-    // Update movement (handles input processing and server communication)
     this.movementController.update(deltaTime);
   }
 
