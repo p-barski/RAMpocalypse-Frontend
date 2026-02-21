@@ -13,40 +13,37 @@ export {};
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
   const serverUrl = process.env.REACT_APP_SERVER_URL || 'http://localhost:5027';
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
     const abortController = new AbortController();
-    abortControllerRef.current = abortController;
+    let game: Game | null = null;
 
     (async () => {
       try {
-        const game = await createGame(serverUrl, abortController, canvas);
+        game = await createGame(serverUrl, abortController, canvas);
+        if (abortController.signal.aborted) return;
         gameRef.current = game;
         window.game = game;
-
+        if (abortController.signal.aborted) return;
         await game.connect();
         if (abortController.signal.aborted) return;
         game.start();
       } catch (err) {
         if ((err as Error)?.name !== 'AbortError') {
           console.error(err);
-        } else {
-          console.log(`AbortError: ${err}`);
         }
+        game?.stop();
       }
     })();
 
     return () => {
-      if (gameRef.current) {
-        gameRef.current.stop();
-        abortControllerRef.current?.abort();
-        gameRef.current = null;
-        abortControllerRef.current = null;
-      }
+      abortController.abort();
+      game?.stop();
+      gameRef.current = null;
     };
   }, []);
 
