@@ -55,7 +55,7 @@ export class PlayerAttackController implements AttackController {
   performSpecialAttack(): void {
     if (!this.canPerformAttack(AttackType.Special)) return;
 
-    const localPlayer = this.entityManager.getLocalPlayer();
+    const localPlayer = this.entityManager.getLocalPlayerEntity();
 
     this.setCooldown(AttackType.Special);
     this.communicationService.performSpecialAttack(localPlayer.position);
@@ -140,7 +140,7 @@ export class PlayerAttackController implements AttackController {
   }
 
   private calculateAttackDirection(): Position {
-    const localPlayer = this.entityManager.getLocalPlayer();
+    const localPlayer = this.entityManager.getLocalPlayerEntity();
     const mouseX = this.inputHandler.getMouseX();
     const mouseY = this.inputHandler.getMouseY();
 

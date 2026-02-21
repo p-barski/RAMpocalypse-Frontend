@@ -6,31 +6,45 @@ import { Position, SpriteData, SubEntity } from './messageInterfaces';
 export class PlayerEntityManager implements EntityManager {
   private readonly spriteManager: SpriteManager;
   private readonly entities: Entity[] = [];
-  private readonly otherPlayers: Map<string, Entity> = new Map();
-  private readonly localPlayer: Entity;
+  private readonly remoteEntities: Map<string, Entity> = new Map();
+  private readonly localPlayerEntity: Entity;
 
   constructor(spriteManager: SpriteManager, position: Position, spriteData: SpriteData, sprite: ImageBitmap) {
     this.spriteManager = spriteManager;
-    this.localPlayer = {
+    this.localPlayerEntity = {
+      id: '',
       position,
       image: sprite,
       width: sprite.width * spriteData.scaleFactor,
       height: sprite.height * spriteData.scaleFactor,
-      playerId: '',
       spriteData: spriteData,
       subEntities: [],
     };
-    this.entities.push(this.localPlayer);
+    this.entities.push(this.localPlayerEntity);
+  }
+
+  getEntities(): Entity[] {
+    return this.entities;
+  }
+
+  getLocalPlayerEntity(): Entity {
+    return this.localPlayerEntity;
+  }
+
+  clearRemoteEntities(): void {
+    for (const entity of Array.from(this.remoteEntities.values())) {
+      this.removeEntity(entity);
+    }
   }
 
   async createEntity(
+    id: string,
     position: Position,
     spriteData: SpriteData,
-    playerId: string,
     subEntities: SubEntity[] = [],
     startAtFront = false,
   ): Promise<void> {
-    const entity = await this.createEntityInternal(position, spriteData, playerId, subEntities);
+    const entity = await this.createEntityInternal(id, position, spriteData, subEntities);
     if (startAtFront) {
       this.entities.unshift(entity);
     } else {
@@ -38,81 +52,63 @@ export class PlayerEntityManager implements EntityManager {
     }
   }
 
-  getEntities(): Entity[] {
-    return this.entities;
-  }
-
-  getLocalPlayer(): Entity {
-    return this.localPlayer;
-  }
-
-  clearOtherPlayers(): void {
-    for (const entity of Array.from(this.otherPlayers.values())) {
-      this.removeEntity(entity);
-    }
-  }
-
   updateLocalPlayerId(playerId: string): void {
-    this.localPlayer.playerId = playerId;
-  }
-
-  async createOtherPlayer(
-    playerId: string,
-    position: Position,
-    spriteData: SpriteData,
-    subEntities: SubEntity[] = [],
-  ): Promise<void> {
-    const entity = await this.createEntityInternal(position, spriteData, playerId, subEntities);
-    this.otherPlayers.set(playerId, entity);
-    this.entities.push(entity);
-  }
-
-  updatePlayerPosition(playerId: string, position: Position): void {
-    const existingEntity = this.otherPlayers.get(playerId);
-
-    if (existingEntity) {
-      existingEntity.position = position;
-    } else {
-      console.error(`PlayerEntityManager.updatePlayerPosition:Player with id ${playerId} not found`);
-    }
+    this.localPlayerEntity.id = playerId;
   }
 
   updateLocalPlayerPosition(position: Position): void {
-    this.localPlayer.position = position;
+    this.localPlayerEntity.position = position;
   }
 
   async updateLocalPlayerSubEntities(subEntities: SubEntity[]): Promise<void> {
-    this.localPlayer.subEntities = [];
+    this.localPlayerEntity.subEntities = [];
     for (const subEntity of subEntities) {
       const entity = await this.createEntityInternal(
+        subEntity.id,
         subEntity.position,
         subEntity.spriteData,
-        subEntity.id,
         subEntity.subEntities,
       );
-      this.localPlayer.subEntities.push(entity);
+      this.localPlayerEntity.subEntities.push(entity);
     }
   }
 
   async updateLocalPlayerSprite(spriteData: SpriteData): Promise<void> {
     const sprite = await this.spriteManager.getSpriteImage(spriteData);
-    this.localPlayer.image = sprite;
-    this.localPlayer.spriteData = spriteData;
-    this.localPlayer.width = sprite.width * spriteData.scaleFactor;
-    this.localPlayer.height = sprite.height * spriteData.scaleFactor;
+    this.localPlayerEntity.image = sprite;
+    this.localPlayerEntity.spriteData = spriteData;
+    this.localPlayerEntity.width = sprite.width * spriteData.scaleFactor;
+    this.localPlayerEntity.height = sprite.height * spriteData.scaleFactor;
   }
 
-  removeOtherPlayer(playerId: string): boolean {
-    const entity = this.otherPlayers.get(playerId);
-    if (entity) {
-      this.removeEntity(entity);
-      return true;
+  updateEntityPosition(id: string, position: Position): void {
+    const existingEntity = this.remoteEntities.get(id);
+
+    if (existingEntity) {
+      existingEntity.position = position;
+    } else {
+      console.error(`PlayerEntityManager.updatePlayerPosition: Player with id ${id} not found`);
     }
-    return false;
+  }
+
+  async createRemotePlayer(
+    playerId: string,
+    position: Position,
+    spriteData: SpriteData,
+    subEntities: SubEntity[] = [],
+  ): Promise<void> {
+    const entity = await this.createEntityInternal(playerId, position, spriteData, subEntities);
+    this.remoteEntities.set(playerId, entity);
+    this.entities.splice(this.entities.length - 1, 0, entity);
+  }
+
+  removeRemotePlayer(playerId: string): void {
+    const entity = this.remoteEntities.get(playerId);
+    if (entity) this.removeEntity(entity);
   }
 
   hidePlayer(playerId: string): void {
-    const entity = this.otherPlayers.get(playerId);
+    const entity = this.remoteEntities.get(playerId);
     if (entity) {
       const index = this.entities.indexOf(entity);
       if (index > -1) {
@@ -122,7 +118,7 @@ export class PlayerEntityManager implements EntityManager {
   }
 
   showPlayer(playerId: string, position: Position): void {
-    const entity = this.otherPlayers.get(playerId);
+    const entity = this.remoteEntities.get(playerId);
     if (entity) {
       if (position !== undefined) {
         entity.position = position;
@@ -139,34 +135,32 @@ export class PlayerEntityManager implements EntityManager {
     if (index > -1) {
       this.entities.splice(index, 1);
     }
-
-    // Also remove from otherPlayers if it has a playerId
-    if (entity.playerId) {
-      this.otherPlayers.delete(entity.playerId);
+    if (entity.id) {
+      this.remoteEntities.delete(entity.id);
     }
   }
 
   private async createEntityInternal(
+    id: string,
     position: Position,
     spriteData: SpriteData,
-    playerId: string,
     subEntities: SubEntity[] = [],
   ): Promise<Entity> {
     const sprite = await this.spriteManager.getSpriteImage(spriteData);
     const entity: Entity = {
+      id: id,
       position,
       image: sprite,
       width: sprite.width * spriteData.scaleFactor,
       height: sprite.height * spriteData.scaleFactor,
-      playerId,
       spriteData,
       subEntities: [],
     };
     for (const subEntity of subEntities) {
       const subEntityEntity = await this.createEntityInternal(
+        subEntity.id,
         subEntity.position,
         subEntity.spriteData,
-        subEntity.id,
         subEntity.subEntities,
       );
       entity.subEntities.push(subEntityEntity);

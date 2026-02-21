@@ -3,20 +3,20 @@ import { Position, SpriteData, SubEntity } from '../messageInterfaces';
 
 export interface EntityManager {
   getEntities(): Entity[];
-  getLocalPlayer(): Entity;
-  clearOtherPlayers(): void;
+  getLocalPlayerEntity(): Entity;
+  clearRemoteEntities(): void;
   updateLocalPlayerId(playerId: string): void;
   updateLocalPlayerPosition(position: Position): void;
-  updateLocalPlayerSprite(spriteData: SpriteData): Promise<void>;
   updateLocalPlayerSubEntities(subEntities: SubEntity[]): Promise<void>;
-  createOtherPlayer(
+  updateLocalPlayerSprite(spriteData: SpriteData): Promise<void>;
+  updateEntityPosition(playerId: string, position: Position): void;
+  createRemotePlayer(
     playerId: string,
     position: Position,
     spriteData: SpriteData,
     subEntities: SubEntity[],
   ): Promise<void>;
-  updatePlayerPosition(playerId: string, position: Position): void;
-  removeOtherPlayer(playerId: string): boolean;
+  removeRemotePlayer(playerId: string): void;
   hidePlayer(playerId: string): void;
   showPlayer(playerId: string, position: Position): void;
 }

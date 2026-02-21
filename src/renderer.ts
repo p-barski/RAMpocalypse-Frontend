@@ -134,7 +134,7 @@ export class Renderer implements RenderingService {
   }
 
   private drawEntityHealthBar(entity: Entity, canvasX: number, canvasY: number, scaleX: number): void {
-    const playerId = entity.playerId;
+    const playerId = entity.id;
     if (!playerId) return;
     if (!playerId.startsWith('player_')) return;
 
@@ -253,7 +253,7 @@ export class Renderer implements RenderingService {
     this.ctx.textAlign = 'center';
 
     const winnerId = this.gameStateManager.getWinnerId();
-    const message = winnerId === this.entityManager.getLocalPlayer().playerId ? 'You Win!' : 'You Lose!';
+    const message = winnerId === this.entityManager.getLocalPlayerEntity().id ? 'You Win!' : 'You Lose!';
     this.ctx.fillText(message, displayWidth / 2, displayHeight / 2);
   }
 

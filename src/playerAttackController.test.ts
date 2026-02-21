@@ -14,16 +14,16 @@ describe('PlayerAttackController', () => {
 
   beforeEach(() => {
     mockEntityManager = {
-      getLocalPlayer: jest.fn(),
+      getLocalPlayerEntity: jest.fn(),
       getEntities: jest.fn(),
-      clearOtherPlayers: jest.fn(),
+      clearRemoteEntities: jest.fn(),
       updateLocalPlayerId: jest.fn(),
       updateLocalPlayerPosition: jest.fn(),
       updateLocalPlayerSprite: jest.fn(),
       updateLocalPlayerSubEntities: jest.fn(),
-      createOtherPlayer: jest.fn(),
-      updatePlayerPosition: jest.fn(),
-      removeOtherPlayer: jest.fn(),
+      createRemotePlayer: jest.fn(),
+      updateEntityPosition: jest.fn(),
+      removeRemotePlayer: jest.fn(),
       hidePlayer: jest.fn(),
       showPlayer: jest.fn(),
     };
@@ -84,7 +84,7 @@ describe('PlayerAttackController', () => {
 
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);
-      mockEntityManager.getLocalPlayer.mockReturnValue(mockPlayer);
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
       mockInputHandler.getMouseX.mockReturnValue(200);
       mockInputHandler.getMouseY.mockReturnValue(200);
 
@@ -98,7 +98,7 @@ describe('PlayerAttackController', () => {
 
       mockGameStateManager.isPlaying.mockReturnValue(false);
       mockCommunicationService.isConnected.mockReturnValue(true);
-      mockEntityManager.getLocalPlayer.mockReturnValue(mockPlayer);
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
 
       attackController.performMeleeAttack();
 
@@ -110,7 +110,7 @@ describe('PlayerAttackController', () => {
 
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(false);
-      mockEntityManager.getLocalPlayer.mockReturnValue(mockPlayer);
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
 
       attackController.performMeleeAttack();
 
@@ -120,12 +120,12 @@ describe('PlayerAttackController', () => {
     it('should not attack when local player is null', () => {
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);
-      mockEntityManager.getLocalPlayer.mockReturnValue({
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue({
         position: { x: 100, y: 200, angle: 0 },
         image: new ImageBitmap(),
         width: 100,
         height: 100,
-        playerId: '1',
+        id: '1',
         spriteData: { url: 'test.png', width: 100, height: 100, scaleFactor: 1 },
         subEntities: [],
       } satisfies Entity);
@@ -140,7 +140,7 @@ describe('PlayerAttackController', () => {
 
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);
-      mockEntityManager.getLocalPlayer.mockReturnValue(mockPlayer);
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
       mockInputHandler.getMouseX.mockReturnValue(100);
       mockInputHandler.getMouseY.mockReturnValue(0);
 
@@ -154,7 +154,7 @@ describe('PlayerAttackController', () => {
 
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);
-      mockEntityManager.getLocalPlayer.mockReturnValue(mockPlayer);
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
       mockInputHandler.getMouseX.mockReturnValue(200);
       mockInputHandler.getMouseY.mockReturnValue(200);
 

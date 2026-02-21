@@ -23,7 +23,6 @@ export class Game implements CallbacksHandler {
   public readonly audioController: AudioController;
   private animationFrameId: number | null = null;
   private lastFrameTime = 0;
-  private playerId: string | null = null;
 
   constructor(
     communicationService: CommunicationService,
@@ -73,8 +72,8 @@ export class Game implements CallbacksHandler {
 
   async connect(): Promise<void> {
     try {
-      this.playerId = await this.communicationService.connect(this);
-      this.entityManager.updateLocalPlayerId(this.playerId);
+      const playerId = await this.communicationService.connect(this);
+      this.entityManager.updateLocalPlayerId(playerId);
     } catch (error) {
       if (this.abortSignal.aborted) return;
       throw error;
@@ -92,7 +91,7 @@ export class Game implements CallbacksHandler {
 
   async leaveGame(): Promise<void> {
     await this.communicationService.leaveGame();
-    this.entityManager.clearOtherPlayers();
+    this.entityManager.clearRemoteEntities();
     this.gameStateManager.reset();
   }
 
@@ -100,17 +99,17 @@ export class Game implements CallbacksHandler {
     if (this.abortSignal.aborted) return;
     await this.delay();
     console.log('Lobby started:', { lobbyId, players });
-
-    if (!this.playerId) {
+    const playerId = this.entityManager.getLocalPlayerEntity().id;
+    if (!playerId) {
       console.error('Current player ID not available');
       return;
     }
 
-    const currentPlayer = players.find((p) => p.id === this.playerId);
+    const currentPlayer = players.find((p) => p.id === playerId);
     if (!currentPlayer) {
       console.error(
         'Current player not found in lobby:',
-        this.playerId,
+        playerId,
         'Available players:',
         players.map((p) => p.id),
       );
@@ -129,23 +128,23 @@ export class Game implements CallbacksHandler {
     this.gameStateManager.setGameState('playing');
 
     for (const player of players) {
-      if (player.id !== this.playerId) {
-        await this.entityManager.createOtherPlayer(player.id, player.position, player.spriteData, player.subEntities);
+      if (player.id !== playerId) {
+        await this.entityManager.createRemotePlayer(player.id, player.position, player.spriteData, player.subEntities);
       }
     }
   };
 
   onOtherPlayerPositionUpdated = async (playerId: string, position: Position): Promise<void> => {
     await this.delay();
-    this.entityManager.updatePlayerPosition(playerId, position);
+    this.entityManager.updateEntityPosition(playerId, position);
   };
 
   onPlayerLeftLobby = async (playerId: string): Promise<void> => {
     await this.delay();
-    this.entityManager.removeOtherPlayer(playerId);
+    this.entityManager.removeRemotePlayer(playerId);
     this.gameStateManager.removePlayer(playerId);
     if (this.gameStateManager.getAllPlayers().size === 1) {
-      this.entityManager.clearOtherPlayers();
+      this.entityManager.clearRemoteEntities();
       this.gameStateManager.reset();
     }
   };
@@ -231,7 +230,7 @@ export class Game implements CallbacksHandler {
 
   onGameEnded = async (winnerId: string): Promise<void> => {
     await this.delay();
-    this.entityManager.clearOtherPlayers();
+    this.entityManager.clearRemoteEntities();
     this.gameStateManager.reset();
     this.gameStateManager.setGameState('ended');
     this.gameStateManager.setWinnerId(winnerId);

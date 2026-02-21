@@ -50,7 +50,7 @@ export class PlayerMovementController implements MovementController {
     // Only process movement when the game is playing
     if (!this.gameStateManager.isPlaying()) return;
 
-    const localPlayer = this.entityManager.getLocalPlayer();
+    const localPlayer = this.entityManager.getLocalPlayerEntity();
 
     const now = Date.now();
 

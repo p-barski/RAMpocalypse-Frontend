@@ -60,7 +60,7 @@ export async function createGame(
       subEntities: [],
     },
   ]);
-  await entityManager.createEntity({ x: 0, y: 0, angle: 0 }, arenaSpriteData, 'arena', [], true);
+  await entityManager.createEntity('arena', { x: 0, y: 0, angle: 0 }, arenaSpriteData, [], true);
   const inputHandler = new PlayerInputHandler(canvas, viewportManager);
   const movementController = new PlayerMovementController(
     entityManager,
