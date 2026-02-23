@@ -35,7 +35,7 @@ export class PlayerMovementController implements MovementController {
     if (!this.gameStateManager.isPlaying()) return;
 
     const localPlayer = this.entityManager.getLocalPlayerEntity();
-    const speedDiff = this.SPEED * (deltaTime / 1000);
+    const speedDiff = this.SPEED * deltaTime;
 
     const dx = +this.inputHandler.isRightPressed() - +this.inputHandler.isLeftPressed();
     const dy = +this.inputHandler.isDownPressed() - +this.inputHandler.isUpPressed();

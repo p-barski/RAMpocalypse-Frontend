@@ -91,8 +91,7 @@ export class Game implements CallbacksHandler {
 
   async leaveGame(): Promise<void> {
     await this.communicationService.leaveGame();
-    this.entityManager.clearRemoteEntities();
-    this.gameStateManager.reset();
+    this.clear();
   }
 
   onLobbyStart = async (lobbyId: string, players: Player[]): Promise<void> => {
@@ -144,8 +143,7 @@ export class Game implements CallbacksHandler {
     this.entityManager.removeRemotePlayer(playerId);
     this.gameStateManager.removePlayer(playerId);
     if (this.gameStateManager.getAllPlayers().size === 1) {
-      this.entityManager.clearRemoteEntities();
-      this.gameStateManager.reset();
+      this.clear();
     }
   };
 
@@ -229,8 +227,7 @@ export class Game implements CallbacksHandler {
 
   onGameEnded = async (winnerId: string): Promise<void> => {
     await this.delay();
-    this.entityManager.clearRemoteEntities();
-    this.gameStateManager.reset();
+    this.clear();
     this.gameStateManager.setGameState('ended');
     this.gameStateManager.setWinnerId(winnerId);
     console.log('Game ended, winner:', winnerId);
@@ -256,9 +253,9 @@ export class Game implements CallbacksHandler {
     if (!this.gameStateManager.isPlaying()) return;
 
     const currentFrameTime = Date.now();
-    const deltaTime = currentFrameTime - this.lastFrameTime;
+    const deltaTime = (currentFrameTime - this.lastFrameTime) / 1000;
     this.lastFrameTime = currentFrameTime;
-    this.attackController.update(deltaTime);
+    this.attackController.update(deltaTime, currentFrameTime);
     this.movementController.update(deltaTime, currentFrameTime);
   }
 
@@ -266,6 +263,12 @@ export class Game implements CallbacksHandler {
     this.update();
     this.renderingService.render();
     this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
+  }
+
+  private clear() {
+    this.entityManager.clearRemoteEntities();
+    this.attackController.clear();
+    this.gameStateManager.reset();
   }
 
   private async delay(): Promise<void> {

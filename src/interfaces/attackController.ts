@@ -19,12 +19,10 @@ export interface AttackController {
   performMeleeAttack(): void;
   performProjectileAttack(): void;
   performSpecialAttack(): void;
-  getCooldown(attackType: AttackType): number;
   getCooldownRemaining(attackType: AttackType): number;
   canPerformAttack(attackType: AttackType): boolean;
   addAttack(attack: Omit<AttackEntity, 'id' | 'createdAt'>): string;
   getAttacks(): AttackEntity[];
-  update(deltaTime: number): void;
-  removeAttack(id: string): void;
+  update(deltaTime: number, currentFrameTime: number): void;
   clear(): void;
 }

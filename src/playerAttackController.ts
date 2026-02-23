@@ -6,9 +6,11 @@ import { CommunicationService } from './communicatonService';
 import { AttackType, Position } from './messageInterfaces';
 
 export class PlayerAttackController implements AttackController {
-  private readonly MELEE_COOLDOWN = 50;
-  private readonly PROJECTILE_COOLDOWN = 100;
-  private readonly SPECIAL_COOLDOWN = 300;
+  private readonly COOLDOWNS_MAP: ReadonlyMap<AttackType, number> = new Map([
+    [AttackType.Melee, 50],
+    [AttackType.Projectile, 100],
+    [AttackType.Special, 300],
+  ]);
   private readonly entityManager: EntityManager;
   private readonly communicationService: CommunicationService;
   private readonly gameStateManager: StateManager;
@@ -61,21 +63,8 @@ export class PlayerAttackController implements AttackController {
     this.communicationService.performSpecialAttack(localPlayer.position);
   }
 
-  getCooldown(attackType: AttackType): number {
-    switch (attackType) {
-      case AttackType.Melee:
-        return this.MELEE_COOLDOWN;
-      case AttackType.Projectile:
-        return this.PROJECTILE_COOLDOWN;
-      case AttackType.Special:
-        return this.SPECIAL_COOLDOWN;
-      default:
-        return 0;
-    }
-  }
-
   getCooldownRemaining(attackType: AttackType): number {
-    const cooldownEnd = this.attackCooldowns.get(attackType) || 0;
+    const cooldownEnd = this.attackCooldowns.get(attackType) as number;
     const now = Date.now();
     return Math.max(0, cooldownEnd - now);
   }
@@ -84,7 +73,7 @@ export class PlayerAttackController implements AttackController {
     if (!this.gameStateManager.isPlaying()) return false;
     if (!this.communicationService.isConnected()) return false;
 
-    const cooldownEnd = this.attackCooldowns.get(attackType) || 0;
+    const cooldownEnd = this.attackCooldowns.get(attackType) as number;
     return Date.now() >= cooldownEnd;
   }
 
@@ -103,20 +92,18 @@ export class PlayerAttackController implements AttackController {
     return Array.from(this.attacks.values());
   }
 
-  update(deltaTime: number): void {
-    const now = Date.now();
+  update(deltaTime: number, currentFrameTime: number): void {
     const toRemove: string[] = [];
 
     for (const [id, attack] of Array.from(this.attacks.entries())) {
-      const age = now - attack.createdAt;
+      const age = currentFrameTime - attack.createdAt;
       if (age >= attack.lifetime) {
         toRemove.push(id);
       } else if (attack.type === AttackType.Projectile) {
-        // Update projectile position
         const projectile = attack as Projectile;
-        if (projectile.speed && projectile.speed > 0) {
-          attack.currentPosition.x += projectile.direction.x * projectile.speed * (deltaTime / 1000);
-          attack.currentPosition.y += projectile.direction.y * projectile.speed * (deltaTime / 1000);
+        if (projectile.speed > 0) {
+          attack.currentPosition.x += projectile.direction.x * projectile.speed * deltaTime;
+          attack.currentPosition.y += projectile.direction.y * projectile.speed * deltaTime;
         }
       }
     }
@@ -126,16 +113,12 @@ export class PlayerAttackController implements AttackController {
     }
   }
 
-  removeAttack(id: string): void {
-    this.attacks.delete(id);
-  }
-
   clear(): void {
     this.attacks.clear();
   }
 
   private setCooldown(attackType: AttackType): void {
-    const cooldownDuration = this.getCooldown(attackType);
+    const cooldownDuration = this.COOLDOWNS_MAP.get(attackType) as number;
     this.attackCooldowns.set(attackType, Date.now() + cooldownDuration);
   }
 
