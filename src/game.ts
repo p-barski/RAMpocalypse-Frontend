@@ -151,7 +151,6 @@ export class Game implements CallbacksHandler {
 
   onPositionCorrected = async (correctedPosition: Position): Promise<void> => {
     await this.delay();
-    this.entityManager.updateLocalPlayerPosition(correctedPosition);
     this.movementController.onPositionCorrected(correctedPosition);
     console.log('Position corrected by server:', correctedPosition);
   };
@@ -256,11 +255,11 @@ export class Game implements CallbacksHandler {
   private update(): void {
     if (!this.gameStateManager.isPlaying()) return;
 
-    const now = Date.now();
-    const deltaTime = now - this.lastFrameTime;
-    this.lastFrameTime = now;
+    const currentFrameTime = Date.now();
+    const deltaTime = currentFrameTime - this.lastFrameTime;
+    this.lastFrameTime = currentFrameTime;
     this.attackController.update(deltaTime);
-    this.movementController.update(deltaTime);
+    this.movementController.update(deltaTime, currentFrameTime);
   }
 
   private gameLoop(): void {
