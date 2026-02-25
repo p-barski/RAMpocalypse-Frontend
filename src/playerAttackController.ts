@@ -124,8 +124,8 @@ export class PlayerAttackController implements AttackController {
 
   private calculateAttackDirection(): Position {
     const localPlayer = this.entityManager.getLocalPlayerEntity();
-    const mouseX = this.inputHandler.getMouseX();
-    const mouseY = this.inputHandler.getMouseY();
+    const mouseX = this.inputHandler.mouseX;
+    const mouseY = this.inputHandler.mouseY;
 
     const directionX = mouseX - localPlayer.position.x;
     const directionY = mouseY - localPlayer.position.y;

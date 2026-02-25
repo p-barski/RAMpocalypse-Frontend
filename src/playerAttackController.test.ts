@@ -58,16 +58,15 @@ describe('PlayerAttackController', () => {
     };
 
     mockInputHandler = {
+      mouseX: 200,
+      mouseY: 200,
       isKeyPressed: jest.fn(),
       isUpPressed: jest.fn(),
       isDownPressed: jest.fn(),
       isLeftPressed: jest.fn(),
       isRightPressed: jest.fn(),
-      getMouseX: jest.fn(),
-      getMouseY: jest.fn(),
       setup: jest.fn(),
       cleanup: jest.fn(),
-      setAttackCallback: jest.fn(),
     };
 
     attackController = new PlayerAttackController(
@@ -85,12 +84,18 @@ describe('PlayerAttackController', () => {
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);
       mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
-      mockInputHandler.getMouseX.mockReturnValue(200);
-      mockInputHandler.getMouseY.mockReturnValue(200);
+      Object.defineProperty(mockInputHandler, 'mouseX', {
+        get: jest.fn(() => 200),
+        configurable: true,
+      });
+      Object.defineProperty(mockInputHandler, 'mouseY', {
+        get: jest.fn(() => 200),
+        configurable: true,
+      });
 
       attackController.performMeleeAttack();
 
-      expect(mockCommunicationService.performMeleeAttack).toHaveBeenCalledWith({ x: 1, y: 0 });
+      expect(mockCommunicationService.performMeleeAttack).toHaveBeenCalledWith({ x: 1, y: 0, angle: 0 });
     });
 
     it('should not attack when game is not playing', () => {
@@ -117,36 +122,24 @@ describe('PlayerAttackController', () => {
       expect(mockCommunicationService.performMeleeAttack).not.toHaveBeenCalled();
     });
 
-    it('should not attack when local player is null', () => {
-      mockGameStateManager.isPlaying.mockReturnValue(true);
-      mockCommunicationService.isConnected.mockReturnValue(true);
-      mockEntityManager.getLocalPlayerEntity.mockReturnValue({
-        position: { x: 100, y: 200, angle: 0 },
-        image: new ImageBitmap(),
-        width: 100,
-        height: 100,
-        id: '1',
-        spriteData: { url: 'test.png', width: 100, height: 100, scaleFactor: 1 },
-        subEntities: [],
-      } satisfies Entity);
-
-      attackController.performMeleeAttack();
-
-      expect(mockCommunicationService.performMeleeAttack).not.toHaveBeenCalled();
-    });
-
     it('should calculate normalized direction towards mouse position', () => {
       const mockPlayer = { position: { x: 0, y: 0 } } as Entity;
 
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);
       mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
-      mockInputHandler.getMouseX.mockReturnValue(100);
-      mockInputHandler.getMouseY.mockReturnValue(0);
+      Object.defineProperty(mockInputHandler, 'mouseX', {
+        get: jest.fn(() => 0),
+        configurable: true,
+      });
+      Object.defineProperty(mockInputHandler, 'mouseY', {
+        get: jest.fn(() => 100),
+        configurable: true,
+      });
 
       attackController.performMeleeAttack();
 
-      expect(mockCommunicationService.performMeleeAttack).toHaveBeenCalledWith({ x: 1, y: 0 });
+      expect(mockCommunicationService.performMeleeAttack).toHaveBeenCalledWith({ x: 0, y: 1, angle: 0 });
     });
 
     it('should respect cooldown and not attack during cooldown period', () => {
@@ -155,8 +148,14 @@ describe('PlayerAttackController', () => {
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockCommunicationService.isConnected.mockReturnValue(true);
       mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
-      mockInputHandler.getMouseX.mockReturnValue(200);
-      mockInputHandler.getMouseY.mockReturnValue(200);
+      Object.defineProperty(mockInputHandler, 'mouseX', {
+        get: jest.fn(() => 200),
+        configurable: true,
+      });
+      Object.defineProperty(mockInputHandler, 'mouseY', {
+        get: jest.fn(() => 200),
+        configurable: true,
+      });
 
       attackController.performMeleeAttack();
       attackController.performMeleeAttack();

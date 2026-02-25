@@ -46,8 +46,8 @@ export class PlayerMovementController implements MovementController {
     newX = this.clampToBoundary(newX, localPlayer.width, this.GAME_WIDTH);
     newY = this.clampToBoundary(newY, localPlayer.height, this.GAME_HEIGHT);
 
-    const mouseX = this.inputHandler.getMouseX();
-    const mouseY = this.inputHandler.getMouseY();
+    const mouseX = this.inputHandler.mouseX;
+    const mouseY = this.inputHandler.mouseY;
     const angle = Math.atan2(mouseX - newX - localPlayer.width / 2, -(mouseY - newY - localPlayer.height / 2));
 
     const position: Position = { x: newX, y: newY, angle };

@@ -1,40 +1,18 @@
 import { InputHandler, AttackInputCallback } from './interfaces/inputHandler';
 import { ViewportManager } from './interfaces/viewportManager';
 
-/**
- * Handles keyboard and mouse input for the game.
- * Tracks key states and mouse position, converting mouse coordinates to game world coordinates.
- * Also handles attack input events via a callback mechanism.
- */
 export class PlayerInputHandler implements InputHandler {
+  public mouseX = 0;
+  public mouseY = 0;
   private readonly canvas: HTMLCanvasElement;
   private readonly viewportManager: ViewportManager;
   private readonly keys: Set<string> = new Set();
-  private mouseX = 0;
-  private mouseY = 0;
-
-  // Attack callback for notifying when attack keys are pressed
-  private attackCallback: AttackInputCallback | null = null;
-
-  // Bound event handlers for proper cleanup
-  private readonly boundKeyDown: (e: KeyboardEvent) => void;
-  private readonly boundKeyUp: (e: KeyboardEvent) => void;
-  private readonly boundMouseMove: (e: MouseEvent) => void;
-  private readonly boundClick: (e: MouseEvent) => void;
+  private attackCallback: AttackInputCallback;
 
   constructor(canvas: HTMLCanvasElement, viewportManager: ViewportManager) {
     this.canvas = canvas;
     this.viewportManager = viewportManager;
-
-    // Bind event handlers to preserve 'this' context
-    this.boundKeyDown = this.handleKeyDown;
-    this.boundKeyUp = this.handleKeyUp;
-    this.boundMouseMove = this.handleMouseMove;
-    this.boundClick = this.handleClick;
-  }
-
-  setAttackCallback(callback: AttackInputCallback | null): void {
-    this.attackCallback = callback;
+    this.attackCallback = (_) => {};
   }
 
   isKeyPressed(key: string): boolean {
@@ -57,52 +35,40 @@ export class PlayerInputHandler implements InputHandler {
     return this.keys.has('d') || this.keys.has('arrowright');
   }
 
-  getMouseX(): number {
-    return this.mouseX;
-  }
-
-  getMouseY(): number {
-    return this.mouseY;
-  }
-
-  setup(): void {
-    window.addEventListener('keydown', this.boundKeyDown);
-    window.addEventListener('keyup', this.boundKeyUp);
-    this.canvas.addEventListener('mousemove', this.boundMouseMove);
-    this.canvas.addEventListener('click', this.boundClick);
+  setup(attackCallback: AttackInputCallback): void {
+    window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('keyup', this.handleKeyUp);
+    this.canvas.addEventListener('mousemove', this.handleMouseMove);
+    this.canvas.addEventListener('click', this.handleClick);
+    this.attackCallback = attackCallback;
   }
 
   cleanup(): void {
-    window.removeEventListener('keydown', this.boundKeyDown);
-    window.removeEventListener('keyup', this.boundKeyUp);
-    this.canvas.removeEventListener('mousemove', this.boundMouseMove);
-    this.canvas.removeEventListener('click', this.boundClick);
+    window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('keyup', this.handleKeyUp);
+    this.canvas.removeEventListener('mousemove', this.handleMouseMove);
+    this.canvas.removeEventListener('click', this.handleClick);
     this.keys.clear();
-    this.attackCallback = null;
+    this.attackCallback = (_) => {};
   }
 
   private handleKeyDown = (e: KeyboardEvent): void => {
     this.keys.add(e.key.toLowerCase());
 
-    // Handle attack inputs
-    if (this.attackCallback) {
-      if (e.key === ' ' || e.key === 'Space') {
-        e.preventDefault();
-        this.attackCallback('melee');
-      } else if (e.key === 'e' || e.key === 'E') {
-        e.preventDefault();
-        this.attackCallback('projectile');
-      } else if (e.key === 'q' || e.key === 'Q') {
-        e.preventDefault();
-        this.attackCallback('special');
-      }
+    if (e.key === ' ' || e.key === 'Space') {
+      e.preventDefault();
+      this.attackCallback('melee');
+    } else if (e.key === 'e' || e.key === 'E') {
+      e.preventDefault();
+      this.attackCallback('projectile');
+    } else if (e.key === 'q' || e.key === 'Q') {
+      e.preventDefault();
+      this.attackCallback('special');
     }
   };
 
   private handleClick = (_e: MouseEvent): void => {
-    if (this.attackCallback) {
-      this.attackCallback('melee');
-    }
+    this.attackCallback('melee');
   };
 
   private handleKeyUp = (e: KeyboardEvent): void => {
@@ -117,11 +83,11 @@ export class PlayerInputHandler implements InputHandler {
     const canvasY = e.clientY - rect.top;
 
     // Convert to viewport-relative coordinates
-    const viewportRelativeX = canvasX - this.viewportManager.getViewportX();
-    const viewportRelativeY = canvasY - this.viewportManager.getViewportY();
+    const viewportRelativeX = canvasX - this.viewportManager.viewportX;
+    const viewportRelativeY = canvasY - this.viewportManager.viewportY;
 
     // Convert to game world coordinates
-    this.mouseX = viewportRelativeX / this.viewportManager.getScaleX();
-    this.mouseY = viewportRelativeY / this.viewportManager.getScaleY();
+    this.mouseX = viewportRelativeX / this.viewportManager.scale;
+    this.mouseY = viewportRelativeY / this.viewportManager.scale;
   };
 }

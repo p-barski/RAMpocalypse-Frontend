@@ -78,8 +78,7 @@ export class Game implements CallbacksHandler {
       if (this.abortSignal.aborted) return;
       throw error;
     }
-    this.inputHandler.setAttackCallback(this.handleAttackInput);
-    this.inputHandler.setup();
+    this.inputHandler.setup(this.handleAttackInput);
   }
 
   async requestMatchmaking(): Promise<void> {
