@@ -9,6 +9,8 @@ import { SignalRService } from './signalRService';
 import { SpriteLoader } from './spriteLoader';
 import { GameViewportManager } from './gameViewportManager';
 import { GameAudioController } from './gameAudioController';
+import { EntityAnimationController } from './entityAnimationController';
+import { GameTime } from './gameTime';
 
 export async function createGame(
   serverUrl: string,
@@ -39,6 +41,7 @@ export async function createGame(
   };
   const missingSprite = await SpriteLoader.loadMissingSprite();
 
+  const gameTime = new GameTime();
   const audioController = new GameAudioController();
   const gameStateManager = new GameStateManager();
   const viewportManager = new GameViewportManager(canvas);
@@ -60,7 +63,18 @@ export async function createGame(
       subEntities: [],
     },
   ]);
-  await entityManager.createEntity('arena', { x: 0, y: 0, angle: 0 }, arenaSpriteData, [], true);
+  await entityManager.createEntity(
+    'arena',
+    {
+      x: (arenaSpriteData.width * arenaSpriteData.scaleFactor) / 2,
+      y: (arenaSpriteData.height * arenaSpriteData.scaleFactor) / 2,
+      angle: 0,
+    },
+    arenaSpriteData,
+    [],
+    true,
+  );
+  const animationController = new EntityAnimationController(entityManager, gameTime);
   const inputHandler = new PlayerInputHandler(canvas, viewportManager);
   const movementController = new PlayerMovementController(
     entityManager,
@@ -69,7 +83,15 @@ export async function createGame(
     signalRService,
   );
   const attackController = new PlayerAttackController(entityManager, signalRService, gameStateManager, inputHandler);
-  const renderingService = new Renderer(ctx, entityManager, viewportManager, gameStateManager, attackController);
+  const renderingService = new Renderer(
+    ctx,
+    entityManager,
+    viewportManager,
+    gameStateManager,
+    attackController,
+    animationController,
+    gameTime,
+  );
 
   const game = new Game(
     signalRService,
@@ -82,6 +104,8 @@ export async function createGame(
     attackController,
     renderingService,
     audioController,
+    animationController,
+    gameTime,
   );
   return game;
 }

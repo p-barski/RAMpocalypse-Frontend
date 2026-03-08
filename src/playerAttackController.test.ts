@@ -16,6 +16,7 @@ describe('PlayerAttackController', () => {
     mockEntityManager = {
       getLocalPlayerEntity: jest.fn(),
       getEntities: jest.fn(),
+      getEntityById: jest.fn(),
       clearRemoteEntities: jest.fn(),
       updateLocalPlayerId: jest.fn(),
       updateLocalPlayerPosition: jest.fn(),

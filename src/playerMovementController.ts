@@ -48,7 +48,7 @@ export class PlayerMovementController implements MovementController {
 
     const mouseX = this.inputHandler.mouseX;
     const mouseY = this.inputHandler.mouseY;
-    const angle = Math.atan2(mouseX - newX - localPlayer.width / 2, -(mouseY - newY - localPlayer.height / 2));
+    const angle = Math.atan2(mouseX - newX, -(mouseY - newY));
 
     const position: Position = { x: newX, y: newY, angle };
     this.entityManager.updateLocalPlayerPosition(position);
@@ -73,6 +73,7 @@ export class PlayerMovementController implements MovementController {
   }
 
   private clampToBoundary(position: number, entitySize: number, maxBoundary: number): number {
-    return Math.max(0, Math.min(position, maxBoundary - entitySize));
+    const halfSize = entitySize / 2;
+    return Math.max(halfSize, Math.min(position, maxBoundary - halfSize));
   }
 }

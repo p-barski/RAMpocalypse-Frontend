@@ -9,6 +9,8 @@ import { MovementController } from './interfaces/movementController';
 import { AttackController } from './interfaces/attackController';
 import { RenderingService } from './interfaces/renderingService';
 import { AudioController } from './interfaces/audioController';
+import { AnimationController } from './interfaces/animationController';
+import { GameTime } from './gameTime';
 
 export class Game implements CallbacksHandler {
   public readonly communicationService: CommunicationService;
@@ -21,8 +23,9 @@ export class Game implements CallbacksHandler {
   public readonly attackController: AttackController;
   public readonly renderingService: RenderingService;
   public readonly audioController: AudioController;
+  public readonly animationController: AnimationController;
+  public readonly time: GameTime;
   private animationFrameId: number | null = null;
-  private lastFrameTime = 0;
 
   constructor(
     communicationService: CommunicationService,
@@ -35,6 +38,8 @@ export class Game implements CallbacksHandler {
     attackController: AttackController,
     renderingService: RenderingService,
     audioController: AudioController,
+    animationController: AnimationController,
+    time: GameTime,
   ) {
     this.communicationService = communicationService;
     this.abortSignal = abortSignal;
@@ -46,11 +51,12 @@ export class Game implements CallbacksHandler {
     this.attackController = attackController;
     this.renderingService = renderingService;
     this.audioController = audioController;
+    this.animationController = animationController;
+    this.time = time;
   }
 
   start(): void {
     if (this.animationFrameId === null) {
-      this.lastFrameTime = Date.now();
       this.gameLoop();
     }
   }
@@ -191,6 +197,9 @@ export class Game implements CallbacksHandler {
       if (type === AttackType.Projectile) {
         attackData.speed = speed;
       }
+      if (type === AttackType.Melee) {
+        this.animationController.createMeleeAttackAnimation(playerId);
+      }
       this.attackController.addAttack(attackData);
       this.audioController.playShortRunningSound('attack_swing.mp3');
     } catch (error) {
@@ -248,18 +257,12 @@ export class Game implements CallbacksHandler {
     }
   };
 
-  private update(): void {
-    if (!this.gameStateManager.isPlaying()) return;
-
-    const currentFrameTime = Date.now();
-    const deltaTime = (currentFrameTime - this.lastFrameTime) / 1000;
-    this.lastFrameTime = currentFrameTime;
-    this.attackController.update(deltaTime, currentFrameTime);
-    this.movementController.update(deltaTime, currentFrameTime);
-  }
-
   private gameLoop(): void {
-    this.update();
+    this.time.update();
+    if (this.gameStateManager.isPlaying()) {
+      this.attackController.update(this.time.deltaTime, this.time.frameTimestamp);
+      this.movementController.update(this.time.deltaTime, this.time.frameTimestamp);
+    }
     this.renderingService.render();
     this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
   }

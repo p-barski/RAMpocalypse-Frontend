@@ -3,6 +3,7 @@ import { Position, SpriteData, SubEntity } from '../messageInterfaces';
 
 export interface EntityManager {
   getEntities(): Entity[];
+  getEntityById(id: string): Entity | undefined;
   getLocalPlayerEntity(): Entity;
   clearRemoteEntities(): void;
   updateLocalPlayerId(playerId: string): void;

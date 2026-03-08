@@ -27,6 +27,13 @@ export class PlayerEntityManager implements EntityManager {
     return this.entities;
   }
 
+  getEntityById(id: string): Entity | undefined {
+    if (id === this.localPlayerEntity.id) {
+      return this.localPlayerEntity;
+    }
+    return this.remoteEntities.get(id);
+  }
+
   getLocalPlayerEntity(): Entity {
     return this.localPlayerEntity;
   }
