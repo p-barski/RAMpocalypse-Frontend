@@ -158,53 +158,11 @@ export class Game implements CallbacksHandler {
     console.log('Position corrected by server:', correctedPosition);
   };
 
-  onAttackPerformed = async (
-    playerId: string,
-    attackType: number,
-    attackPosition: Position,
-    attackDirection: Position,
-  ): Promise<void> => {
+  onAttackPerformed = async (playerId: string, attackType: number, attackPositions: Position[]): Promise<void> => {
     await this.delay();
-    try {
-      const type = attackType as AttackType;
-      let lifetime = 500;
-      let speed = 0;
-
-      if (type === AttackType.Melee) {
-        lifetime = 200;
-      } else if (type === AttackType.Projectile) {
-        lifetime = 3000;
-        speed = 800;
-      } else if (type === AttackType.Special) {
-        lifetime = 1000;
-      }
-
-      const attackData: {
-        type: AttackType;
-        currentPosition: Position;
-        direction: Position;
-        ownerId: string;
-        lifetime: number;
-        speed?: number;
-      } = {
-        type,
-        currentPosition: attackPosition,
-        direction: attackDirection,
-        ownerId: playerId,
-        lifetime,
-      };
-
-      if (type === AttackType.Projectile) {
-        attackData.speed = speed;
-      }
-      if (type === AttackType.Melee) {
-        this.animationController.createMeleeAttackAnimation(playerId);
-      }
-      this.attackController.addAttack(attackData);
-      this.audioController.playShortRunningSound('attack_swing.mp3');
-    } catch (error) {
-      console.error('Error creating attack:', error);
-    }
+    this.attackController.addAttack(playerId, attackType, attackPositions);
+    this.audioController.playShortRunningSound('attack_swing.mp3');
+    if (attackType === AttackType.Melee) this.animationController.createMeleeAttackAnimation(playerId);
   };
 
   onPlayerDamaged = async (playerId: string, damage: number, newHealth: number): Promise<void> => {

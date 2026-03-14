@@ -87,25 +87,25 @@ export class SignalRService implements CommunicationService {
     }
   }
 
-  async performMeleeAttack(attackDirection: Position): Promise<void> {
+  async performMeleeAttack(): Promise<void> {
     try {
-      await this.connection.invoke('PerformMeleeAttack', attackDirection);
+      await this.connection.invoke('PerformMeleeAttack');
     } catch (error) {
       console.error('SignalR: Failed to perform melee attack', error);
     }
   }
 
-  async performProjectileAttack(direction: Position): Promise<void> {
+  async performProjectileAttack(): Promise<void> {
     try {
-      await this.connection.invoke('PerformProjectileAttack', direction);
+      await this.connection.invoke('PerformProjectileAttack');
     } catch (error) {
       console.error('SignalR: Failed to perform projectile attack', error);
     }
   }
 
-  async performSpecialAttack(position: Position): Promise<void> {
+  async performSpecialAttack(): Promise<void> {
     try {
-      await this.connection.invoke('PerformSpecialAttack', position);
+      await this.connection.invoke('PerformSpecialAttack');
     } catch (error) {
       console.error('SignalR: Failed to perform special attack', error);
     }

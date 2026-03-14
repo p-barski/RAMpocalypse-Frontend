@@ -7,9 +7,9 @@ export interface CommunicationService {
   disconnect: () => Promise<void>;
   requestMatchmaking: () => Promise<void>;
   updatePlayerPosition: (position: Position) => Promise<void>;
-  performMeleeAttack: (attackDirection: Position) => Promise<void>;
-  performProjectileAttack: (direction: Position) => Promise<void>;
-  performSpecialAttack: (position: Position) => Promise<void>;
+  performMeleeAttack: () => Promise<void>;
+  performProjectileAttack: () => Promise<void>;
+  performSpecialAttack: () => Promise<void>;
   reportProjectileHit: (projectileOwnerId: string, hitPlayerId: string) => Promise<void>;
   leaveGame: () => Promise<void>;
 }
