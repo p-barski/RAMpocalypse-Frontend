@@ -7,6 +7,7 @@ import { AnimationController } from './interfaces/animationController';
 import { Time } from './interfaces/time';
 import { AttackType } from './messageInterfaces';
 import { Entity } from './entity';
+import { TAU } from './mathUtils';
 
 export class Renderer implements RenderingService {
   private readonly ctx: CanvasRenderingContext2D;
@@ -178,14 +179,14 @@ export class Renderer implements RenderingService {
     this.ctx.strokeStyle = this.COLOR_MELEE;
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
-    this.ctx.arc(canvasX, canvasY, this.MELEE_RADIUS * scaleX, 0, Math.PI * 2);
+    this.ctx.arc(canvasX, canvasY, this.MELEE_RADIUS * scaleX, 0, TAU);
     this.ctx.stroke();
   }
 
   private drawProjectileAttack(canvasX: number, canvasY: number, scaleX: number): void {
     this.ctx.fillStyle = this.COLOR_PROJECTILE;
     this.ctx.beginPath();
-    this.ctx.arc(canvasX, canvasY, this.PROJECTILE_RADIUS * scaleX, 0, Math.PI * 2);
+    this.ctx.arc(canvasX, canvasY, this.PROJECTILE_RADIUS * scaleX, 0, TAU);
     this.ctx.fill();
   }
 
@@ -193,7 +194,7 @@ export class Renderer implements RenderingService {
     this.ctx.strokeStyle = this.COLOR_SPECIAL;
     this.ctx.lineWidth = 4;
     this.ctx.beginPath();
-    this.ctx.arc(canvasX, canvasY, this.SPECIAL_RADIUS * scaleX, 0, Math.PI * 2);
+    this.ctx.arc(canvasX, canvasY, this.SPECIAL_RADIUS * scaleX, 0, TAU);
     this.ctx.stroke();
   }
 
