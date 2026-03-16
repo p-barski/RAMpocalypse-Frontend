@@ -39,7 +39,7 @@ describe('PlayerMovementController', () => {
       performMeleeAttack: jest.fn(),
       performProjectileAttack: jest.fn(),
       performSpecialAttack: jest.fn(),
-      reportProjectileHit: jest.fn(),
+      projectileHitPlayer: jest.fn(),
       leaveGame: jest.fn(),
     };
 

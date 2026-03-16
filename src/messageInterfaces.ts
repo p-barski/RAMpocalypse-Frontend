@@ -31,5 +31,16 @@ export interface Player {
 export enum AttackType {
   Melee = 0,
   Projectile = 1,
-  Special = 2,
+  ProjectileHit = 2,
+  Special = 3,
+}
+
+export interface AttackEntity {
+  id: string;
+  ownerId: string;
+  type: AttackType;
+  currentPosition: Position;
+  velocityVector: Position;
+  lifetime: number;
+  creationTime: number;
 }

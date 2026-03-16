@@ -1,4 +1,5 @@
 import { PlayerAttackController } from './playerAttackController';
+import { EntityManager } from './interfaces/entityManager';
 import { StateManager } from './interfaces/stateManager';
 import { CommunicationService } from './communicatonService';
 import { Entity } from './entity';
@@ -6,11 +7,28 @@ import { Time } from './interfaces/time';
 
 describe('PlayerAttackController', () => {
   let attackController: PlayerAttackController;
+  let mockEntityManager: jest.Mocked<EntityManager>;
   let mockCommunicationService: jest.Mocked<CommunicationService>;
   let mockGameStateManager: jest.Mocked<StateManager>;
   let mockTime: Time;
 
   beforeEach(() => {
+    mockEntityManager = {
+      getLocalPlayerEntity: jest.fn(),
+      getEntities: jest.fn(),
+      getEntityById: jest.fn(),
+      clearRemoteEntities: jest.fn(),
+      updateLocalPlayerId: jest.fn(),
+      updateLocalPlayerPosition: jest.fn(),
+      updateLocalPlayerSprite: jest.fn(),
+      updateLocalPlayerSubEntities: jest.fn(),
+      createRemotePlayer: jest.fn(),
+      updateEntityPosition: jest.fn(),
+      removeRemotePlayer: jest.fn(),
+      hidePlayer: jest.fn(),
+      showPlayer: jest.fn(),
+    };
+
     mockCommunicationService = {
       connect: jest.fn(),
       isConnected: jest.fn(),
@@ -20,7 +38,7 @@ describe('PlayerAttackController', () => {
       performMeleeAttack: jest.fn(),
       performProjectileAttack: jest.fn(),
       performSpecialAttack: jest.fn(),
-      reportProjectileHit: jest.fn(),
+      projectileHitPlayer: jest.fn(),
       leaveGame: jest.fn(),
     };
 
@@ -46,7 +64,12 @@ describe('PlayerAttackController', () => {
       deltaTime: 0,
     };
 
-    attackController = new PlayerAttackController(mockCommunicationService, mockGameStateManager, mockTime);
+    attackController = new PlayerAttackController(
+      mockEntityManager,
+      mockCommunicationService,
+      mockGameStateManager,
+      mockTime,
+    );
   });
 
   describe('performMeleeAttack', () => {

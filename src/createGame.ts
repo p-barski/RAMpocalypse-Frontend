@@ -82,7 +82,7 @@ export async function createGame(
     inputHandler,
     signalRService,
   );
-  const attackController = new PlayerAttackController(signalRService, gameStateManager, gameTime);
+  const attackController = new PlayerAttackController(entityManager, signalRService, gameStateManager, gameTime);
   const renderingService = new Renderer(
     ctx,
     entityManager,

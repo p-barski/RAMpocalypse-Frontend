@@ -1,9 +1,9 @@
-import { AttackController, AttackEntity, PROJECTILE_SPEED } from './interfaces/attackController';
+import { AttackController } from './interfaces/attackController';
+import { EntityManager } from './interfaces/entityManager';
 import { StateManager } from './interfaces/stateManager';
 import { Time } from './interfaces/time';
 import { CommunicationService } from './communicatonService';
-import { AttackType, Position } from './messageInterfaces';
-import { calculateDirectionVector } from './mathUtils';
+import { AttackType, AttackEntity } from './messageInterfaces';
 
 export class PlayerAttackController implements AttackController {
   private readonly COOLDOWNS_MAP: ReadonlyMap<AttackType, number> = new Map([
@@ -11,11 +11,7 @@ export class PlayerAttackController implements AttackController {
     [AttackType.Projectile, 100],
     [AttackType.Special, 300],
   ]);
-  private readonly LIFETIME_MAP: ReadonlyMap<AttackType, number> = new Map([
-    [AttackType.Melee, 200],
-    [AttackType.Projectile, 3000],
-    [AttackType.Special, 1000],
-  ]);
+  private readonly entityManager: EntityManager;
   private readonly communicationService: CommunicationService;
   private readonly gameStateManager: StateManager;
   private readonly time: Time;
@@ -26,10 +22,16 @@ export class PlayerAttackController implements AttackController {
     [AttackType.Special, 0],
   ]);
 
-  private attacks: Map<string, AttackEntity> = new Map();
-  private nextAttackId = 0;
+  private readonly attacks: Map<string, AttackEntity> = new Map();
+  private readonly ownProjectiles: Map<string, AttackEntity> = new Map();
 
-  constructor(communicationService: CommunicationService, gameStateManager: StateManager, time: Time) {
+  constructor(
+    entityManager: EntityManager,
+    communicationService: CommunicationService,
+    gameStateManager: StateManager,
+    time: Time,
+  ) {
+    this.entityManager = entityManager;
     this.communicationService = communicationService;
     this.gameStateManager = gameStateManager;
     this.time = time;
@@ -65,47 +67,65 @@ export class PlayerAttackController implements AttackController {
     return this.time.frameTimestamp >= cooldownEnd;
   }
 
-  addAttack(playerId: string, attackType: number, attackPositions: Position[]): string {
-    const id = `attack_${this.nextAttackId++}`;
-    const speed = PROJECTILE_SPEED * +(attackType === AttackType.Projectile);
-    for (const position of attackPositions) {
-      const velocityVector = calculateDirectionVector(position);
-      velocityVector.x *= speed;
-      velocityVector.y *= speed;
-      const attackEntity: AttackEntity = {
-        id,
-        type: attackType,
-        currentPosition: position,
-        velocityVector,
-        ownerId: playerId,
-        lifetime: this.LIFETIME_MAP.get(attackType) as number,
-        createdAt: this.time.frameTimestamp,
-      };
-
-      this.attacks.set(id, attackEntity);
+  addAttack(attackEntity: AttackEntity): void {
+    if (attackEntity.type === AttackType.ProjectileHit) {
+      this.attacks.delete(attackEntity.id);
+      return;
     }
-    return id;
+    if (
+      attackEntity.type === AttackType.Projectile &&
+      attackEntity.ownerId === this.entityManager.getLocalPlayerEntity().id
+    ) {
+      this.ownProjectiles.set(attackEntity.id, attackEntity);
+    }
+    this.attacks.set(attackEntity.id, attackEntity);
   }
 
   getAttacks(): AttackEntity[] {
     return Array.from(this.attacks.values());
   }
 
-  update(deltaTime: number, currentFrameTime: number): void {
+  update(): void {
     const toRemove: string[] = [];
 
-    for (const [id, attack] of Array.from(this.attacks.entries())) {
-      const age = currentFrameTime - attack.createdAt;
+    for (const [id, attack] of this.attacks) {
+      const age = this.time.frameTimestamp - attack.creationTime;
       if (age >= attack.lifetime) {
         toRemove.push(id);
+        this.ownProjectiles.delete(id);
       } else {
-        attack.currentPosition.x += attack.velocityVector.x * deltaTime;
-        attack.currentPosition.y += attack.velocityVector.y * deltaTime;
+        attack.currentPosition.x += attack.velocityVector.x * this.time.deltaTime;
+        attack.currentPosition.y += attack.velocityVector.y * this.time.deltaTime;
+      }
+    }
+
+    if (this.ownProjectiles.size > 0) {
+      const entities = this.entityManager.getEntities();
+      const localPlayer = this.entityManager.getLocalPlayerEntity();
+      for (const entity of entities) {
+        if (entity.id != localPlayer.id && entity.id.startsWith('player_')) {
+          const halfWidth = entity.width / 2;
+          const halfHeight = entity.height / 2;
+          const cos = Math.cos(-entity.position.angle);
+          const sin = Math.sin(-entity.position.angle);
+          for (const [id, attack] of this.ownProjectiles) {
+            const dx = attack.currentPosition.x - entity.position.x;
+            const dy = attack.currentPosition.y - entity.position.y;
+            const localX = dx * cos - dy * sin;
+            const localY = dx * sin + dy * cos;
+            if (Math.abs(localX) <= halfWidth && Math.abs(localY) <= halfHeight) {
+              this.communicationService.projectileHitPlayer(attack.id, entity.id);
+              toRemove.push(id);
+              break;
+            }
+          }
+        }
       }
     }
 
     for (const id of toRemove) {
       this.attacks.delete(id);
+      this.ownProjectiles.delete(id);
     }
   }
 

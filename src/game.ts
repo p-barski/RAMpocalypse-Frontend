@@ -1,4 +1,4 @@
-import { Player, AttackType, Position } from './messageInterfaces';
+import { Player, AttackType, Position, AttackEntity } from './messageInterfaces';
 import { CallbacksHandler } from './callbacksHandler';
 import { CommunicationService } from './communicatonService';
 import { EntityManager } from './interfaces/entityManager';
@@ -158,11 +158,14 @@ export class Game implements CallbacksHandler {
     console.log('Position corrected by server:', correctedPosition);
   };
 
-  onAttackPerformed = async (playerId: string, attackType: number, attackPositions: Position[]): Promise<void> => {
+  onAttackPerformed = async (attackEntities: AttackEntity[]): Promise<void> => {
     await this.delay();
-    this.attackController.addAttack(playerId, attackType, attackPositions);
+    for (const attackEntity of attackEntities) {
+      this.attackController.addAttack(attackEntity);
+      if (attackEntity.type === AttackType.Melee)
+        this.animationController.createMeleeAttackAnimation(attackEntity.ownerId);
+    }
     this.audioController.playShortRunningSound('attack_swing.mp3');
-    if (attackType === AttackType.Melee) this.animationController.createMeleeAttackAnimation(playerId);
   };
 
   onPlayerDamaged = async (playerId: string, damage: number, newHealth: number): Promise<void> => {
@@ -218,7 +221,7 @@ export class Game implements CallbacksHandler {
   private gameLoop(): void {
     this.time.update();
     if (this.gameStateManager.isPlaying()) {
-      this.attackController.update(this.time.deltaTime, this.time.frameTimestamp);
+      this.attackController.update();
       this.movementController.update(this.time.deltaTime, this.time.frameTimestamp);
     }
     this.renderingService.render();
