@@ -1,5 +1,5 @@
-import { Entity } from '../entity';
-import { Position, SpriteData, SubEntity } from '../messageInterfaces';
+import type { Entity } from '../entity';
+import type { Position, SpriteData, SubEntity } from '../messageInterfaces';
 
 export interface EntityManager {
   getEntities(): Entity[];

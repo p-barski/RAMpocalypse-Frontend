@@ -1,11 +1,6 @@
-import { Player } from './messageInterfaces';
-import { GameState, StateManager } from './interfaces/stateManager';
+import type { Player } from './messageInterfaces';
+import type { GameState, StateManager } from './interfaces/stateManager';
 
-/**
- * GameStateManager - Manages game state, winner tracking, and player data
- *
- * Tracks Player objects from the server for rendering health bars and game state.
- */
 export class GameStateManager implements StateManager {
   private gameState: GameState = 'waiting';
   private winnerId = '';

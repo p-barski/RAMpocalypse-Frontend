@@ -1,4 +1,4 @@
-import { SpriteData } from '../messageInterfaces';
+import type { SpriteData } from '../messageInterfaces';
 
 export interface SpriteManager {
   getSpriteImage(spriteData: SpriteData): Promise<ImageBitmap>;

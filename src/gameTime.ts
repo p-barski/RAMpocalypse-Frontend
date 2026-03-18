@@ -1,4 +1,4 @@
-import { Time } from './interfaces/time';
+import type { Time } from './interfaces/time';
 
 export class GameTime implements Time {
   frameTimestamp = 0;

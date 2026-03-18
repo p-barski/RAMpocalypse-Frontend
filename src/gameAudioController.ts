@@ -1,4 +1,4 @@
-import { AudioController } from './interfaces/audioController';
+import type { AudioController } from './interfaces/audioController';
 
 export class GameAudioController implements AudioController {
   private readonly audioContext = new AudioContext();

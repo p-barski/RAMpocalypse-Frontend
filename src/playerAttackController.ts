@@ -1,15 +1,16 @@
-import { AttackController } from './interfaces/attackController';
-import { EntityManager } from './interfaces/entityManager';
-import { StateManager } from './interfaces/stateManager';
-import { Time } from './interfaces/time';
-import { CommunicationService } from './communicatonService';
-import { AttackType, AttackEntity } from './messageInterfaces';
+import type { AttackController } from './interfaces/attackController';
+import type { EntityManager } from './interfaces/entityManager';
+import type { StateManager } from './interfaces/stateManager';
+import type { Time } from './interfaces/time';
+import type { CommunicationService } from './communicatonService';
+import type { AttackType, AttackEntity } from './messageInterfaces';
+import { AttackTypeValue } from './messageInterfaces';
 
 export class PlayerAttackController implements AttackController {
   private readonly COOLDOWNS_MAP: ReadonlyMap<AttackType, number> = new Map([
-    [AttackType.Melee, 50],
-    [AttackType.Projectile, 100],
-    [AttackType.Special, 300],
+    [AttackTypeValue.Melee, 50],
+    [AttackTypeValue.Projectile, 100],
+    [AttackTypeValue.Special, 300],
   ]);
   private readonly entityManager: EntityManager;
   private readonly communicationService: CommunicationService;
@@ -17,9 +18,9 @@ export class PlayerAttackController implements AttackController {
   private readonly time: Time;
 
   private readonly attackCooldowns: Map<AttackType, number> = new Map([
-    [AttackType.Melee, 0],
-    [AttackType.Projectile, 0],
-    [AttackType.Special, 0],
+    [AttackTypeValue.Melee, 0],
+    [AttackTypeValue.Projectile, 0],
+    [AttackTypeValue.Special, 0],
   ]);
 
   private readonly attacks: Map<string, AttackEntity> = new Map();
@@ -38,20 +39,20 @@ export class PlayerAttackController implements AttackController {
   }
 
   performMeleeAttack(): void {
-    if (!this.canPerformAttack(AttackType.Melee)) return;
-    this.setCooldown(AttackType.Melee);
+    if (!this.canPerformAttack(AttackTypeValue.Melee)) return;
+    this.setCooldown(AttackTypeValue.Melee);
     this.communicationService.performMeleeAttack();
   }
 
   performProjectileAttack(): void {
-    if (!this.canPerformAttack(AttackType.Projectile)) return;
-    this.setCooldown(AttackType.Projectile);
+    if (!this.canPerformAttack(AttackTypeValue.Projectile)) return;
+    this.setCooldown(AttackTypeValue.Projectile);
     this.communicationService.performProjectileAttack();
   }
 
   performSpecialAttack(): void {
-    if (!this.canPerformAttack(AttackType.Special)) return;
-    this.setCooldown(AttackType.Special);
+    if (!this.canPerformAttack(AttackTypeValue.Special)) return;
+    this.setCooldown(AttackTypeValue.Special);
     this.communicationService.performSpecialAttack();
   }
 
@@ -68,12 +69,12 @@ export class PlayerAttackController implements AttackController {
   }
 
   addAttack(attackEntity: AttackEntity): void {
-    if (attackEntity.type === AttackType.ProjectileHit) {
+    if (attackEntity.type === AttackTypeValue.ProjectileHit) {
       this.attacks.delete(attackEntity.id);
       return;
     }
     if (
-      attackEntity.type === AttackType.Projectile &&
+      attackEntity.type === AttackTypeValue.Projectile &&
       attackEntity.ownerId === this.entityManager.getLocalPlayerEntity().id
     ) {
       this.ownProjectiles.set(attackEntity.id, attackEntity);

@@ -1,9 +1,9 @@
-import { MovementController } from './interfaces/movementController';
-import { EntityManager } from './interfaces/entityManager';
-import { StateManager } from './interfaces/stateManager';
-import { InputHandler } from './interfaces/inputHandler';
-import { CommunicationService } from './communicatonService';
-import { Position } from './messageInterfaces';
+import type { MovementController } from './interfaces/movementController';
+import type { EntityManager } from './interfaces/entityManager';
+import type { StateManager } from './interfaces/stateManager';
+import type { InputHandler } from './interfaces/inputHandler';
+import type { CommunicationService } from './communicatonService';
+import type { Position } from './messageInterfaces';
 
 export class PlayerMovementController implements MovementController {
   private readonly GAME_WIDTH = 1920;

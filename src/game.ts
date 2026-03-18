@@ -1,16 +1,17 @@
-import { Player, AttackType, Position, AttackEntity } from './messageInterfaces';
-import { CallbacksHandler } from './callbacksHandler';
-import { CommunicationService } from './communicatonService';
-import { EntityManager } from './interfaces/entityManager';
-import { StateManager } from './interfaces/stateManager';
-import { InputHandler, AttackInputType } from './interfaces/inputHandler';
-import { ViewportManager } from './interfaces/viewportManager';
-import { MovementController } from './interfaces/movementController';
-import { AttackController } from './interfaces/attackController';
-import { RenderingService } from './interfaces/renderingService';
-import { AudioController } from './interfaces/audioController';
-import { AnimationController } from './interfaces/animationController';
-import { GameTime } from './gameTime';
+import type { Player, Position, AttackEntity, AttackType } from './messageInterfaces';
+import { AttackTypeValue } from './messageInterfaces';
+import type { CallbacksHandler } from './callbacksHandler';
+import type { CommunicationService } from './communicatonService';
+import type { EntityManager } from './interfaces/entityManager';
+import type { StateManager } from './interfaces/stateManager';
+import type { InputHandler } from './interfaces/inputHandler';
+import type { ViewportManager } from './interfaces/viewportManager';
+import type { MovementController } from './interfaces/movementController';
+import type { AttackController } from './interfaces/attackController';
+import type { RenderingService } from './interfaces/renderingService';
+import type { AudioController } from './interfaces/audioController';
+import type { AnimationController } from './interfaces/animationController';
+import type { GameTime } from './gameTime';
 
 export class Game implements CallbacksHandler {
   public readonly communicationService: CommunicationService;
@@ -162,7 +163,7 @@ export class Game implements CallbacksHandler {
     await this.delay();
     for (const attackEntity of attackEntities) {
       this.attackController.addAttack(attackEntity);
-      if (attackEntity.type === AttackType.Melee)
+      if (attackEntity.type === AttackTypeValue.Melee)
         this.animationController.createMeleeAttackAnimation(attackEntity.ownerId);
     }
     this.audioController.playShortRunningSound('attack_swing.mp3');
@@ -202,17 +203,17 @@ export class Game implements CallbacksHandler {
     console.log('Game ended, winner:', winnerId);
   };
 
-  private handleAttackInput = (attackType: AttackInputType): void => {
+  private handleAttackInput = (attackType: AttackType): void => {
     if (!this.gameStateManager.isPlaying()) return;
 
     switch (attackType) {
-      case 'melee':
+      case AttackTypeValue.Melee:
         this.attackController.performMeleeAttack();
         break;
-      case 'projectile':
+      case AttackTypeValue.Projectile:
         this.attackController.performProjectileAttack();
         break;
-      case 'special':
+      case AttackTypeValue.Special:
         this.attackController.performSpecialAttack();
         break;
     }

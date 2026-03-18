@@ -1,4 +1,4 @@
-import { AttackEntity, Player, Position } from './messageInterfaces';
+import type { AttackEntity, Player, Position } from './messageInterfaces';
 
 export interface CallbacksHandler {
   onLobbyStart: (lobbyId: string, players: Player[]) => void;

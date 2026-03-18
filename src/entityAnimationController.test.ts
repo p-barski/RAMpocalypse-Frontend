@@ -1,27 +1,28 @@
-import { Time } from './interfaces/time';
-import { EntityManager } from './interfaces/entityManager';
+import { describe, it, expect, beforeEach, type Mocked, vi } from 'vitest';
 import { EntityAnimationController } from './entityAnimationController';
-import { Entity } from './entity';
+import type { EntityManager } from './interfaces/entityManager';
+import type { Time } from './interfaces/time';
+import type { Entity } from './entity';
 
 describe('PlayerMovementController', () => {
   let animationController: EntityAnimationController;
-  let mockEntityManager: jest.Mocked<EntityManager>;
+  let mockEntityManager: Mocked<EntityManager>;
   let mockTime: Time;
   beforeEach(() => {
     mockEntityManager = {
-      getLocalPlayerEntity: jest.fn(),
-      getEntities: jest.fn(),
-      getEntityById: jest.fn(),
-      clearRemoteEntities: jest.fn(),
-      updateLocalPlayerId: jest.fn(),
-      updateLocalPlayerPosition: jest.fn(),
-      updateLocalPlayerSprite: jest.fn(),
-      updateLocalPlayerSubEntities: jest.fn(),
-      createRemotePlayer: jest.fn(),
-      updateEntityPosition: jest.fn(),
-      removeRemotePlayer: jest.fn(),
-      hidePlayer: jest.fn(),
-      showPlayer: jest.fn(),
+      getLocalPlayerEntity: vi.fn(),
+      getEntities: vi.fn(),
+      getEntityById: vi.fn(),
+      clearRemoteEntities: vi.fn(),
+      updateLocalPlayerId: vi.fn(),
+      updateLocalPlayerPosition: vi.fn(),
+      updateLocalPlayerSprite: vi.fn(),
+      updateLocalPlayerSubEntities: vi.fn(),
+      createRemotePlayer: vi.fn(),
+      updateEntityPosition: vi.fn(),
+      removeRemotePlayer: vi.fn(),
+      hidePlayer: vi.fn(),
+      showPlayer: vi.fn(),
     };
 
     mockTime = {

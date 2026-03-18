@@ -1,4 +1,4 @@
-import { Position, SpriteData } from './messageInterfaces';
+import type { Position, SpriteData } from './messageInterfaces';
 
 export interface Entity {
   id: string;

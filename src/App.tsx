@@ -1,8 +1,8 @@
-import React, { useRef, useEffect } from 'react';
-import './App.css';
-import { Game } from './game';
-
+import { useRef, useEffect } from 'react';
 import { createGame } from './createGame';
+import type { Game } from './game';
+import './App.css';
+
 declare global {
   interface Window {
     game?: Game | null;
@@ -13,7 +13,7 @@ export {};
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const serverUrl = process.env.REACT_APP_SERVER_URL || 'http://localhost:5027';
+  const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:5027';
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -45,7 +45,7 @@ function App() {
       game?.stop();
       gameRef.current = null;
     };
-  }, []);
+  }, [serverUrl]);
 
   const handleRequestMatchmaking = async () => {
     if (gameRef.current) {

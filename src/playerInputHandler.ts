@@ -1,5 +1,6 @@
-import { InputHandler, AttackInputCallback } from './interfaces/inputHandler';
-import { ViewportManager } from './interfaces/viewportManager';
+import type { InputHandler, AttackInputCallback } from './interfaces/inputHandler';
+import type { ViewportManager } from './interfaces/viewportManager';
+import { AttackTypeValue } from './messageInterfaces';
 
 export class PlayerInputHandler implements InputHandler {
   public mouseX = 0;
@@ -57,18 +58,18 @@ export class PlayerInputHandler implements InputHandler {
 
     if (e.key === ' ' || e.key === 'Space') {
       e.preventDefault();
-      this.attackCallback('melee');
+      this.attackCallback(AttackTypeValue.Melee);
     } else if (e.key === 'e' || e.key === 'E') {
       e.preventDefault();
-      this.attackCallback('projectile');
+      this.attackCallback(AttackTypeValue.Projectile);
     } else if (e.key === 'q' || e.key === 'Q') {
       e.preventDefault();
-      this.attackCallback('special');
+      this.attackCallback(AttackTypeValue.Special);
     }
   };
 
   private handleClick = (_e: MouseEvent): void => {
-    this.attackCallback('melee');
+    this.attackCallback(AttackTypeValue.Melee);
   };
 
   private handleKeyUp = (e: KeyboardEvent): void => {

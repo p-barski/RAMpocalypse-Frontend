@@ -28,12 +28,13 @@ export interface Player {
   isAlive: boolean;
 }
 
-export enum AttackType {
-  Melee = 0,
-  Projectile = 1,
-  ProjectileHit = 2,
-  Special = 3,
-}
+export const AttackTypeValue = {
+  Melee: 0,
+  Projectile: 1,
+  ProjectileHit: 2,
+  Special: 3,
+} as const;
+export type AttackType = (typeof AttackTypeValue)[keyof typeof AttackTypeValue];
 
 export interface AttackEntity {
   id: string;

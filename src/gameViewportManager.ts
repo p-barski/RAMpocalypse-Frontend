@@ -1,4 +1,4 @@
-import { ViewportManager } from './interfaces/viewportManager';
+import type { ViewportManager } from './interfaces/viewportManager';
 
 export class GameViewportManager implements ViewportManager {
   public readonly GAME_WIDTH = 1920;

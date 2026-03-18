@@ -1,5 +1,5 @@
-export type AttackInputType = 'melee' | 'projectile' | 'special';
-export type AttackInputCallback = (attackType: AttackInputType) => void;
+import type { AttackType } from '../messageInterfaces';
+export type AttackInputCallback = (attackType: AttackType) => void;
 
 export interface InputHandler {
   readonly mouseX: number;

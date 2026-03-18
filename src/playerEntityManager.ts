@@ -1,7 +1,7 @@
-import { EntityManager } from './interfaces/entityManager';
-import { SpriteManager } from './interfaces/spriteManager';
-import { Entity } from './entity';
-import { Position, SpriteData, SubEntity } from './messageInterfaces';
+import type { EntityManager } from './interfaces/entityManager';
+import type { SpriteManager } from './interfaces/spriteManager';
+import type { Entity } from './entity';
+import type { Position, SpriteData, SubEntity } from './messageInterfaces';
 
 export class PlayerEntityManager implements EntityManager {
   private readonly spriteManager: SpriteManager;

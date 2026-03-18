@@ -1,5 +1,6 @@
-import { Entity } from '../entity';
-import { Position } from '../messageInterfaces';
+import type { Entity } from '../entity';
+import type { Position } from '../messageInterfaces';
+
 export interface AnimationStep {
   position: Position;
   percent: number; // percentage from 0 to 1

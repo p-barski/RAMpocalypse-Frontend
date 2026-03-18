@@ -1,12 +1,13 @@
-import { RenderingService } from './interfaces/renderingService';
-import { EntityManager } from './interfaces/entityManager';
-import { ViewportManager } from './interfaces/viewportManager';
-import { StateManager } from './interfaces/stateManager';
-import { AttackController } from './interfaces/attackController';
-import { AnimationController } from './interfaces/animationController';
-import { Time } from './interfaces/time';
-import { AttackType } from './messageInterfaces';
-import { Entity } from './entity';
+import type { RenderingService } from './interfaces/renderingService';
+import type { EntityManager } from './interfaces/entityManager';
+import type { ViewportManager } from './interfaces/viewportManager';
+import type { StateManager } from './interfaces/stateManager';
+import type { AttackController } from './interfaces/attackController';
+import type { AnimationController } from './interfaces/animationController';
+import type { Time } from './interfaces/time';
+import type { Entity } from './entity';
+import type { AttackType } from './messageInterfaces';
+import { AttackTypeValue } from './messageInterfaces';
 import { TAU } from './mathUtils';
 
 export class Renderer implements RenderingService {
@@ -162,13 +163,13 @@ export class Renderer implements RenderingService {
       const canvasY = Math.round(this.viewportManager.gameToCanvasY(attack.currentPosition.y));
 
       switch (attack.type) {
-        case AttackType.Melee:
+        case AttackTypeValue.Melee:
           this.drawMeleeAttack(canvasX, canvasY, scale);
           break;
-        case AttackType.Projectile:
+        case AttackTypeValue.Projectile:
           this.drawProjectileAttack(canvasX, canvasY, scale);
           break;
-        case AttackType.Special:
+        case AttackTypeValue.Special:
           this.drawSpecialAttack(canvasX, canvasY, scale);
           break;
       }
@@ -244,9 +245,9 @@ export class Renderer implements RenderingService {
     this.ctx.textAlign = 'left';
     let y = 30;
 
-    y = this.drawCooldownLine('Melee (Space)', AttackType.Melee, y);
-    y = this.drawCooldownLine('Projectile (E)', AttackType.Projectile, y);
-    y = this.drawCooldownLine('Special (Q)', AttackType.Special, y);
+    y = this.drawCooldownLine('Melee (Space)', AttackTypeValue.Melee, y);
+    y = this.drawCooldownLine('Projectile (E)', AttackTypeValue.Projectile, y);
+    y = this.drawCooldownLine('Special (Q)', AttackTypeValue.Special, y);
     this.ctx.fillText(`FPS: ${~~(1 / this.time.averageFrameTime)}`, 10, y);
   }
 

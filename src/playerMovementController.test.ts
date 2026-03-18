@@ -1,74 +1,75 @@
+import { describe, it, beforeEach, type Mocked, vi } from 'vitest';
 import { PlayerMovementController } from './playerMovementController';
-import { EntityManager } from './interfaces/entityManager';
-import { StateManager } from './interfaces/stateManager';
-import { InputHandler } from './interfaces/inputHandler';
-import { CommunicationService } from './communicatonService';
-import { Position } from './messageInterfaces';
-import { Entity } from './entity';
-import { randomInt } from 'crypto';
+import type { EntityManager } from './interfaces/entityManager';
+import type { StateManager } from './interfaces/stateManager';
+import type { InputHandler } from './interfaces/inputHandler';
+import type { CommunicationService } from './communicatonService';
+import type { Entity } from './entity';
+
+const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min);
 
 describe('PlayerMovementController', () => {
   let movementController: PlayerMovementController;
-  let mockEntityManager: jest.Mocked<EntityManager>;
-  let mockCommunicationService: jest.Mocked<CommunicationService>;
-  let mockGameStateManager: jest.Mocked<StateManager>;
-  let mockInputHandler: jest.Mocked<InputHandler>;
+  let mockEntityManager: Mocked<EntityManager>;
+  let mockCommunicationService: Mocked<CommunicationService>;
+  let mockGameStateManager: Mocked<StateManager>;
+  let mockInputHandler: Mocked<InputHandler>;
   beforeEach(() => {
     mockEntityManager = {
-      getLocalPlayerEntity: jest.fn(),
-      getEntities: jest.fn(),
-      getEntityById: jest.fn(),
-      clearRemoteEntities: jest.fn(),
-      updateLocalPlayerId: jest.fn(),
-      updateLocalPlayerPosition: jest.fn(),
-      updateLocalPlayerSprite: jest.fn(),
-      updateLocalPlayerSubEntities: jest.fn(),
-      createRemotePlayer: jest.fn(),
-      updateEntityPosition: jest.fn(),
-      removeRemotePlayer: jest.fn(),
-      hidePlayer: jest.fn(),
-      showPlayer: jest.fn(),
+      getLocalPlayerEntity: vi.fn(),
+      getEntities: vi.fn(),
+      getEntityById: vi.fn(),
+      clearRemoteEntities: vi.fn(),
+      updateLocalPlayerId: vi.fn(),
+      updateLocalPlayerPosition: vi.fn(),
+      updateLocalPlayerSprite: vi.fn(),
+      updateLocalPlayerSubEntities: vi.fn(),
+      createRemotePlayer: vi.fn(),
+      updateEntityPosition: vi.fn(),
+      removeRemotePlayer: vi.fn(),
+      hidePlayer: vi.fn(),
+      showPlayer: vi.fn(),
     };
 
     mockCommunicationService = {
-      connect: jest.fn(),
-      isConnected: jest.fn(),
-      disconnect: jest.fn(),
-      requestMatchmaking: jest.fn(),
-      updatePlayerPosition: jest.fn(),
-      performMeleeAttack: jest.fn(),
-      performProjectileAttack: jest.fn(),
-      performSpecialAttack: jest.fn(),
-      projectileHitPlayer: jest.fn(),
-      leaveGame: jest.fn(),
+      connect: vi.fn(),
+      isConnected: vi.fn(),
+      disconnect: vi.fn(),
+      requestMatchmaking: vi.fn(),
+      updatePlayerPosition: vi.fn(),
+      performMeleeAttack: vi.fn(),
+      performProjectileAttack: vi.fn(),
+      performSpecialAttack: vi.fn(),
+      projectileHitPlayer: vi.fn(),
+      leaveGame: vi.fn(),
     };
 
     mockGameStateManager = {
-      getGameState: jest.fn(),
-      setGameState: jest.fn(),
-      getWinnerId: jest.fn(),
-      setWinnerId: jest.fn(),
-      getPlayer: jest.fn(),
-      addPlayer: jest.fn(),
-      updatePlayerHealth: jest.fn(),
-      getAllPlayers: jest.fn(),
-      removePlayer: jest.fn(),
-      reset: jest.fn(),
-      isPlaying: jest.fn(),
-      hasEnded: jest.fn(),
-      isWaiting: jest.fn(),
+      getGameState: vi.fn(),
+      setGameState: vi.fn(),
+      getWinnerId: vi.fn(),
+      setWinnerId: vi.fn(),
+      getPlayer: vi.fn(),
+      addPlayer: vi.fn(),
+      updatePlayerHealth: vi.fn(),
+      getAllPlayers: vi.fn(),
+      removePlayer: vi.fn(),
+      reset: vi.fn(),
+      isPlaying: vi.fn(),
+      hasEnded: vi.fn(),
+      isWaiting: vi.fn(),
     };
 
     mockInputHandler = {
       mouseX: 200,
       mouseY: 100,
-      isKeyPressed: jest.fn(),
-      isUpPressed: jest.fn(),
-      isDownPressed: jest.fn(),
-      isLeftPressed: jest.fn(),
-      isRightPressed: jest.fn(),
-      setup: jest.fn(),
-      cleanup: jest.fn(),
+      isKeyPressed: vi.fn(),
+      isUpPressed: vi.fn(),
+      isDownPressed: vi.fn(),
+      isLeftPressed: vi.fn(),
+      isRightPressed: vi.fn(),
+      setup: vi.fn(),
+      cleanup: vi.fn(),
     };
 
     movementController = new PlayerMovementController(
@@ -85,8 +86,6 @@ describe('PlayerMovementController', () => {
 
       mockGameStateManager.isPlaying.mockReturnValue(true);
       mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
-      // mockInputHandler.getMouseX.mockReturnValue(200);
-      // mockInputHandler.getMouseY.mockReturnValue(200);
       mockInputHandler.isDownPressed.mockReturnValue(true);
       mockInputHandler.isUpPressed.mockReturnValue(false);
       mockInputHandler.isRightPressed.mockReturnValue(true);

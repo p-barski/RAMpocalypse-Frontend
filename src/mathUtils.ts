@@ -1,4 +1,4 @@
-import { Position } from './messageInterfaces';
+import type { Position } from './messageInterfaces';
 
 export const HALF_PI = Math.PI / 2;
 export const TAU = Math.PI * 2;
