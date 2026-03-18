@@ -70,8 +70,8 @@ function App() {
             Leave game
           </button>
         </div>
-        <canvas ref={canvasRef}></canvas>
       </header>
+      <canvas ref={canvasRef}></canvas>
     </div>
   );
 }

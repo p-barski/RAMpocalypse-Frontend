@@ -19,7 +19,6 @@ export class Renderer implements RenderingService {
   private readonly animationController: AnimationController;
   private readonly time: Time;
 
-  private readonly BORDER_WIDTH = 2;
   private readonly HEALTH_BAR_HEIGHT = 16;
   private readonly HEALTH_BAR_OFFSET_Y = 20;
   private readonly HEALTH_BAR_BORDER_SIZE = 3;
@@ -36,6 +35,7 @@ export class Renderer implements RenderingService {
   private readonly COLOR_SPECIAL = '#ff00ff';
   private readonly COLOR_UI_TEXT = '#ffffff';
   private readonly COLOR_OVERLAY_BG = 'rgba(0, 0, 0, 0.7)';
+  private readonly COLOR_BACKGROUND = '#282c34';
 
   constructor(
     ctx: CanvasRenderingContext2D,
@@ -57,23 +57,34 @@ export class Renderer implements RenderingService {
 
   render(): void {
     this.ctx.clearRect(0, 0, this.viewportManager.displayWidth, this.viewportManager.displayHeight);
-    this.drawBorder();
     for (const entity of this.entityManager.getEntities()) {
       this.drawEntity(entity);
     }
     this.drawAttacks();
-    this.drawUI();
-  }
 
-  private drawBorder(): void {
-    this.ctx.strokeStyle = this.COLOR_BORDER;
-    this.ctx.lineWidth = this.BORDER_WIDTH;
-    this.ctx.strokeRect(
-      this.viewportManager.viewportX - this.BORDER_WIDTH / 2,
-      this.viewportManager.viewportY - this.BORDER_WIDTH / 2,
-      this.viewportManager.viewportWidth + this.BORDER_WIDTH,
-      this.viewportManager.viewportHeight + this.BORDER_WIDTH,
-    );
+    // Clip sprites outside of playable area
+    this.ctx.fillStyle = this.COLOR_BACKGROUND;
+    const x = this.viewportManager.viewportX;
+    const y = this.viewportManager.viewportY;
+    const w = this.viewportManager.displayWidth;
+    const h = this.viewportManager.displayHeight;
+    this.ctx.fillRect(0, 0, w, y);
+    this.ctx.fillRect(0, 0, x, h);
+    this.ctx.fillRect(w - x, 0, x, h);
+    this.ctx.fillRect(0, h - y, w, y);
+
+    // UI
+    switch (this.gameStateManager.getGameState()) {
+      case 'waiting':
+        this.drawWaitingOverlay();
+        break;
+      case 'ended':
+        this.drawEndGameOverlay();
+        break;
+      default:
+        this.drawCooldownIndicators();
+        break;
+    }
   }
 
   private drawEntity(entity: Entity, parentCenterX = 0, parentCenterY = 0, offsetAngle = 0): void {
@@ -197,18 +208,6 @@ export class Renderer implements RenderingService {
     this.ctx.beginPath();
     this.ctx.arc(canvasX, canvasY, this.SPECIAL_RADIUS * scaleX, 0, TAU);
     this.ctx.stroke();
-  }
-
-  private drawUI(): void {
-    const gameState = this.gameStateManager.getGameState();
-
-    if (gameState === 'waiting') {
-      this.drawWaitingOverlay();
-    } else if (gameState === 'ended') {
-      this.drawEndGameOverlay();
-    } else if (gameState === 'playing') {
-      this.drawCooldownIndicators();
-    }
   }
 
   private drawWaitingOverlay(): void {

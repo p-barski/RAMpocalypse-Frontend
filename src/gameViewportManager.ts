@@ -13,7 +13,6 @@ export class GameViewportManager implements ViewportManager {
   // Display dimensions (cached for convenience)
   public displayWidth = 0;
   public displayHeight = 0;
-  private readonly BORDER_WIDTH = 2;
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
 
@@ -45,10 +44,8 @@ export class GameViewportManager implements ViewportManager {
 
     // Now work with display coordinates (not internal resolution)
     // Calculate scale to fit game world in canvas (maintain aspect ratio)
-    const availableWidth = this.displayWidth - this.BORDER_WIDTH * 2;
-    const availableHeight = this.displayHeight - this.BORDER_WIDTH * 2;
-    const scaleX = availableWidth / this.GAME_WIDTH;
-    const scaleY = availableHeight / this.GAME_HEIGHT;
+    const scaleX = this.displayWidth / this.GAME_WIDTH;
+    const scaleY = this.displayHeight / this.GAME_HEIGHT;
     this.scale = Math.min(scaleX, scaleY); // Use uniform scaling
 
     // Calculate actual viewport size (scaled game world)

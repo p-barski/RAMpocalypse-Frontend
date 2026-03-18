@@ -1,22 +1,7 @@
 .App {
-  text-align: center;
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-  padding: 20px;
-  margin: 0;
+  height: 100%;
   width: 100%;
-  height: 100vh;
-  box-sizing: border-box;
-  overflow: hidden;
+  text-align: center;
 }
 
 .button-container {
@@ -53,7 +38,7 @@
   border-color: #1d2738;
 }
 
-.App-header canvas {
+.App canvas {
   width: 100%;
   height: 100%;
   display: block;
