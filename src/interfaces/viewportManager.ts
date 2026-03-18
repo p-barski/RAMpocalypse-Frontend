@@ -8,7 +8,6 @@ export interface ViewportManager {
   readonly scale: number;
   readonly displayWidth: number;
   readonly displayHeight: number;
-  resizeCanvas(): void;
   cleanup(): void;
   gameToCanvasX(gameX: number): number;
   gameToCanvasY(gameY: number): number;

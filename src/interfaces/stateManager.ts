@@ -1,4 +1,4 @@
-import { Player } from './messageInterfaces';
+import type { Player } from './messageInterfaces';
 
 export type GameState = 'waiting' | 'playing' | 'ended';
 
