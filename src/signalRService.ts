@@ -1,7 +1,7 @@
 import * as signalR from '@microsoft/signalr';
-import type { CallbacksHandler } from './callbacksHandler';
-import type { CommunicationService } from './communicatonService';
-import type { Position } from './messageInterfaces';
+import type { CallbacksHandler } from './interfaces/callbacksHandler';
+import type { CommunicationService } from './interfaces/communicatonService';
+import type { Position } from './interfaces/messageInterfaces';
 
 export class SignalRService implements CommunicationService {
   private readonly connection: signalR.HubConnection;

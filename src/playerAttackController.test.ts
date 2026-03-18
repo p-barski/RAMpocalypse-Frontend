@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, type Mocked, vi } from 'vitest';
 import { PlayerAttackController } from './playerAttackController';
 import type { EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
-import type { CommunicationService } from './communicatonService';
+import type { CommunicationService } from './interfaces/communicatonService';
 import type { Time } from './interfaces/time';
 
 describe('PlayerAttackController', () => {

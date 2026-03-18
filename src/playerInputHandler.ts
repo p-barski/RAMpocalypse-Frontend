@@ -1,6 +1,6 @@
 import type { InputHandler, AttackInputCallback } from './interfaces/inputHandler';
 import type { ViewportManager } from './interfaces/viewportManager';
-import { AttackTypeValue } from './messageInterfaces';
+import { AttackTypeValue } from './interfaces/messageInterfaces';
 
 export class PlayerInputHandler implements InputHandler {
   public mouseX = 0;

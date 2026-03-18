@@ -2,9 +2,9 @@ import type { AttackController } from './interfaces/attackController';
 import type { EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
 import type { Time } from './interfaces/time';
-import type { CommunicationService } from './communicatonService';
-import type { AttackType, AttackEntity } from './messageInterfaces';
-import { AttackTypeValue } from './messageInterfaces';
+import type { CommunicationService } from './interfaces/communicatonService';
+import type { AttackType, AttackEntity } from './interfaces/messageInterfaces';
+import { AttackTypeValue } from './interfaces/messageInterfaces';
 
 export class PlayerAttackController implements AttackController {
   private readonly COOLDOWNS_MAP: ReadonlyMap<AttackType, number> = new Map([

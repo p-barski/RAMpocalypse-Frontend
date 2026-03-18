@@ -3,8 +3,8 @@ import { PlayerMovementController } from './playerMovementController';
 import type { EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
 import type { InputHandler } from './interfaces/inputHandler';
-import type { CommunicationService } from './communicatonService';
-import type { Entity } from './entity';
+import type { CommunicationService } from './interfaces/communicatonService';
+import type { Entity } from './interfaces/entity';
 
 const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min);
 

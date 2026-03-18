@@ -1,7 +1,7 @@
-import type { Player, Position, AttackEntity, AttackType } from './messageInterfaces';
-import { AttackTypeValue } from './messageInterfaces';
-import type { CallbacksHandler } from './callbacksHandler';
-import type { CommunicationService } from './communicatonService';
+import type { Player, Position, AttackEntity, AttackType } from './interfaces/messageInterfaces';
+import { AttackTypeValue } from './interfaces/messageInterfaces';
+import type { CallbacksHandler } from './interfaces/callbacksHandler';
+import type { CommunicationService } from './interfaces/communicatonService';
 import type { EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
 import type { InputHandler } from './interfaces/inputHandler';

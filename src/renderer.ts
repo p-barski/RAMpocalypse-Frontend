@@ -5,9 +5,9 @@ import type { StateManager } from './interfaces/stateManager';
 import type { AttackController } from './interfaces/attackController';
 import type { AnimationController } from './interfaces/animationController';
 import type { Time } from './interfaces/time';
-import type { Entity } from './entity';
-import type { AttackType } from './messageInterfaces';
-import { AttackTypeValue } from './messageInterfaces';
+import type { Entity } from './interfaces/entity';
+import type { AttackType } from './interfaces/messageInterfaces';
+import { AttackTypeValue } from './interfaces/messageInterfaces';
 import { TAU } from './mathUtils';
 
 export class Renderer implements RenderingService {

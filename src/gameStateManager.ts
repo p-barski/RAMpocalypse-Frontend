@@ -1,4 +1,4 @@
-import type { Player } from './messageInterfaces';
+import type { Player } from './interfaces/messageInterfaces';
 import type { GameState, StateManager } from './interfaces/stateManager';
 
 export class GameStateManager implements StateManager {

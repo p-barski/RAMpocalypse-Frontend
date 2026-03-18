@@ -1,4 +1,4 @@
-import type { AttackType, AttackEntity } from '../messageInterfaces';
+import type { AttackType, AttackEntity } from './messageInterfaces';
 
 export interface AttackController {
   performMeleeAttack(): void;

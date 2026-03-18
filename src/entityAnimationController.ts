@@ -1,8 +1,8 @@
 import type { Animation, AnimationController, AnimationStep } from './interfaces/animationController';
 import type { EntityManager } from './interfaces/entityManager';
 import type { Time } from './interfaces/time';
-import type { Position } from './messageInterfaces';
-import type { Entity } from './entity';
+import type { Position } from './interfaces/messageInterfaces';
+import type { Entity } from './interfaces/entity';
 
 export class EntityAnimationController implements AnimationController {
   private readonly STEP_ZERO: AnimationStep = { position: { x: 0, y: 0, angle: 0 } satisfies Position, percent: 0 };

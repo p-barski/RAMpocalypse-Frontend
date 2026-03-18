@@ -1,5 +1,5 @@
 import type { SpriteManager } from './interfaces/spriteManager';
-import type { SpriteData } from './messageInterfaces';
+import type { SpriteData } from './interfaces/messageInterfaces';
 
 export class SpriteLoader implements SpriteManager {
   private readonly spriteCache: Map<string, ImageBitmap> = new Map();

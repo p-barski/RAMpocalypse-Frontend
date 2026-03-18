@@ -1,5 +1,5 @@
-import type { Entity } from '../entity';
-import type { Position } from '../messageInterfaces';
+import type { Entity } from './entity';
+import type { Position } from './messageInterfaces';
 
 export interface AnimationStep {
   position: Position;

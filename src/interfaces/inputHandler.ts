@@ -1,4 +1,4 @@
-import type { AttackType } from '../messageInterfaces';
+import type { AttackType } from './messageInterfaces';
 export type AttackInputCallback = (attackType: AttackType) => void;
 
 export interface InputHandler {

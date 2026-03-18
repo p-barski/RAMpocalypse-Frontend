@@ -1,4 +1,4 @@
-import type { Position } from '../messageInterfaces';
+import type { Position } from './messageInterfaces';
 
 export interface MovementController {
   update(deltaTime: number, currentFrameTime: number): void;

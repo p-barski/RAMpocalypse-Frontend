@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, type Mocked, vi } from 'vitest';
 import { EntityAnimationController } from './entityAnimationController';
 import type { EntityManager } from './interfaces/entityManager';
 import type { Time } from './interfaces/time';
-import type { Entity } from './entity';
+import type { Entity } from './interfaces/entity';
 
 describe('PlayerMovementController', () => {
   let animationController: EntityAnimationController;
