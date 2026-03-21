@@ -3,6 +3,7 @@ import { PlayerAttackController } from './playerAttackController';
 import type { EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
 import type { CommunicationService } from './interfaces/communicatonService';
+import type { GameConfig } from './interfaces/gameConfig';
 import type { Time } from './interfaces/time';
 
 describe('PlayerAttackController', () => {
@@ -11,6 +12,7 @@ describe('PlayerAttackController', () => {
   let mockCommunicationService: Mocked<CommunicationService>;
   let mockGameStateManager: Mocked<StateManager>;
   let mockTime: Time;
+  let mockGameConfig: GameConfig;
 
   beforeEach(() => {
     mockEntityManager = {
@@ -64,7 +66,18 @@ describe('PlayerAttackController', () => {
       deltaTime: 0,
     };
 
+    mockGameConfig = {
+      gameWidth: 1920,
+      gameHeight: 1080,
+      maxMovementSpeed: 500,
+      positionUpdateIntervalMs: 20,
+      meleeCooldownMs: 100,
+      projectileCooldownMs: 200,
+      specialCooldownMs: 300,
+    };
+
     attackController = new PlayerAttackController(
+      mockGameConfig,
       mockEntityManager,
       mockCommunicationService,
       mockGameStateManager,

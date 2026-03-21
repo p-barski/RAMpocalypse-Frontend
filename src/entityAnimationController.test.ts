@@ -3,11 +3,14 @@ import { EntityAnimationController } from './entityAnimationController';
 import type { EntityManager } from './interfaces/entityManager';
 import type { Time } from './interfaces/time';
 import type { Entity } from './interfaces/entity';
+import type { GameConfig } from './interfaces/gameConfig';
 
 describe('PlayerMovementController', () => {
   let animationController: EntityAnimationController;
   let mockEntityManager: Mocked<EntityManager>;
   let mockTime: Time;
+  let mockGameConfig: GameConfig;
+
   beforeEach(() => {
     mockEntityManager = {
       getLocalPlayerEntity: vi.fn(),
@@ -30,7 +33,18 @@ describe('PlayerMovementController', () => {
       frameTimestamp: 0,
       deltaTime: 0,
     };
-    animationController = new EntityAnimationController(mockEntityManager, mockTime);
+
+    mockGameConfig = {
+      gameWidth: 1920,
+      gameHeight: 1080,
+      maxMovementSpeed: 500,
+      positionUpdateIntervalMs: 20,
+      meleeCooldownMs: 100,
+      projectileCooldownMs: 200,
+      specialCooldownMs: 300,
+    };
+
+    animationController = new EntityAnimationController(mockGameConfig, mockEntityManager, mockTime);
   });
 
   describe('meleeAnimation', () => {
@@ -41,9 +55,9 @@ describe('PlayerMovementController', () => {
       } as Entity;
       const mockEntity = { width: 100, height: 50, subEntities: [mockWeapon] } as Entity;
 
-      mockEntityManager.getEntityById.mockImplementation((id: string) => mockEntity);
+      mockEntityManager.getEntityById.mockImplementation((_id: string) => mockEntity);
       animationController.createMeleeAttackAnimation('');
-      (mockTime as any).frameTimestamp = 0.5 * 700;
+      (mockTime as any).frameTimestamp = 0.5 * mockGameConfig.meleeCooldownMs;
       const animatedEnttiy = animationController.getAnimatedEntity(mockWeapon);
       expect(animatedEnttiy.position.x).toStrictEqual(mockWeapon.position.x - mockEntity.width / 2);
       expect(animatedEnttiy.position.y).toStrictEqual(mockWeapon.position.y - mockEntity.height / 2);
@@ -57,9 +71,9 @@ describe('PlayerMovementController', () => {
       } as Entity;
       const mockEntity = { width: 100, height: 50, subEntities: [mockWeapon] } as Entity;
 
-      mockEntityManager.getEntityById.mockImplementation((id: string) => mockEntity);
+      mockEntityManager.getEntityById.mockImplementation((_id: string) => mockEntity);
       animationController.createMeleeAttackAnimation('');
-      (mockTime as any).frameTimestamp = 0.5 * 700;
+      (mockTime as any).frameTimestamp = 0.5 * mockGameConfig.meleeCooldownMs;
       const animatedEnttiy = animationController.getAnimatedEntity(mockWeapon);
       expect(animatedEnttiy.position.x).toStrictEqual(mockWeapon.position.x + mockEntity.width / 2);
       expect(animatedEnttiy.position.y).toStrictEqual(mockWeapon.position.y + mockEntity.height / 2);

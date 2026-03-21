@@ -78,11 +78,13 @@ export class PlayerAttackController implements AttackController {
       this.attacks.delete(attackEntity.id);
       return;
     }
-    if (
-      attackEntity.type === AttackTypeValue.Projectile &&
-      attackEntity.ownerId === this.entityManager.getLocalPlayerEntity().id
-    ) {
-      this.ownProjectiles.set(attackEntity.id, attackEntity);
+    if (attackEntity.type === AttackTypeValue.Projectile) {
+      const delta = (this.time.frameTimestamp - attackEntity.creationTime) / 1000;
+      attackEntity.currentPosition.x += attackEntity.velocityVector.x * delta;
+      attackEntity.currentPosition.y += attackEntity.velocityVector.y * delta;
+      if (attackEntity.ownerId === this.entityManager.getLocalPlayerEntity().id) {
+        this.ownProjectiles.set(attackEntity.id, attackEntity);
+      }
     }
     this.attacks.set(attackEntity.id, attackEntity);
   }
@@ -96,7 +98,12 @@ export class PlayerAttackController implements AttackController {
 
     for (const [id, attack] of this.attacks) {
       const age = this.time.frameTimestamp - attack.creationTime;
-      if (age >= attack.lifetime) {
+      const isOutsidePlayableArea =
+        attack.currentPosition.x > this.gameConfig.gameWidth ||
+        attack.currentPosition.y > this.gameConfig.gameHeight ||
+        attack.currentPosition.x < 0 ||
+        attack.currentPosition.y < 0;
+      if (age >= attack.lifetime || isOutsidePlayableArea) {
         toRemove.push(id);
         this.ownProjectiles.delete(id);
       } else {

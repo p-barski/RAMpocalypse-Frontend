@@ -5,6 +5,7 @@ import type { StateManager } from './interfaces/stateManager';
 import type { InputHandler } from './interfaces/inputHandler';
 import type { CommunicationService } from './interfaces/communicatonService';
 import type { Entity } from './interfaces/entity';
+import type { GameConfig } from './interfaces/gameConfig';
 
 const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min);
 
@@ -14,6 +15,8 @@ describe('PlayerMovementController', () => {
   let mockCommunicationService: Mocked<CommunicationService>;
   let mockGameStateManager: Mocked<StateManager>;
   let mockInputHandler: Mocked<InputHandler>;
+  let mockGameConfig: GameConfig;
+
   beforeEach(() => {
     mockEntityManager = {
       getLocalPlayerEntity: vi.fn(),
@@ -72,7 +75,18 @@ describe('PlayerMovementController', () => {
       cleanup: vi.fn(),
     };
 
+    mockGameConfig = {
+      gameWidth: 1920,
+      gameHeight: 1080,
+      maxMovementSpeed: 500,
+      positionUpdateIntervalMs: 20,
+      meleeCooldownMs: 100,
+      projectileCooldownMs: 200,
+      specialCooldownMs: 300,
+    };
+
     movementController = new PlayerMovementController(
+      mockGameConfig,
       mockEntityManager,
       mockGameStateManager,
       mockInputHandler,
