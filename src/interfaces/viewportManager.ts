@@ -1,6 +1,4 @@
 export interface ViewportManager {
-  readonly GAME_WIDTH: number;
-  readonly GAME_HEIGHT: number;
   readonly viewportX: number;
   readonly viewportY: number;
   readonly viewportWidth: number;

@@ -3,15 +3,13 @@ import type { EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
 import type { Time } from './interfaces/time';
 import type { CommunicationService } from './interfaces/communicatonService';
+import type { GameConfig } from './interfaces/gameConfig';
 import type { AttackType, AttackEntity } from './interfaces/messageInterfaces';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
 
 export class PlayerAttackController implements AttackController {
-  private readonly COOLDOWNS_MAP: ReadonlyMap<AttackType, number> = new Map([
-    [AttackTypeValue.Melee, 50],
-    [AttackTypeValue.Projectile, 100],
-    [AttackTypeValue.Special, 300],
-  ]);
+  private readonly COOLDOWNS_MAP: ReadonlyMap<AttackType, number>;
+  private readonly gameConfig: GameConfig;
   private readonly entityManager: EntityManager;
   private readonly communicationService: CommunicationService;
   private readonly gameStateManager: StateManager;
@@ -27,15 +25,22 @@ export class PlayerAttackController implements AttackController {
   private readonly ownProjectiles: Map<string, AttackEntity> = new Map();
 
   constructor(
+    gameConfig: GameConfig,
     entityManager: EntityManager,
     communicationService: CommunicationService,
     gameStateManager: StateManager,
     time: Time,
   ) {
+    this.gameConfig = gameConfig;
     this.entityManager = entityManager;
     this.communicationService = communicationService;
     this.gameStateManager = gameStateManager;
     this.time = time;
+    this.COOLDOWNS_MAP = new Map([
+      [AttackTypeValue.Melee, this.gameConfig.meleeCooldownMs],
+      [AttackTypeValue.Projectile, this.gameConfig.projectileCooldownMs],
+      [AttackTypeValue.Special, this.gameConfig.specialCooldownMs],
+    ]);
   }
 
   performMeleeAttack(): void {

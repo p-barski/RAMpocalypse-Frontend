@@ -1,0 +1,9 @@
+{
+  "gameWidth": 1920,
+  "gameHeight": 1080,
+  "maxMovementSpeed": 500,
+  "positionUpdateIntervalMs": 20,
+  "meleeCooldownMs": 50,
+  "projectileCooldownMs": 100,
+  "specialCooldownMs": 300
+}

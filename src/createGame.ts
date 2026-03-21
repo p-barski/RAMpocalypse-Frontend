@@ -1,3 +1,4 @@
+import type { GameConfig } from './interfaces/gameConfig';
 import { PlayerAttackController } from './playerAttackController';
 import { PlayerEntityManager } from './playerEntityManager';
 import { Game } from './game';
@@ -40,15 +41,17 @@ export async function createGame(
     scaleFactor: 6,
   };
   const missingSprite = await SpriteLoader.loadMissingSprite();
+  const response = await fetch('/gameconfig.json');
+  const gameConfig: GameConfig = await response.json();
 
   const gameTime = new GameTime();
   const audioController = new GameAudioController();
   const gameStateManager = new GameStateManager();
-  const viewportManager = new GameViewportManager(canvas);
+  const viewportManager = new GameViewportManager(gameConfig, canvas);
   const signalRService = new SignalRService(serverUrl, abortController.signal);
   const spriteManager = new SpriteLoader(missingSprite);
   const localPlayerSprite = await spriteManager.getSpriteImage(playerSpriteData);
-  const localPlayerPosition = { x: viewportManager.GAME_WIDTH / 2, y: viewportManager.GAME_HEIGHT / 2, angle: 0 };
+  const localPlayerPosition = { x: gameConfig.gameWidth / 2, y: gameConfig.gameHeight / 2, angle: 0 };
   const entityManager = new PlayerEntityManager(
     spriteManager,
     localPlayerPosition,
@@ -74,15 +77,22 @@ export async function createGame(
     [],
     true,
   );
-  const animationController = new EntityAnimationController(entityManager, gameTime);
+  const animationController = new EntityAnimationController(gameConfig, entityManager, gameTime);
   const inputHandler = new PlayerInputHandler(canvas, viewportManager);
   const movementController = new PlayerMovementController(
+    gameConfig,
     entityManager,
     gameStateManager,
     inputHandler,
     signalRService,
   );
-  const attackController = new PlayerAttackController(entityManager, signalRService, gameStateManager, gameTime);
+  const attackController = new PlayerAttackController(
+    gameConfig,
+    entityManager,
+    signalRService,
+    gameStateManager,
+    gameTime,
+  );
   const renderingService = new Renderer(
     ctx,
     entityManager,

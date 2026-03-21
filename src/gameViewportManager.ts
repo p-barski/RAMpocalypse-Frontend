@@ -1,8 +1,7 @@
 import type { ViewportManager } from './interfaces/viewportManager';
+import type { GameConfig } from './interfaces/gameConfig';
 
 export class GameViewportManager implements ViewportManager {
-  public readonly GAME_WIDTH = 1920;
-  public readonly GAME_HEIGHT = 1080;
   // Viewport state (calculated on resize)
   public viewportX = 0;
   public viewportY = 0;
@@ -13,10 +12,12 @@ export class GameViewportManager implements ViewportManager {
   // Display dimensions (cached for convenience)
   public displayWidth = 0;
   public displayHeight = 0;
+  private readonly gameConfig: GameConfig;
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(gameConfig: GameConfig, canvas: HTMLCanvasElement) {
+    this.gameConfig = gameConfig;
     this.canvas = canvas;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
@@ -44,13 +45,13 @@ export class GameViewportManager implements ViewportManager {
 
     // Now work with display coordinates (not internal resolution)
     // Calculate scale to fit game world in canvas (maintain aspect ratio)
-    const scaleX = this.displayWidth / this.GAME_WIDTH;
-    const scaleY = this.displayHeight / this.GAME_HEIGHT;
+    const scaleX = this.displayWidth / this.gameConfig.gameWidth;
+    const scaleY = this.displayHeight / this.gameConfig.gameHeight;
     this.scale = Math.min(scaleX, scaleY); // Use uniform scaling
 
     // Calculate actual viewport size (scaled game world)
-    this.viewportWidth = this.GAME_WIDTH * this.scale;
-    this.viewportHeight = this.GAME_HEIGHT * this.scale;
+    this.viewportWidth = this.gameConfig.gameWidth * this.scale;
+    this.viewportHeight = this.gameConfig.gameHeight * this.scale;
 
     // Center viewport on canvas (using display coordinates)
     this.viewportX = (this.displayWidth - this.viewportWidth) / 2;

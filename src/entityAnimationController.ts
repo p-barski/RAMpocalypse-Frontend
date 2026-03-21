@@ -3,14 +3,18 @@ import type { EntityManager } from './interfaces/entityManager';
 import type { Time } from './interfaces/time';
 import type { Position } from './interfaces/messageInterfaces';
 import type { Entity } from './interfaces/entity';
+import type { GameConfig } from './interfaces/gameConfig';
+
+const STEP_ZERO: AnimationStep = { position: { x: 0, y: 0, angle: 0 } satisfies Position, percent: 0 };
 
 export class EntityAnimationController implements AnimationController {
-  private readonly STEP_ZERO: AnimationStep = { position: { x: 0, y: 0, angle: 0 } satisfies Position, percent: 0 };
   private readonly animations: Map<string, Animation> = new Map();
+  private readonly gameConfig: GameConfig;
   private readonly entityManager: EntityManager;
   private readonly time: Time;
 
-  constructor(entityManager: EntityManager, time: Time) {
+  constructor(gameConfig: GameConfig, entityManager: EntityManager, time: Time) {
+    this.gameConfig = gameConfig;
     this.entityManager = entityManager;
     this.time = time;
   }
@@ -44,7 +48,7 @@ export class EntityAnimationController implements AnimationController {
     ];
     const animation: Animation = {
       entity: weapon,
-      durationMiliseconds: 700, //TODO should be the same as attack cooldown
+      durationMiliseconds: this.gameConfig.meleeCooldownMs,
       looping: false,
       startTime: this.time.frameTimestamp,
       steps,
@@ -66,7 +70,7 @@ export class EntityAnimationController implements AnimationController {
       animationProgressPercent -= Math.trunc(animationProgressPercent);
     }
 
-    let currentStep = this.STEP_ZERO;
+    let currentStep = STEP_ZERO;
     let nextStep = currentStep;
     let offsetX = 0;
     let offsetY = 0;
