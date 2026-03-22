@@ -29,7 +29,9 @@ function App() {
         gameRef.current = game;
         window.game = game;
         if (abortController.signal.aborted) return;
-        await game.connect();
+        await game.connect().catch((error) => {
+          if (!abortController.signal.aborted) game?.onClose(error);
+        });
         if (abortController.signal.aborted) return;
         game.start();
       } catch (err) {
