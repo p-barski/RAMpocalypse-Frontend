@@ -1,8 +1,7 @@
-import type { CallbacksHandler } from './callbacksHandler';
 import type { Position } from './messageInterfaces';
 
 export interface CommunicationService {
-  connect: (callbacksHandler: CallbacksHandler) => Promise<string>;
+  connect: () => Promise<string>;
   isConnected: () => boolean;
   disconnect: () => Promise<void>;
   requestMatchmaking: () => Promise<void>;

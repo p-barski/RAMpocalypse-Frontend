@@ -12,6 +12,7 @@ import { GameViewportManager } from './gameViewportManager';
 import { GameAudioController } from './gameAudioController';
 import { EntityAnimationController } from './entityAnimationController';
 import { GameTime } from './gameTime';
+import { SignalRCallbacksHandler } from './signalRCallbacksHandler';
 
 export async function createGame(
   serverUrl: string,
@@ -48,7 +49,8 @@ export async function createGame(
   const audioController = new GameAudioController();
   const gameStateManager = new GameStateManager();
   const viewportManager = new GameViewportManager(gameConfig, canvas);
-  const signalRService = new SignalRService(serverUrl, abortController.signal);
+  const callbacksHandler = new SignalRCallbacksHandler();
+  const signalRService = new SignalRService(serverUrl, abortController.signal, callbacksHandler);
   const spriteManager = new SpriteLoader(missingSprite);
   const localPlayerSprite = await spriteManager.getSpriteImage(playerSpriteData);
   const localPlayerPosition = { x: gameConfig.gameWidth / 2, y: gameConfig.gameHeight / 2, angle: 0 };
@@ -117,5 +119,6 @@ export async function createGame(
     animationController,
     gameTime,
   );
+  callbacksHandler.handler = game;
   return game;
 }

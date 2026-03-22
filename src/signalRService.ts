@@ -7,28 +7,17 @@ export class SignalRService implements CommunicationService {
   private readonly connection: signalR.HubConnection;
   private readonly serverUrl: string;
   private readonly abortSignal: AbortSignal;
+  private readonly callbacksHandler: CallbacksHandler;
+  private isExplicitlyDisconnected = false;
 
-  constructor(serverUrl: string, abortSignal: AbortSignal) {
+  constructor(serverUrl: string, abortSignal: AbortSignal, callbacksHandler: CallbacksHandler) {
     this.serverUrl = serverUrl;
     this.abortSignal = abortSignal;
-    this.connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${this.serverUrl}/gamehub`)
-      .withAutomaticReconnect()
-      .build();
-  }
-
-  async connect(callbacksHandler: CallbacksHandler): Promise<string> {
-    this.connection.onreconnecting(() => {
-      console.warn('SignalR: Reconnecting...');
-    });
-
-    this.connection.onreconnected(() => {
-      console.warn('SignalR: Reconnected');
-    });
+    this.callbacksHandler = callbacksHandler;
+    this.connection = new signalR.HubConnectionBuilder().withUrl(`${this.serverUrl}/gamehub`).build();
 
     this.connection.onclose((error) => {
-      // TODO GAME SHOULD HANDLE THIS
-      console.warn('SignalR: Connection closed', error);
+      if (!this.isExplicitlyDisconnected) this.callbacksHandler.onClose(error);
     });
 
     this.connection.on('LobbyStarted', callbacksHandler.onLobbyStart);
@@ -45,11 +34,14 @@ export class SignalRService implements CommunicationService {
       'abort',
       () => {
         console.log('SignalR: Abort signal received, stopping connection');
-        this.connection.stop();
+        this.disconnect();
       },
       { once: true },
     );
+  }
 
+  async connect(): Promise<string> {
+    this.isExplicitlyDisconnected = false;
     try {
       if (this.abortSignal.aborted) throw new Error('Abort signal received');
       await this.connection.start();
@@ -65,14 +57,14 @@ export class SignalRService implements CommunicationService {
   }
 
   async disconnect(): Promise<void> {
-    await this.connection.stop();
+    this.isExplicitlyDisconnected = true;
+    if (this.isConnected()) await this.connection.stop();
     console.log('SignalR: Disconnected');
   }
 
   async requestMatchmaking(): Promise<void> {
     try {
-      await this.connection.invoke('RequestMatchmaking');
-      console.log('SignalR: Matchmaking requested');
+      if (this.isConnected()) await this.connection.invoke('RequestMatchmaking');
     } catch (error) {
       if (this.abortSignal.aborted) return;
       console.error('SignalR: Failed to request matchmaking', error);
@@ -81,7 +73,7 @@ export class SignalRService implements CommunicationService {
 
   async updatePlayerPosition(position: Position): Promise<void> {
     try {
-      await this.connection.invoke('UpdatePlayerPosition', position);
+      if (this.isConnected()) await this.connection.invoke('UpdatePlayerPosition', position);
     } catch (error) {
       console.error('SignalR: Failed to update player position', error);
     }
@@ -89,7 +81,7 @@ export class SignalRService implements CommunicationService {
 
   async performMeleeAttack(): Promise<void> {
     try {
-      await this.connection.invoke('PerformMeleeAttack');
+      if (this.isConnected()) await this.connection.invoke('PerformMeleeAttack');
     } catch (error) {
       console.error('SignalR: Failed to perform melee attack', error);
     }
@@ -97,7 +89,7 @@ export class SignalRService implements CommunicationService {
 
   async performProjectileAttack(): Promise<void> {
     try {
-      await this.connection.invoke('PerformProjectileAttack');
+      if (this.isConnected()) await this.connection.invoke('PerformProjectileAttack');
     } catch (error) {
       console.error('SignalR: Failed to perform projectile attack', error);
     }
@@ -105,7 +97,7 @@ export class SignalRService implements CommunicationService {
 
   async performSpecialAttack(): Promise<void> {
     try {
-      await this.connection.invoke('PerformSpecialAttack');
+      if (this.isConnected()) await this.connection.invoke('PerformSpecialAttack');
     } catch (error) {
       console.error('SignalR: Failed to perform special attack', error);
     }
@@ -113,7 +105,7 @@ export class SignalRService implements CommunicationService {
 
   async projectileHitPlayer(projectileId: string, hitPlayerId: string): Promise<void> {
     try {
-      await this.connection.invoke('ProjectileHitPlayer', projectileId, hitPlayerId);
+      if (this.isConnected()) await this.connection.invoke('ProjectileHitPlayer', projectileId, hitPlayerId);
     } catch (error) {
       console.error('SignalR: Failed to report projectile hit', error);
     }
@@ -121,8 +113,7 @@ export class SignalRService implements CommunicationService {
 
   async leaveGame(): Promise<void> {
     try {
-      await this.connection.invoke('LeaveGame');
-      console.log('SignalR: Left game');
+      if (this.isConnected()) await this.connection.invoke('LeaveGame');
     } catch (error) {
       console.error('SignalR: Failed to leave game', error);
     }

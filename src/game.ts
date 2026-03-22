@@ -12,6 +12,7 @@ import type { RenderingService } from './interfaces/renderingService';
 import type { AudioController } from './interfaces/audioController';
 import type { AnimationController } from './interfaces/animationController';
 import type { GameTime } from './gameTime';
+import { sleepAsync } from './utils';
 
 export class Game implements CallbacksHandler {
   public readonly communicationService: CommunicationService;
@@ -54,6 +55,7 @@ export class Game implements CallbacksHandler {
     this.audioController = audioController;
     this.animationController = animationController;
     this.time = time;
+    this.inputHandler.setup(this.handleAttackInput);
   }
 
   start(): void {
@@ -72,24 +74,23 @@ export class Game implements CallbacksHandler {
     this.viewportManager.cleanup();
     this.audioController.cleanup();
 
-    this.communicationService.disconnect().catch((error) => {
-      console.warn('Game: Error during disconnect (ignored)', error);
-    });
+    this.communicationService.disconnect();
   }
 
   async connect(): Promise<void> {
     try {
-      const playerId = await this.communicationService.connect(this);
+      const playerId = await this.communicationService.connect();
       this.entityManager.updateLocalPlayerId(playerId);
     } catch (error) {
       if (this.abortSignal.aborted) return;
       throw error;
     }
-    this.inputHandler.setup(this.handleAttackInput);
   }
 
   async requestMatchmaking(): Promise<void> {
-    // TODO check if already playing
+    if (this.gameStateManager.isPlaying()) {
+      return;
+    }
     this.gameStateManager.setGameState('waiting');
     this.gameStateManager.setWinnerId('');
     await this.communicationService.requestMatchmaking();
@@ -100,8 +101,27 @@ export class Game implements CallbacksHandler {
     this.clear();
   }
 
+  onClose = async (error: Error | undefined): Promise<void> => {
+    console.warn(`Lost connection with the server: ${error}`);
+    this.clear();
+    let retryCounter = 1;
+    while (!this.abortSignal.aborted) {
+      const reconnectTime = Math.min(250 * retryCounter, 8000);
+      try {
+        await this.connect();
+        return;
+      } catch (err) {
+        console.warn(
+          `Could not reconnect to the server. Current retry counter: ${retryCounter}. ` +
+            `Will reconnect in ${reconnectTime}ms. ${err}`,
+        );
+      }
+      await sleepAsync(reconnectTime);
+      retryCounter++;
+    }
+  };
+
   onLobbyStart = async (lobbyId: string, players: Player[]): Promise<void> => {
-    if (this.abortSignal.aborted) return;
     await this.delay();
     console.log('Lobby started:', { lobbyId, players });
     const playerId = this.entityManager.getLocalPlayerEntity().id;
@@ -235,7 +255,7 @@ export class Game implements CallbacksHandler {
     this.gameStateManager.reset();
   }
 
-  private async delay(): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+  private delay(): Promise<void> {
+    return sleepAsync(100);
   }
 }

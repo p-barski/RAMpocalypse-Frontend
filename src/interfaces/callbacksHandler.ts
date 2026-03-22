@@ -1,6 +1,7 @@
 import type { AttackEntity, Player, Position } from './messageInterfaces';
 
 export interface CallbacksHandler {
+  onClose: (error: Error | undefined) => Promise<void>;
   onLobbyStart: (lobbyId: string, players: Player[]) => void;
   onOtherPlayerPositionUpdated: (playerId: string, position: Position) => void;
   onPlayerLeftLobby: (playerId: string) => void;
