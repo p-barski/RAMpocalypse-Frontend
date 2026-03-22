@@ -46,7 +46,7 @@ export class SignalRService implements CommunicationService {
       if (this.abortSignal.aborted) throw new Error('Abort signal received');
       await this.connection.start();
       console.log('SignalR: Connected');
-      const playerId = await this.connection.invoke<string>('Connect');
+      const playerId = await this.connection.invoke<string>('GetPlayerId');
       console.log('SignalR: Connected to game');
       return playerId;
     } catch (error) {
