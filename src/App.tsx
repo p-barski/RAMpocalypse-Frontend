@@ -1,6 +1,8 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { createGame } from './createGame';
 import type { Game } from './game';
+import type { ChatMessageServer, ChatMessageType } from './interfaces/messageInterfaces';
+import Chat from './Chat';
 import './App.css';
 
 declare global {
@@ -11,9 +13,26 @@ declare global {
 
 export {};
 function App() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameRef = useRef<Game | null>(null);
   const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:5027';
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gameRef = useRef<Game>(null);
+  const onMessageReceivedRef = useRef<(message: ChatMessageServer) => void>(() => {});
+
+  const registerOnMessageReceived = useCallback((handler: (message: ChatMessageServer) => void) => {
+    onMessageReceivedRef.current = handler;
+  }, []);
+
+  const sendMessage = useCallback(async (message: string, type: ChatMessageType) => {
+    await gameRef.current?.sendMessage(message, type);
+  }, []);
+
+  const handleRequestMatchmaking = useCallback(async () => {
+    await gameRef.current?.requestMatchmaking();
+  }, []);
+
+  const handleLeaveGame = useCallback(async () => {
+    await gameRef.current?.leaveGame();
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -33,6 +52,7 @@ function App() {
           if (!abortController.signal.aborted) game?.onClose(error);
         });
         if (abortController.signal.aborted) return;
+        game.onMessageReceived = onMessageReceivedRef.current;
         game.start();
       } catch (err) {
         if ((err as Error)?.name !== 'AbortError') {
@@ -47,19 +67,7 @@ function App() {
       game?.stop();
       gameRef.current = null;
     };
-  }, [serverUrl]);
-
-  const handleRequestMatchmaking = async () => {
-    if (gameRef.current) {
-      await gameRef.current.requestMatchmaking();
-    }
-  };
-
-  const handleLeaveGame = async () => {
-    if (gameRef.current) {
-      await gameRef.current.leaveGame();
-    }
-  };
+  });
 
   return (
     <div className="App">
@@ -73,7 +81,13 @@ function App() {
           </button>
         </div>
       </header>
-      <canvas ref={canvasRef}></canvas>
+      <canvas ref={canvasRef} tabIndex={0}></canvas>
+      <Chat
+        canvasRef={canvasRef}
+        serverUrl={serverUrl}
+        sendMessage={sendMessage}
+        registerOnMessageReceived={registerOnMessageReceived}
+      />
     </div>
   );
 }

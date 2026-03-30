@@ -45,3 +45,18 @@ export interface AttackEntity {
   lifetime: number;
   creationTime: number;
 }
+
+export const ChatMessageTypeValue = {
+  Global: 0,
+  Lobby: 1,
+} as const;
+export type ChatMessageType = (typeof ChatMessageTypeValue)[keyof typeof ChatMessageTypeValue];
+
+export interface ChatMessageServer {
+  id: string;
+  text: string;
+  type: ChatMessageType;
+  ownerId: string;
+  ownerName: string;
+  timestamp: string;
+}

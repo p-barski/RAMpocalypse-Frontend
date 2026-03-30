@@ -1,7 +1,7 @@
 import * as signalR from '@microsoft/signalr';
 import type { CallbacksHandler } from './interfaces/callbacksHandler';
 import type { CommunicationService } from './interfaces/communicatonService';
-import type { Position } from './interfaces/messageInterfaces';
+import type { Position, ChatMessageType } from './interfaces/messageInterfaces';
 
 export class SignalRService implements CommunicationService {
   private readonly connection: signalR.HubConnection;
@@ -20,6 +20,7 @@ export class SignalRService implements CommunicationService {
       if (!this.isExplicitlyDisconnected) this.callbacksHandler.onClose(error);
     });
 
+    this.connection.on('MessageReceived', callbacksHandler.onMessageReceived);
     this.connection.on('LobbyStarted', callbacksHandler.onLobbyStart);
     this.connection.on('PlayerLeftLobby', callbacksHandler.onPlayerLeftLobby);
     this.connection.on('PlayerPositionUpdated', callbacksHandler.onOtherPlayerPositionUpdated);
@@ -60,6 +61,15 @@ export class SignalRService implements CommunicationService {
     this.isExplicitlyDisconnected = true;
     if (this.isConnected()) await this.connection.stop();
     console.log('SignalR: Disconnected');
+  }
+
+  async sendMessage(message: string, type: ChatMessageType): Promise<void> {
+    try {
+      if (this.isConnected()) await this.connection.invoke('SendMessage', message, type);
+    } catch (error) {
+      if (this.abortSignal.aborted) return;
+      console.error('SignalR: Failed to send message', error);
+    }
   }
 
   async requestMatchmaking(): Promise<void> {

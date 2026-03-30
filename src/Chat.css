@@ -1,0 +1,89 @@
+.chat-container {
+  position: absolute;
+  bottom: 0.5%;
+  left: 0.5%;
+  width: 40vw;
+  pointer-events: none;
+}
+.chat-container.active {
+  pointer-events: auto;
+}
+
+.chat-types-container {
+  display: flex;
+  color: white;
+  min-height: 30px;
+  height: 3vh;
+  max-height: 3vh;
+}
+
+.chat-types-container button {
+  padding: 0;
+  width: 100%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  background-color: rgba(15, 15, 15, 0.5);
+  color: white;
+  font-size: large;
+  text-align: center;
+  transition:
+    background-color 0.1s,
+    border-color 0.1s;
+}
+
+.chat-types-container .button-active {
+  font-weight: bold;
+}
+
+.chat-types-container button:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.chat-types-container button:active {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.messages-container {
+  background-color: rgba(0, 0, 0, 0.3);
+  min-height: 100px;
+  height: 10vh;
+  width: 100%;
+  overflow-y: scroll;
+}
+
+.message {
+  color: white;
+  text-align: left;
+  text-wrap: wrap;
+  overflow-wrap: break-word;
+}
+
+.chat-input-container {
+  display: flex;
+  align-content: left;
+}
+
+.chat-input-container input {
+  min-height: 20px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background-color: rgba(15, 15, 15, 0.5);
+  color: white;
+}
+
+.chat-input-container button {
+  border: 0px solid rgba(255, 255, 255, 0.7);
+  background-color: rgba(15, 15, 15, 0.5);
+  color: white;
+  transition:
+    background-color 0.1s,
+    border-color 0.1s;
+}
+
+.chat-input-container button:hover {
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+.chat-input-container button:active {
+  background-color: rgba(255, 255, 255, 0.5);
+}

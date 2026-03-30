@@ -1,8 +1,9 @@
 import type { CallbacksHandler } from './interfaces/callbacksHandler';
-import type { AttackEntity, Player, Position } from './interfaces/messageInterfaces';
+import type { AttackEntity, Player, Position, ChatMessageServer } from './interfaces/messageInterfaces';
 
 export class SignalRCallbacksHandler implements CallbacksHandler {
   handler!: CallbacksHandler; // setup after creating Game, before connecting to server
+  onMessageReceived = (message: ChatMessageServer) => this.handler.onMessageReceived(message);
   onClose = (error: Error | undefined) => this.handler.onClose(error);
   onLobbyStart = (lobbyId: string, players: Player[]) => this.handler.onLobbyStart(lobbyId, players);
   onOtherPlayerPositionUpdated = (playerId: string, position: Position) =>

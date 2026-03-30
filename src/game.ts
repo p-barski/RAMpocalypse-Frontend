@@ -1,4 +1,11 @@
-import type { Player, Position, AttackEntity, AttackType } from './interfaces/messageInterfaces';
+import type {
+  Player,
+  Position,
+  AttackEntity,
+  AttackType,
+  ChatMessageServer,
+  ChatMessageType,
+} from './interfaces/messageInterfaces';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
 import type { CallbacksHandler } from './interfaces/callbacksHandler';
 import type { CommunicationService } from './interfaces/communicatonService';
@@ -100,6 +107,12 @@ export class Game implements CallbacksHandler {
     await this.communicationService.leaveGame();
     this.clear();
   }
+
+  async sendMessage(message: string, type: ChatMessageType): Promise<void> {
+    await this.communicationService.sendMessage(message, type);
+  }
+
+  onMessageReceived = (_message: ChatMessageServer): void => {};
 
   onClose = async (error: Error | undefined): Promise<void> => {
     console.warn(`Lost connection with the server: ${error}`);

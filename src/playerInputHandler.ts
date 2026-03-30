@@ -39,7 +39,7 @@ export class PlayerInputHandler implements InputHandler {
   setup(attackCallback: AttackInputCallback): void {
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
-    this.canvas.addEventListener('mousemove', this.handleMouseMove);
+    window.addEventListener('mousemove', this.handleMouseMove);
     this.canvas.addEventListener('click', this.handleClick);
     this.attackCallback = attackCallback;
   }
@@ -47,24 +47,26 @@ export class PlayerInputHandler implements InputHandler {
   cleanup(): void {
     window.removeEventListener('keydown', this.handleKeyDown);
     window.removeEventListener('keyup', this.handleKeyUp);
-    this.canvas.removeEventListener('mousemove', this.handleMouseMove);
+    window.removeEventListener('mousemove', this.handleMouseMove);
     this.canvas.removeEventListener('click', this.handleClick);
     this.keys.clear();
     this.attackCallback = (_) => {};
   }
 
   private handleKeyDown = (e: KeyboardEvent): void => {
-    this.keys.add(e.key.toLowerCase());
+    if (e.target !== this.canvas) return;
+    const keyLower = e.key.toLowerCase();
+    this.keys.add(keyLower);
 
-    if (e.key === ' ' || e.key === 'Space') {
-      e.preventDefault();
-      this.attackCallback(AttackTypeValue.Melee);
-    } else if (e.key === 'e' || e.key === 'E') {
-      e.preventDefault();
-      this.attackCallback(AttackTypeValue.Projectile);
-    } else if (e.key === 'q' || e.key === 'Q') {
-      e.preventDefault();
-      this.attackCallback(AttackTypeValue.Special);
+    switch (keyLower) {
+      case ' ':
+        this.attackCallback(AttackTypeValue.Melee);
+        break;
+      case 'e':
+        this.attackCallback(AttackTypeValue.Projectile);
+        break;
+      case 'q':
+        this.attackCallback(AttackTypeValue.Special);
     }
   };
 
