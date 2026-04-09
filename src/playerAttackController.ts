@@ -6,6 +6,7 @@ import type { CommunicationService } from './interfaces/communicatonService';
 import type { GameConfig } from './interfaces/gameConfig';
 import type { AttackType, AttackEntity } from './interfaces/messageInterfaces';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
+import { clamp } from './mathUtils';
 
 export class PlayerAttackController implements AttackController {
   private readonly COOLDOWNS_MAP: ReadonlyMap<AttackType, number>;
@@ -74,16 +75,20 @@ export class PlayerAttackController implements AttackController {
   }
 
   addAttack(attackEntity: AttackEntity): void {
-    if (attackEntity.type === AttackTypeValue.ProjectileHit) {
-      this.attacks.delete(attackEntity.id);
-      return;
-    }
-    if (attackEntity.type === AttackTypeValue.Projectile) {
-      const delta = (this.time.frameTimestamp - attackEntity.creationTime) / 1000;
-      attackEntity.currentPosition.x += attackEntity.velocityVector.x * delta;
-      attackEntity.currentPosition.y += attackEntity.velocityVector.y * delta;
-      if (attackEntity.ownerId === this.entityManager.getLocalPlayerEntity().id) {
-        this.ownProjectiles.set(attackEntity.id, attackEntity);
+    switch (attackEntity.type) {
+      case AttackTypeValue.ProjectileHit:
+        this.attacks.delete(attackEntity.id);
+        return;
+      // @ts-expect-error fallthrough
+      case AttackTypeValue.Projectile:
+        if (attackEntity.ownerId === this.entityManager.getLocalPlayerEntity().id)
+          this.ownProjectiles.set(attackEntity.id, attackEntity);
+      //fallthrough
+      case AttackTypeValue.Special: {
+        const delta = (this.time.frameTimestamp - attackEntity.creationTime) / 1000;
+        attackEntity.currentPosition.x += attackEntity.velocityVector.x * delta;
+        attackEntity.currentPosition.y += attackEntity.velocityVector.y * delta;
+        break;
       }
     }
     this.attacks.set(attackEntity.id, attackEntity);
@@ -98,18 +103,34 @@ export class PlayerAttackController implements AttackController {
 
     for (const [id, attack] of this.attacks) {
       const age = this.time.frameTimestamp - attack.creationTime;
+      if (age >= attack.lifetime) {
+        toRemove.push(id);
+        if (attack.type === AttackTypeValue.Special && attack.ownerId === this.entityManager.getLocalPlayerEntity().id)
+          this.communicationService.specialExplosion(id);
+        continue;
+      }
+
+      attack.currentPosition.x += attack.velocityVector.x * this.time.deltaTime;
+      attack.currentPosition.y += attack.velocityVector.y * this.time.deltaTime;
+      if (attack.type == AttackTypeValue.Special) {
+        const range = this.gameConfig.specialRange;
+        attack.currentPosition.x = clamp(attack.currentPosition.x, range, this.gameConfig.gameWidth - range);
+        attack.currentPosition.y = clamp(attack.currentPosition.y, range, this.gameConfig.gameHeight - range);
+        continue;
+      }
       const isOutsidePlayableArea =
         attack.currentPosition.x > this.gameConfig.gameWidth ||
         attack.currentPosition.y > this.gameConfig.gameHeight ||
         attack.currentPosition.x < 0 ||
         attack.currentPosition.y < 0;
-      if (age >= attack.lifetime || isOutsidePlayableArea) {
+      if (isOutsidePlayableArea) {
         toRemove.push(id);
-        this.ownProjectiles.delete(id);
-      } else {
-        attack.currentPosition.x += attack.velocityVector.x * this.time.deltaTime;
-        attack.currentPosition.y += attack.velocityVector.y * this.time.deltaTime;
       }
+    }
+
+    for (const id of toRemove) {
+      this.attacks.delete(id);
+      this.ownProjectiles.delete(id);
     }
 
     if (this.ownProjectiles.size > 0) {
@@ -134,11 +155,6 @@ export class PlayerAttackController implements AttackController {
           }
         }
       }
-    }
-
-    for (const id of toRemove) {
-      this.attacks.delete(id);
-      this.ownProjectiles.delete(id);
     }
   }
 

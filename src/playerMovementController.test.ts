@@ -38,12 +38,14 @@ describe('PlayerMovementController', () => {
       connect: vi.fn(),
       isConnected: vi.fn(),
       disconnect: vi.fn(),
+      sendMessage: vi.fn(),
       requestMatchmaking: vi.fn(),
       updatePlayerPosition: vi.fn(),
       performMeleeAttack: vi.fn(),
       performProjectileAttack: vi.fn(),
       performSpecialAttack: vi.fn(),
       projectileHitPlayer: vi.fn(),
+      specialExplosion: vi.fn(),
       leaveGame: vi.fn(),
     };
 
@@ -83,6 +85,7 @@ describe('PlayerMovementController', () => {
       meleeCooldownMs: 100,
       projectileCooldownMs: 200,
       specialCooldownMs: 300,
+      specialRange: 100,
     };
 
     movementController = new PlayerMovementController(

@@ -121,6 +121,14 @@ export class SignalRService implements CommunicationService {
     }
   }
 
+  async specialExplosion(attackId: string): Promise<void> {
+    try {
+      if (this.isConnected()) await this.connection.invoke('SpecialExplosion', attackId);
+    } catch (error) {
+      console.error('SignalR: Failed to report special explosion', error);
+    }
+  }
+
   async leaveGame(): Promise<void> {
     try {
       if (this.isConnected()) await this.connection.invoke('LeaveGame');

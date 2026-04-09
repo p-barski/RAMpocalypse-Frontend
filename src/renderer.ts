@@ -8,10 +8,12 @@ import type { Time } from './interfaces/time';
 import type { Entity } from './interfaces/entity';
 import type { AttackType } from './interfaces/messageInterfaces';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
+import type { GameConfig } from './interfaces/gameConfig';
 import { TAU } from './mathUtils';
 
 export class Renderer implements RenderingService {
   private readonly ctx: CanvasRenderingContext2D;
+  private readonly gameConfig: GameConfig;
   private readonly entityManager: EntityManager;
   private readonly viewportManager: ViewportManager;
   private readonly gameStateManager: StateManager;
@@ -25,7 +27,6 @@ export class Renderer implements RenderingService {
 
   private readonly MELEE_RADIUS = 30;
   private readonly PROJECTILE_RADIUS = 10;
-  private readonly SPECIAL_RADIUS = 50;
 
   private readonly COLOR_BORDER = '#ffffff';
   private readonly COLOR_HEALTH_BG = '#ff0000';
@@ -39,6 +40,7 @@ export class Renderer implements RenderingService {
 
   constructor(
     ctx: CanvasRenderingContext2D,
+    gameConfig: GameConfig,
     entityManager: EntityManager,
     viewportManager: ViewportManager,
     gameStateManager: StateManager,
@@ -53,6 +55,7 @@ export class Renderer implements RenderingService {
     this.attackController = attackController;
     this.animationController = animationController;
     this.time = time;
+    this.gameConfig = gameConfig;
   }
 
   render(): void {
@@ -206,7 +209,7 @@ export class Renderer implements RenderingService {
     this.ctx.strokeStyle = this.COLOR_SPECIAL;
     this.ctx.lineWidth = 4;
     this.ctx.beginPath();
-    this.ctx.arc(canvasX, canvasY, this.SPECIAL_RADIUS * scaleX, 0, TAU);
+    this.ctx.arc(canvasX, canvasY, this.gameConfig.specialRange * scaleX, 0, TAU);
     this.ctx.stroke();
   }
 

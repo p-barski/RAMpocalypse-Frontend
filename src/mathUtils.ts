@@ -8,3 +8,7 @@ export function calculateDirectionVector(position: Position): Position {
   const y = -Math.cos(position.angle);
   return { x, y, angle: position.angle } satisfies Position;
 }
+
+export function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(value, max));
+}

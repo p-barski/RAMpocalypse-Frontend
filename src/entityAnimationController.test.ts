@@ -42,6 +42,7 @@ describe('PlayerMovementController', () => {
       meleeCooldownMs: 100,
       projectileCooldownMs: 200,
       specialCooldownMs: 300,
+      specialRange: 100,
     };
 
     animationController = new EntityAnimationController(mockGameConfig, mockEntityManager, mockTime);

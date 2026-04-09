@@ -97,6 +97,7 @@ export async function createGame(
   );
   const renderingService = new Renderer(
     ctx,
+    gameConfig,
     entityManager,
     viewportManager,
     gameStateManager,
