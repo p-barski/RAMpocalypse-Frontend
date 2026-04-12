@@ -9,7 +9,7 @@ import type { Entity } from './interfaces/entity';
 import type { AttackType } from './interfaces/messageInterfaces';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
 import type { GameConfig } from './interfaces/gameConfig';
-import { TAU } from './mathUtils';
+import { clamp, TAU } from './mathUtils';
 
 export class Renderer implements RenderingService {
   private readonly ctx: CanvasRenderingContext2D;
@@ -128,7 +128,6 @@ export class Renderer implements RenderingService {
 
   private drawEntityHealthBar(entity: Entity, canvasX: number, canvasY: number): void {
     const playerId = entity.id;
-    if (!playerId) return;
     if (!playerId.startsWith('player_')) return;
 
     const player = this.gameStateManager.getPlayer(playerId);
@@ -141,12 +140,16 @@ export class Renderer implements RenderingService {
   }
 
   private drawHealthBar(x: number, y: number, width: number, health: number, maxHealth: number): void {
-    //TOOD check if health bar is not outside canvas/viewport
-    const healthPercent = Math.max(0, Math.min(1, health / maxHealth));
+    const healthPercent = clamp(health / maxHealth, 0, 1);
     const scaledHeight = this.HEALTH_BAR_HEIGHT * this.viewportManager.scale;
+    y = clamp(
+      y,
+      this.viewportManager.viewportY,
+      this.viewportManager.displayHeight - this.viewportManager.viewportY - scaledHeight,
+    );
     const scaledBorderSize = this.HEALTH_BAR_BORDER_SIZE * this.viewportManager.scale;
     const twiceScaledBorderSize = 2 * scaledBorderSize;
-    // Border
+
     this.ctx.fillStyle = this.COLOR_BORDER;
     this.ctx.fillRect(x, y, width, scaledHeight);
 
