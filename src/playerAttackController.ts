@@ -128,11 +128,6 @@ export class PlayerAttackController implements AttackController {
       }
     }
 
-    for (const id of toRemove) {
-      this.attacks.delete(id);
-      this.ownProjectiles.delete(id);
-    }
-
     if (this.ownProjectiles.size > 0) {
       const entities = this.entityManager.getEntities();
       const localPlayer = this.entityManager.getLocalPlayerEntity();
@@ -150,11 +145,15 @@ export class PlayerAttackController implements AttackController {
             if (Math.abs(localX) <= halfWidth && Math.abs(localY) <= halfHeight) {
               this.communicationService.projectileHitPlayer(attack.id, entity.id);
               toRemove.push(id);
-              break;
             }
           }
         }
       }
+    }
+
+    for (const id of toRemove) {
+      this.attacks.delete(id);
+      this.ownProjectiles.delete(id);
     }
   }
 
