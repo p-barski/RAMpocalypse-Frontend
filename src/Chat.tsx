@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { ChatMessageTypeValue, type ChatMessageServer, type ChatMessageType } from './interfaces/messageInterfaces';
-import { convertChatMessageFromServer, dateToChatTimestamp, type ChatMessage } from './utils';
+import { convertChatMessageFromServer, dateToChatTimestamp, profanityFilter, type ChatMessage } from './utils';
 import './Chat.css';
 
 interface ChatProps {
@@ -28,7 +28,7 @@ function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived }: 
   const handleSendMessage = useCallback(() => {
     const message = messageInputRef.current?.value;
     if (message === undefined || !message.trim()) return;
-    sendMessage(message, activeTab);
+    sendMessage(profanityFilter.clean(message), activeTab);
     messageInputRef.current!.value = '';
   }, [sendMessage, activeTab]);
 

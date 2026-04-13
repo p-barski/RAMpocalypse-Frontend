@@ -1,4 +1,7 @@
 import type { ChatMessageServer } from './interfaces/messageInterfaces';
+import { Filter } from 'bad-words';
+
+export const profanityFilter = new Filter();
 
 export function sleep(ms: number) {
   const start = Date.now();
@@ -27,7 +30,7 @@ export function dateToChatTimestamp(date: Date): string {
 
 export function convertChatMessageFromServer(message: ChatMessageServer): ChatMessage {
   return {
-    text: message.text,
+    text: profanityFilter.clean(message.text),
     ownerName: message.ownerName,
     timestamp: dateToChatTimestamp(new Date(message.timestamp)),
   };
