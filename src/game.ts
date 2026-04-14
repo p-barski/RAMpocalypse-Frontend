@@ -23,7 +23,6 @@ import { sleepAsync } from './utils';
 
 export class Game implements CallbacksHandler {
   public readonly communicationService: CommunicationService;
-  public readonly abortSignal: AbortSignal;
   public readonly entityManager: EntityManager;
   public readonly gameStateManager: StateManager;
   public readonly inputHandler: InputHandler;
@@ -34,11 +33,11 @@ export class Game implements CallbacksHandler {
   public readonly audioController: AudioController;
   public readonly animationController: AnimationController;
   public readonly time: GameTime;
+  private isExplicitlyStopped = false;
   private animationFrameId: number | null = null;
 
   constructor(
     communicationService: CommunicationService,
-    abortSignal: AbortSignal,
     entityManager: EntityManager,
     gameStateManager: StateManager,
     inputHandler: InputHandler,
@@ -51,7 +50,6 @@ export class Game implements CallbacksHandler {
     time: GameTime,
   ) {
     this.communicationService = communicationService;
-    this.abortSignal = abortSignal;
     this.entityManager = entityManager;
     this.gameStateManager = gameStateManager;
     this.inputHandler = inputHandler;
@@ -72,6 +70,7 @@ export class Game implements CallbacksHandler {
   }
 
   stop(): void {
+    this.isExplicitlyStopped = true;
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -80,18 +79,12 @@ export class Game implements CallbacksHandler {
     this.inputHandler.cleanup();
     this.viewportManager.cleanup();
     this.audioController.cleanup();
-
     this.communicationService.disconnect();
   }
 
   async connect(): Promise<void> {
-    try {
-      const playerId = await this.communicationService.connect();
-      this.entityManager.updateLocalPlayerId(playerId);
-    } catch (error) {
-      if (this.abortSignal.aborted) return;
-      throw error;
-    }
+    const playerId = await this.communicationService.connect();
+    this.entityManager.updateLocalPlayerId(playerId);
   }
 
   async requestMatchmaking(): Promise<void> {
@@ -118,7 +111,7 @@ export class Game implements CallbacksHandler {
     console.warn(`Lost connection with the server: ${error}`);
     this.clear();
     let retryCounter = 1;
-    while (!this.abortSignal.aborted) {
+    while (!this.isExplicitlyStopped) {
       const reconnectTime = Math.min(250 * retryCounter, 8000);
       try {
         await this.connect();

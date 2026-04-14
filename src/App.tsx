@@ -38,32 +38,30 @@ function App() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const abortController = new AbortController();
+    const dismountMessage = 'Component dismounted.';
+    let isMounted = true;
     let game: Game | null = null;
 
     (async () => {
       try {
-        game = await createGame(serverUrl, abortController, canvas);
-        if (abortController.signal.aborted) return;
+        game = await createGame(serverUrl, canvas);
+        if (!isMounted) throw new Error(dismountMessage);
         gameRef.current = game;
         window.game = game;
-        if (abortController.signal.aborted) return;
-        await game.connect().catch((error) => {
-          if (!abortController.signal.aborted) game?.onClose(error);
-        });
-        if (abortController.signal.aborted) return;
         game.onMessageReceived = onMessageReceivedRef.current;
+        await game.connect().catch((error) => {
+          if (isMounted) game?.onClose(error);
+        });
+        if (!isMounted) throw new Error(dismountMessage);
         game.start();
       } catch (err) {
-        if ((err as Error)?.name !== 'AbortError') {
-          console.error(err);
-        }
+        if ((err as Error)?.message !== dismountMessage) console.warn(err);
         game?.stop();
       }
     })();
 
     return () => {
-      abortController.abort();
+      isMounted = false;
       game?.stop();
       gameRef.current = null;
     };

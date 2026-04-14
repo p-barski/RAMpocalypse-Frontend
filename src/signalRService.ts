@@ -6,13 +6,11 @@ import type { Position, ChatMessageType } from './interfaces/messageInterfaces';
 export class SignalRService implements CommunicationService {
   private readonly connection: signalR.HubConnection;
   private readonly serverUrl: string;
-  private readonly abortSignal: AbortSignal;
   private readonly callbacksHandler: CallbacksHandler;
   private isExplicitlyDisconnected = false;
 
-  constructor(serverUrl: string, abortSignal: AbortSignal, callbacksHandler: CallbacksHandler) {
+  constructor(serverUrl: string, callbacksHandler: CallbacksHandler) {
     this.serverUrl = serverUrl;
-    this.abortSignal = abortSignal;
     this.callbacksHandler = callbacksHandler;
     this.connection = new signalR.HubConnectionBuilder().withUrl(`${this.serverUrl}/gamehub`).build();
 
@@ -30,28 +28,17 @@ export class SignalRService implements CommunicationService {
     this.connection.on('PlayerDied', callbacksHandler.onPlayerDied);
     this.connection.on('PlayerRespawned', callbacksHandler.onPlayerRespawned);
     this.connection.on('GameEnded', callbacksHandler.onGameEnded);
-
-    this.abortSignal.addEventListener(
-      'abort',
-      () => {
-        console.log('SignalR: Abort signal received, stopping connection');
-        this.disconnect();
-      },
-      { once: true },
-    );
   }
 
   async connect(): Promise<string> {
     this.isExplicitlyDisconnected = false;
     try {
-      if (this.abortSignal.aborted) throw new Error('Abort signal received');
       await this.connection.start();
       console.log('SignalR: Connected');
       const playerId = await this.connection.invoke<string>('GetPlayerId');
-      console.log('SignalR: Connected to game');
+      console.log('SignalR: Player ID received');
       return playerId;
     } catch (error) {
-      if (this.abortSignal.aborted) throw new Error('Abort signal received when connecting to server');
       console.warn('SignalR: Connection failed', error);
       throw error;
     }
@@ -67,7 +54,6 @@ export class SignalRService implements CommunicationService {
     try {
       if (this.isConnected()) await this.connection.invoke('SendMessage', message, type);
     } catch (error) {
-      if (this.abortSignal.aborted) return;
       console.error('SignalR: Failed to send message', error);
     }
   }
@@ -76,7 +62,6 @@ export class SignalRService implements CommunicationService {
     try {
       if (this.isConnected()) await this.connection.invoke('RequestMatchmaking');
     } catch (error) {
-      if (this.abortSignal.aborted) return;
       console.error('SignalR: Failed to request matchmaking', error);
     }
   }

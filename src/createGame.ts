@@ -14,11 +14,7 @@ import { EntityAnimationController } from './entityAnimationController';
 import { GameTime } from './gameTime';
 import { SignalRCallbacksHandler } from './signalRCallbacksHandler';
 
-export async function createGame(
-  serverUrl: string,
-  abortController: AbortController,
-  canvas: HTMLCanvasElement,
-): Promise<Game> {
+export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): Promise<Game> {
   const ctx = canvas.getContext('2d');
   if (!ctx) {
     throw new Error('Could not get 2D context from canvas');
@@ -50,7 +46,7 @@ export async function createGame(
   const gameStateManager = new GameStateManager();
   const viewportManager = new GameViewportManager(gameConfig, canvas);
   const callbacksHandler = new SignalRCallbacksHandler();
-  const signalRService = new SignalRService(serverUrl, abortController.signal, callbacksHandler);
+  const signalRService = new SignalRService(serverUrl, callbacksHandler);
   const spriteManager = new SpriteLoader(missingSprite);
   const localPlayerSprite = await spriteManager.getSpriteImage(playerSpriteData);
   const localPlayerPosition = { x: gameConfig.gameWidth / 2, y: gameConfig.gameHeight / 2, angle: 0 };
@@ -108,7 +104,6 @@ export async function createGame(
 
   const game = new Game(
     signalRService,
-    abortController.signal,
     entityManager,
     gameStateManager,
     inputHandler,
