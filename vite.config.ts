@@ -6,7 +6,15 @@ import react from '@vitejs/plugin-react';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), eslint(), checker({ typescript: true })],
+  plugins: [
+    react(),
+    eslint(),
+    checker({
+      typescript: {
+        tsconfigPath: './tsconfig.app.json',
+      },
+    }),
+  ],
   test: {
     environment: 'jsdom',
     globals: true,
