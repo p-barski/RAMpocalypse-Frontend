@@ -60,7 +60,7 @@ export class Game implements CallbacksHandler {
     this.audioController = audioController;
     this.animationController = animationController;
     this.time = time;
-    this.inputHandler.setup(this.handleAttackInput);
+    this.inputHandler.setup(this.handleAttackInput, this.movementController.dash);
   }
 
   start(): void {
@@ -249,7 +249,7 @@ export class Game implements CallbacksHandler {
     this.time.update();
     if (this.gameStateManager.isPlaying()) {
       this.attackController.update();
-      this.movementController.update(this.time.deltaTime, this.time.frameTimestamp);
+      this.movementController.update();
     }
     this.renderingService.render();
     this.animationFrameId = requestAnimationFrame(() => this.gameLoop());

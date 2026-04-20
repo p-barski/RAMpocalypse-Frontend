@@ -83,6 +83,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): 
     gameStateManager,
     inputHandler,
     signalRService,
+    gameTime,
   );
   const attackController = new PlayerAttackController(
     gameConfig,

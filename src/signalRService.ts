@@ -1,7 +1,7 @@
 import * as signalR from '@microsoft/signalr';
 import type { CallbacksHandler } from './interfaces/callbacksHandler';
 import type { CommunicationService } from './interfaces/communicatonService';
-import type { Position, ChatMessageType } from './interfaces/messageInterfaces';
+import type { Position, ChatMessageType, Vector2D } from './interfaces/messageInterfaces';
 
 export class SignalRService implements CommunicationService {
   private readonly connection: signalR.HubConnection;
@@ -72,6 +72,15 @@ export class SignalRService implements CommunicationService {
     } catch (error) {
       console.error('SignalR: Failed to update player position', error);
     }
+  }
+
+  async dash(dashVelocity: Vector2D): Promise<boolean> {
+    try {
+      if (this.isConnected()) return await this.connection.invoke<boolean>('Dash', dashVelocity.x, dashVelocity.y);
+    } catch (error) {
+      console.error('SignalR: Failed to invoke dash', error);
+    }
+    return false;
   }
 
   async performMeleeAttack(): Promise<void> {

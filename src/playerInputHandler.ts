@@ -1,4 +1,4 @@
-import type { InputHandler, AttackInputCallback } from './interfaces/inputHandler';
+import type { InputHandler, AttackInputCallback, DashInputCallback } from './interfaces/inputHandler';
 import type { ViewportManager } from './interfaces/viewportManager';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
 
@@ -9,11 +9,13 @@ export class PlayerInputHandler implements InputHandler {
   private readonly viewportManager: ViewportManager;
   private readonly keys: Set<string> = new Set();
   private attackCallback: AttackInputCallback;
+  private dashCallback: DashInputCallback;
 
   constructor(canvas: HTMLCanvasElement, viewportManager: ViewportManager) {
     this.canvas = canvas;
     this.viewportManager = viewportManager;
     this.attackCallback = (_) => {};
+    this.dashCallback = () => {};
   }
 
   isKeyPressed(key: string): boolean {
@@ -36,12 +38,13 @@ export class PlayerInputHandler implements InputHandler {
     return this.keys.has('d') || this.keys.has('arrowright');
   }
 
-  setup(attackCallback: AttackInputCallback): void {
+  setup(attackCallback: AttackInputCallback, dashCallback: DashInputCallback): void {
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('mousemove', this.handleMouseMove);
     this.canvas.addEventListener('click', this.handleClick);
     this.attackCallback = attackCallback;
+    this.dashCallback = dashCallback;
   }
 
   cleanup(): void {
@@ -51,6 +54,7 @@ export class PlayerInputHandler implements InputHandler {
     this.canvas.removeEventListener('click', this.handleClick);
     this.keys.clear();
     this.attackCallback = (_) => {};
+    this.dashCallback = () => {};
   }
 
   private handleKeyDown = (e: KeyboardEvent): void => {
@@ -60,7 +64,8 @@ export class PlayerInputHandler implements InputHandler {
 
     switch (keyLower) {
       case ' ':
-        this.attackCallback(AttackTypeValue.Melee);
+      case 'shift':
+        this.dashCallback();
         break;
       case 'e':
         this.attackCallback(AttackTypeValue.Projectile);

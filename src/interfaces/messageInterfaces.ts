@@ -4,6 +4,11 @@ export interface Position {
   angle: number;
 }
 
+export interface Vector2D {
+  x: number;
+  y: number;
+}
+
 export interface SpriteData {
   url: string;
   width: number;

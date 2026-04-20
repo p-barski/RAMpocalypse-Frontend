@@ -37,8 +37,11 @@ describe('PlayerMovementController', () => {
     mockGameConfig = {
       gameWidth: 1920,
       gameHeight: 1080,
-      maxMovementSpeed: 500,
+      movementSpeed: 500,
       positionUpdateIntervalMs: 20,
+      dashSpeedMultiplier: 4,
+      dashCooldownMs: 2000,
+      dashDurationMs: 250,
       meleeCooldownMs: 100,
       projectileCooldownMs: 200,
       specialCooldownMs: 300,

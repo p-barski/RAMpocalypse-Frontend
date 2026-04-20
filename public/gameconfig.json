@@ -1,8 +1,11 @@
 {
   "gameWidth": 1920,
   "gameHeight": 1080,
-  "maxMovementSpeed": 500,
-  "positionUpdateIntervalMs": 20,
+  "movementSpeed": 500,
+  "dashSpeedMultiplier": 4.0,
+  "dashCooldownMs": 1000,
+  "dashDurationMs": 250,
+  "positionUpdateIntervalMs": 16,
   "meleeCooldownMs": 50,
   "projectileCooldownMs": 100,
   "specialCooldownMs": 300,

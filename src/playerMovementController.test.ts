@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, type Mocked, vi } from 'vitest';
+import { describe, it, beforeEach, type Mocked, vi, expect } from 'vitest';
 import { PlayerMovementController } from './playerMovementController';
 import type { EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
@@ -6,15 +6,16 @@ import type { InputHandler } from './interfaces/inputHandler';
 import type { CommunicationService } from './interfaces/communicatonService';
 import type { Entity } from './interfaces/entity';
 import type { GameConfig } from './interfaces/gameConfig';
-
-const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min);
+import type { Time } from './interfaces/time';
+import type { Vector2D } from './interfaces/messageInterfaces';
 
 describe('PlayerMovementController', () => {
-  let movementController: PlayerMovementController;
+  let sut: PlayerMovementController;
   let mockEntityManager: Mocked<EntityManager>;
   let mockCommunicationService: Mocked<CommunicationService>;
   let mockGameStateManager: Mocked<StateManager>;
   let mockInputHandler: Mocked<InputHandler>;
+  let mockTime: Time;
   let mockGameConfig: GameConfig;
 
   beforeEach(() => {
@@ -41,6 +42,7 @@ describe('PlayerMovementController', () => {
       sendMessage: vi.fn(),
       requestMatchmaking: vi.fn(),
       updatePlayerPosition: vi.fn(),
+      dash: vi.fn(),
       performMeleeAttack: vi.fn(),
       performProjectileAttack: vi.fn(),
       performSpecialAttack: vi.fn(),
@@ -80,51 +82,90 @@ describe('PlayerMovementController', () => {
     mockGameConfig = {
       gameWidth: 1920,
       gameHeight: 1080,
-      maxMovementSpeed: 500,
+      movementSpeed: 500,
       positionUpdateIntervalMs: 20,
+      dashSpeedMultiplier: 4,
+      dashCooldownMs: 2000,
+      dashDurationMs: 250,
       meleeCooldownMs: 100,
       projectileCooldownMs: 200,
       specialCooldownMs: 300,
       specialRange: 100,
     };
 
-    movementController = new PlayerMovementController(
+    mockTime = { deltaTime: 0, averageFrameTime: 0, frameTimestamp: 0 };
+
+    sut = new PlayerMovementController(
       mockGameConfig,
       mockEntityManager,
       mockGameStateManager,
       mockInputHandler,
       mockCommunicationService,
+      mockTime,
     );
   });
 
-  describe('updateBenchmark', () => {
-    it('benchmark', () => {
-      const mockPlayer = { position: { x: 100, y: 200 } } as Entity;
+  const forceDash = (value: boolean, velocityVector: Vector2D, lastDashTime: number) => {
+    sut['isDashing'] = value;
+    sut['dashVelocity'] = velocityVector;
+    sut['lastDashTime'] = lastDashTime;
+  };
 
-      mockGameStateManager.isPlaying.mockReturnValue(true);
+  describe('update', () => {
+    it('uses dash velocity when isDashing is true', () => {
+      const mockPlayer = { position: { x: 100, y: 100 }, width: 64, height: 64 } as Entity;
+      const velocityVector: Vector2D = { x: 100, y: 0 };
+      const elapsedMs = 30;
+      const expectedX = mockPlayer.position.x + elapsedMs / 10;
+
       mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
-      mockInputHandler.isDownPressed.mockReturnValue(true);
-      mockInputHandler.isUpPressed.mockReturnValue(false);
-      mockInputHandler.isRightPressed.mockReturnValue(true);
-      mockInputHandler.isLeftPressed.mockReturnValue(false);
+      (mockTime as any).frameTimestamp = Date.now();
+      (mockTime as any).deltaTime = elapsedMs / 1000;
+      forceDash(true, velocityVector, mockTime.frameTimestamp - elapsedMs);
+      sut.update();
 
-      let total = 0;
-      const iterations = 3000;
-      for (let i = 0; i < iterations; i++) {
-        const deltaTime = randomInt(1, 20);
-        const now = Date.now();
-        mockInputHandler.isDownPressed.mockReturnValue(Boolean(deltaTime % 2));
-        mockInputHandler.isUpPressed.mockReturnValue(Boolean((deltaTime + 1) % 2));
-        mockInputHandler.isRightPressed.mockReturnValue(Boolean(deltaTime % 2));
-        mockInputHandler.isLeftPressed.mockReturnValue(Boolean((deltaTime + 1) % 2));
-        const start = performance.now();
-        movementController.update(deltaTime, now);
-        const end = performance.now();
-        total += end - start;
-      }
+      expect(mockEntityManager.updateLocalPlayerPosition).toHaveBeenCalledWith(
+        expect.objectContaining({ x: expectedX, y: 100 }),
+      );
+    });
 
-      console.log(`${iterations} took ${total} ms`);
-      console.log(`Took ${total / iterations} ms per update`);
+    it('sets isDashing false when passed dashDurationMs', () => {
+      const mockPlayer = { position: { x: 100, y: 100 }, width: 64, height: 64 } as Entity;
+      const velocityVector: Vector2D = { x: 100, y: 0 };
+      const elapsedMs = 30;
+      const dashDurationMs = elapsedMs;
+      const expectedX = mockPlayer.position.x + elapsedMs / 10;
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
+      (mockTime as any).frameTimestamp = Date.now();
+      (mockTime as any).deltaTime = elapsedMs / 1000;
+      (mockGameConfig as any).dashDurationMs = dashDurationMs;
+      forceDash(true, velocityVector, mockTime.frameTimestamp - elapsedMs);
+
+      sut.update();
+
+      expect(sut['isDashing']).toStrictEqual(false);
+      expect(mockEntityManager.updateLocalPlayerPosition).toHaveBeenCalledWith(
+        expect.objectContaining({ x: expectedX, y: 100 }),
+      );
+    });
+
+    it('should only apply dash velocity to max dashDurationMs', () => {
+      const mockPlayer = { position: { x: 100, y: 100 }, width: 64, height: 64 } as Entity;
+      const velocityVector: Vector2D = { x: 100, y: 0 };
+      const elapsedMs = 60;
+      const dashDurationMs = elapsedMs / 2;
+      const expectedX = mockPlayer.position.x + dashDurationMs / 10;
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
+      (mockTime as any).frameTimestamp = Date.now();
+      (mockTime as any).deltaTime = elapsedMs / 1000;
+      (mockGameConfig as any).dashDurationMs = dashDurationMs;
+      forceDash(true, velocityVector, mockTime.frameTimestamp - elapsedMs);
+
+      sut.update();
+
+      expect(mockEntityManager.updateLocalPlayerPosition).toHaveBeenCalledWith(
+        expect.objectContaining({ x: expectedX, y: 100 }),
+      );
     });
   });
 });

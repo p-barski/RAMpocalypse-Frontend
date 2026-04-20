@@ -1,4 +1,4 @@
-import type { Position, ChatMessageType } from './messageInterfaces';
+import type { Position, ChatMessageType, Vector2D } from './messageInterfaces';
 
 export interface CommunicationService {
   connect: () => Promise<string>;
@@ -7,6 +7,7 @@ export interface CommunicationService {
   sendMessage: (message: string, type: ChatMessageType) => Promise<void>;
   requestMatchmaking: () => Promise<void>;
   updatePlayerPosition: (position: Position) => Promise<void>;
+  dash: (velocityVector: Vector2D) => Promise<boolean>;
   performMeleeAttack: () => Promise<void>;
   performProjectileAttack: () => Promise<void>;
   performSpecialAttack: () => Promise<void>;

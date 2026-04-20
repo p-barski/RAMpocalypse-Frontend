@@ -38,6 +38,7 @@ describe('PlayerAttackController', () => {
       sendMessage: vi.fn(),
       requestMatchmaking: vi.fn(),
       updatePlayerPosition: vi.fn(),
+      dash: vi.fn(),
       performMeleeAttack: vi.fn(),
       performProjectileAttack: vi.fn(),
       performSpecialAttack: vi.fn(),
@@ -71,8 +72,11 @@ describe('PlayerAttackController', () => {
     mockGameConfig = {
       gameWidth: 1920,
       gameHeight: 1080,
-      maxMovementSpeed: 500,
+      movementSpeed: 500,
       positionUpdateIntervalMs: 20,
+      dashSpeedMultiplier: 4,
+      dashCooldownMs: 2000,
+      dashDurationMs: 250,
       meleeCooldownMs: 100,
       projectileCooldownMs: 200,
       specialCooldownMs: 300,
@@ -91,7 +95,6 @@ describe('PlayerAttackController', () => {
   describe('performMeleeAttack', () => {
     it('should not attack when game is not playing', () => {
       mockGameStateManager.isPlaying.mockReturnValue(false);
-      mockCommunicationService.isConnected.mockReturnValue(true);
 
       attackController.performMeleeAttack();
 
@@ -100,7 +103,6 @@ describe('PlayerAttackController', () => {
 
     it('should respect cooldown and not attack during cooldown period', () => {
       mockGameStateManager.isPlaying.mockReturnValue(true);
-      mockCommunicationService.isConnected.mockReturnValue(true);
 
       attackController.performMeleeAttack();
       attackController.performMeleeAttack();
