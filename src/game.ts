@@ -189,8 +189,16 @@ export class Game implements CallbacksHandler {
     await this.delay();
     for (const attackEntity of attackEntities) {
       this.attackController.addAttack(attackEntity);
-      if (attackEntity.type === AttackTypeValue.Melee)
-        this.animationController.createMeleeAttackAnimation(attackEntity.ownerId);
+      switch (attackEntity.type) {
+        case AttackTypeValue.Melee:
+          this.animationController.createMeleeAttackAnimation(attackEntity.ownerId);
+          break;
+        case AttackTypeValue.Projectile:
+          this.animationController.createProjectileAttackAnimation(attackEntity.ownerId);
+          break;
+        default:
+          break;
+      }
     }
     this.audioController.playShortRunningSound('attack_swing.mp3');
   };

@@ -84,4 +84,60 @@ describe('PlayerMovementController', () => {
       expect(animatedEnttiy.position.angle).toStrictEqual(mockWeapon.position.angle + Math.PI);
     });
   });
+
+  describe('projectileAnimation', () => {
+    it('entity is rotated up, attack should go up', () => {
+      const mockWeapon = {
+        id: 'weapon_mock',
+        position: { x: 100, y: 200, angle: 0 },
+      } as Entity;
+      mockWeapon.height = 50;
+      const mockEntity = { width: 100, height: 50, subEntities: [mockWeapon] } as Entity;
+
+      mockEntityManager.getEntityById.mockImplementation((_id: string) => mockEntity);
+      animationController.createProjectileAttackAnimation('');
+      const fivePercentOfWeaponHeight = mockWeapon.height * 0.05;
+      const timesAndOffsets = [
+        { time: 0.125, offset: -2 * fivePercentOfWeaponHeight },
+        { time: 0.25, offset: -3 * fivePercentOfWeaponHeight },
+        { time: 0.5, offset: -2 * fivePercentOfWeaponHeight },
+        { time: 0.75, offset: -fivePercentOfWeaponHeight },
+        { time: 1, offset: 0 },
+      ];
+      for (const { time, offset } of timesAndOffsets) {
+        (mockTime as any).frameTimestamp = time * (mockGameConfig.projectileCooldownMs / 2);
+        const animatedEntity = animationController.getAnimatedEntity(mockWeapon);
+        expect(animatedEntity.position.x).toStrictEqual(mockWeapon.position.x);
+        expect(animatedEntity.position.y).toStrictEqual(mockWeapon.position.y + offset);
+        expect(animatedEntity.position.angle).toStrictEqual(mockWeapon.position.angle);
+      }
+    });
+
+    it('entity is rotated down, attack should go down', () => {
+      const mockWeapon = {
+        id: 'weapon_mock',
+        position: { x: 100, y: 200, angle: Math.PI },
+      } as Entity;
+      mockWeapon.height = 60;
+      const mockEntity = { width: 100, height: 50, subEntities: [mockWeapon] } as Entity;
+
+      mockEntityManager.getEntityById.mockImplementation((_id: string) => mockEntity);
+      animationController.createProjectileAttackAnimation('');
+      const fivePercentOfWeaponHeight = mockWeapon.height * 0.05;
+      const timesAndOffsets = [
+        { time: 0.125, offset: 2 * fivePercentOfWeaponHeight },
+        { time: 0.25, offset: 3 * fivePercentOfWeaponHeight },
+        { time: 0.5, offset: 2 * fivePercentOfWeaponHeight },
+        { time: 0.75, offset: fivePercentOfWeaponHeight },
+        { time: 1, offset: 0 },
+      ];
+      for (const { time, offset } of timesAndOffsets) {
+        (mockTime as any).frameTimestamp = time * (mockGameConfig.projectileCooldownMs / 2);
+        const animatedEntity = animationController.getAnimatedEntity(mockWeapon);
+        expect(animatedEntity.position.x).toStrictEqual(mockWeapon.position.x);
+        expect(animatedEntity.position.y).toStrictEqual(mockWeapon.position.y + offset);
+        expect(animatedEntity.position.angle).toStrictEqual(mockWeapon.position.angle);
+      }
+    });
+  });
 });

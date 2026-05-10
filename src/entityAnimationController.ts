@@ -20,35 +20,43 @@ export class EntityAnimationController implements AnimationController {
   }
 
   createMeleeAttackAnimation(playerId: string): void {
-    const entity = this.entityManager.getEntityById(playerId);
-    if (entity === undefined) {
-      console.error(`Player entity with id ${playerId} does not exist.`);
+    const found = this.getWeaponForPlayer(playerId);
+    if (found === undefined) {
       return;
     }
-    let weapon: Entity | undefined = undefined;
-    for (const subEntity of entity.subEntities) {
-      if (subEntity.id.startsWith('weapon_')) {
-        weapon = subEntity;
-        break;
-      }
-    }
-    if (weapon === undefined) {
-      // Shouldn't happen
-      console.error(`Player with id ${playerId} has no weapon to attack with.`);
-      return;
-    }
+    const entity = found.player;
+    const weapon = found.weapon;
     const quarterWidth = entity.width / 4;
     const quarterHeight = entity.height / 4;
-    const halfPI = Math.PI / 2;
     const steps: AnimationStep[] = [
-      { position: { x: -quarterWidth, y: -quarterHeight, angle: +halfPI } satisfies Position, percent: 0.25 },
-      { position: { x: -quarterWidth, y: -quarterHeight, angle: +halfPI } satisfies Position, percent: 0.5 },
-      { position: { x: +quarterWidth, y: +quarterHeight, angle: -halfPI } satisfies Position, percent: 0.75 },
-      { position: { x: +quarterWidth, y: +quarterHeight, angle: -halfPI } satisfies Position, percent: 1 },
+      { position: { x: -2 * quarterWidth, y: -2 * quarterHeight, angle: +Math.PI } satisfies Position, percent: 0.5 },
+      { position: { x: +2 * quarterWidth, y: +2 * quarterHeight, angle: -Math.PI } satisfies Position, percent: 1 },
     ];
     const animation: Animation = {
       entity: weapon,
       durationMiliseconds: this.gameConfig.meleeCooldownMs,
+      looping: false,
+      startTime: this.time.frameTimestamp,
+      steps,
+    };
+    this.animations.set(weapon.id, animation);
+  }
+
+  createProjectileAttackAnimation(playerId: string): void {
+    const found = this.getWeaponForPlayer(playerId);
+    if (found === undefined) {
+      return;
+    }
+    const weapon = found.weapon;
+    const fivePercentOfWeaponHeight = weapon.height * 0.05;
+    const steps: AnimationStep[] = [
+      { position: { x: 0, y: -2 * fivePercentOfWeaponHeight, angle: 0 } satisfies Position, percent: 0.125 },
+      { position: { x: 0, y: -fivePercentOfWeaponHeight, angle: 0 } satisfies Position, percent: 0.25 },
+      { position: { x: 0, y: 3 * fivePercentOfWeaponHeight, angle: 0 } satisfies Position, percent: 1 },
+    ];
+    const animation: Animation = {
+      entity: weapon,
+      durationMiliseconds: this.gameConfig.projectileCooldownMs / 2,
       looping: false,
       startTime: this.time.frameTimestamp,
       steps,
@@ -103,5 +111,25 @@ export class EntityAnimationController implements AnimationController {
     };
     newEntity.position = newPosition;
     return newEntity;
+  }
+
+  private getWeaponForPlayer(playerId: string): { player: Entity; weapon: Entity } | undefined {
+    const entity = this.entityManager.getEntityById(playerId);
+    if (entity === undefined) {
+      console.error(`Player entity with id ${playerId} does not exist.`);
+      return undefined;
+    }
+    let weapon: Entity | undefined;
+    for (const subEntity of entity.subEntities) {
+      if (subEntity.id.startsWith('weapon_')) {
+        weapon = subEntity;
+        break;
+      }
+    }
+    if (weapon === undefined) {
+      console.error(`Player with id ${playerId} has no weapon to attack with.`);
+      return undefined;
+    }
+    return { player: entity, weapon };
   }
 }

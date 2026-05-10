@@ -14,5 +14,6 @@ export interface Animation {
 }
 export interface AnimationController {
   createMeleeAttackAnimation(playerId: string): void;
+  createProjectileAttackAnimation(playerId: string): void;
   getAnimatedEntity(entity: Entity): Entity;
 }
