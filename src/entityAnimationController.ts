@@ -34,7 +34,7 @@ export class EntityAnimationController implements AnimationController {
     ];
     const animation: Animation = {
       entity: weapon,
-      durationMiliseconds: this.gameConfig.meleeCooldownMs,
+      durationMiliseconds: this.gameConfig.sharedAttackCooldownMs,
       looping: false,
       startTime: this.time.frameTimestamp,
       steps,
@@ -56,7 +56,7 @@ export class EntityAnimationController implements AnimationController {
     ];
     const animation: Animation = {
       entity: weapon,
-      durationMiliseconds: this.gameConfig.projectileCooldownMs / 2,
+      durationMiliseconds: this.gameConfig.sharedAttackCooldownMs,
       looping: false,
       startTime: this.time.frameTimestamp,
       steps,

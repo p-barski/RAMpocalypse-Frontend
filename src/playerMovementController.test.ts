@@ -88,6 +88,7 @@ describe('PlayerMovementController', () => {
       dashCooldownMs: 2000,
       dashDurationMs: 250,
       meleeCooldownMs: 100,
+      sharedAttackCooldownMs: 50,
       projectileCooldownMs: 200,
       specialCooldownMs: 300,
       specialRange: 100,

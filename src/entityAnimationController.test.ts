@@ -43,6 +43,7 @@ describe('PlayerMovementController', () => {
       dashCooldownMs: 2000,
       dashDurationMs: 250,
       meleeCooldownMs: 100,
+      sharedAttackCooldownMs: 50,
       projectileCooldownMs: 200,
       specialCooldownMs: 300,
       specialRange: 100,
@@ -61,7 +62,7 @@ describe('PlayerMovementController', () => {
 
       mockEntityManager.getEntityById.mockImplementation((_id: string) => mockEntity);
       animationController.createMeleeAttackAnimation('');
-      (mockTime as any).frameTimestamp = 0.5 * mockGameConfig.meleeCooldownMs;
+      (mockTime as any).frameTimestamp = 0.5 * mockGameConfig.sharedAttackCooldownMs;
       const animatedEnttiy = animationController.getAnimatedEntity(mockWeapon);
       expect(animatedEnttiy.position.x).toStrictEqual(mockWeapon.position.x - mockEntity.width / 2);
       expect(animatedEnttiy.position.y).toStrictEqual(mockWeapon.position.y - mockEntity.height / 2);
@@ -77,7 +78,7 @@ describe('PlayerMovementController', () => {
 
       mockEntityManager.getEntityById.mockImplementation((_id: string) => mockEntity);
       animationController.createMeleeAttackAnimation('');
-      (mockTime as any).frameTimestamp = 0.5 * mockGameConfig.meleeCooldownMs;
+      (mockTime as any).frameTimestamp = 0.5 * mockGameConfig.sharedAttackCooldownMs;
       const animatedEnttiy = animationController.getAnimatedEntity(mockWeapon);
       expect(animatedEnttiy.position.x).toStrictEqual(mockWeapon.position.x + mockEntity.width / 2);
       expect(animatedEnttiy.position.y).toStrictEqual(mockWeapon.position.y + mockEntity.height / 2);
@@ -105,7 +106,7 @@ describe('PlayerMovementController', () => {
         { time: 1, offset: 0 },
       ];
       for (const { time, offset } of timesAndOffsets) {
-        (mockTime as any).frameTimestamp = time * (mockGameConfig.projectileCooldownMs / 2);
+        (mockTime as any).frameTimestamp = time * mockGameConfig.sharedAttackCooldownMs;
         const animatedEntity = animationController.getAnimatedEntity(mockWeapon);
         expect(animatedEntity.position.x).toStrictEqual(mockWeapon.position.x);
         expect(animatedEntity.position.y).toStrictEqual(mockWeapon.position.y + offset);
@@ -132,7 +133,7 @@ describe('PlayerMovementController', () => {
         { time: 1, offset: 0 },
       ];
       for (const { time, offset } of timesAndOffsets) {
-        (mockTime as any).frameTimestamp = time * (mockGameConfig.projectileCooldownMs / 2);
+        (mockTime as any).frameTimestamp = time * mockGameConfig.sharedAttackCooldownMs;
         const animatedEntity = animationController.getAnimatedEntity(mockWeapon);
         expect(animatedEntity.position.x).toStrictEqual(mockWeapon.position.x);
         expect(animatedEntity.position.y).toStrictEqual(mockWeapon.position.y + offset);

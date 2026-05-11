@@ -78,6 +78,7 @@ describe('PlayerAttackController', () => {
       dashCooldownMs: 2000,
       dashDurationMs: 250,
       meleeCooldownMs: 100,
+      sharedAttackCooldownMs: 50,
       projectileCooldownMs: 200,
       specialCooldownMs: 300,
       specialRange: 100,
@@ -108,6 +109,32 @@ describe('PlayerAttackController', () => {
       attackController.performMeleeAttack();
 
       expect(mockCommunicationService.performMeleeAttack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('shared attack cooldown', () => {
+    it('should block a different attack type while shared cooldown is active', () => {
+      mockGameStateManager.isPlaying.mockReturnValue(true);
+      mockGameConfig = {
+        ...mockGameConfig,
+        meleeCooldownMs: 0,
+        projectileCooldownMs: 0,
+        sharedAttackCooldownMs: 50,
+      };
+      attackController = new PlayerAttackController(
+        mockGameConfig,
+        mockEntityManager,
+        mockCommunicationService,
+        mockGameStateManager,
+        mockTime,
+      );
+
+      attackController.performMeleeAttack();
+      (mockTime as any).frameTimestamp = 25;
+      attackController.performProjectileAttack();
+
+      expect(mockCommunicationService.performMeleeAttack).toHaveBeenCalledTimes(1);
+      expect(mockCommunicationService.performProjectileAttack).not.toHaveBeenCalled();
     });
   });
 });
