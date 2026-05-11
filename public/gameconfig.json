@@ -6,9 +6,9 @@
   "dashCooldownMs": 1000,
   "dashDurationMs": 250,
   "positionUpdateIntervalMs": 16,
-  "meleeCooldownMs": 50,
-  "sharedAttackCooldownMs": 50,
-  "projectileCooldownMs": 100,
-  "specialCooldownMs": 300,
+  "meleeCooldownMs": 700,
+  "projectileCooldownMs": 500,
+  "specialCooldownMs": 3000,
+  "sharedAttackCooldownMs": 400,
   "specialRange": 100
 }
