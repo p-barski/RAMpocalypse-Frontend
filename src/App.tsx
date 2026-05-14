@@ -49,6 +49,7 @@ function App() {
         gameRef.current = game;
         window.game = game;
         game.onMessageReceived = onMessageReceivedRef.current;
+        game.enterLocalSandbox();
         await game.connect().catch((error) => {
           if (isMounted) game?.onClose(error);
         });

@@ -12,7 +12,7 @@ export class PlayerEntityManager implements EntityManager {
   constructor(spriteManager: SpriteManager, position: Position, spriteData: SpriteData, sprite: ImageBitmap) {
     this.spriteManager = spriteManager;
     this.localPlayerEntity = {
-      id: '',
+      id: `player_${crypto.randomUUID()}`,
       position,
       image: sprite,
       width: sprite.width * spriteData.scaleFactor,
@@ -65,6 +65,17 @@ export class PlayerEntityManager implements EntityManager {
 
   updateLocalPlayerPosition(position: Position): void {
     this.localPlayerEntity.position = position;
+  }
+
+  async addDefaultWeaponToLocalPlayer(weaponSpriteData: SpriteData) {
+    const weaponId = `weapon_${this.localPlayerEntity.id}`;
+    const weaponOffset = {
+      x: this.localPlayerEntity.width / 2 - (weaponSpriteData.width * weaponSpriteData.scaleFactor) / 2,
+      y: 0,
+      angle: 0,
+    } satisfies Position;
+    const weaponEntity = await this.createEntityInternal(weaponId, weaponOffset, weaponSpriteData);
+    this.localPlayerEntity.subEntities.push(weaponEntity);
   }
 
   async updateLocalPlayerSubEntities(subEntities: SubEntity[]): Promise<void> {

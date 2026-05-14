@@ -19,10 +19,12 @@ import type { RenderingService } from './interfaces/renderingService';
 import type { AudioController } from './interfaces/audioController';
 import type { AnimationController } from './interfaces/animationController';
 import type { GameTime } from './gameTime';
+import type { GameSession } from './communicationServiceWrapperForLocalGameplay';
 import { sleepAsync } from './utils';
 
 export class Game implements CallbacksHandler {
   public readonly communicationService: CommunicationService;
+  public readonly gameSession: GameSession;
   public readonly entityManager: EntityManager;
   public readonly gameStateManager: StateManager;
   public readonly inputHandler: InputHandler;
@@ -48,8 +50,10 @@ export class Game implements CallbacksHandler {
     audioController: AudioController,
     animationController: AnimationController,
     time: GameTime,
+    gameSession: GameSession,
   ) {
     this.communicationService = communicationService;
+    this.gameSession = gameSession;
     this.entityManager = entityManager;
     this.gameStateManager = gameStateManager;
     this.inputHandler = inputHandler;
@@ -82,15 +86,45 @@ export class Game implements CallbacksHandler {
     this.communicationService.disconnect();
   }
 
+  enterLocalSandbox(): void {
+    this.gameSession.isOnlineMatch = false;
+    this.entityManager.clearRemoteEntities();
+    this.attackController.clear();
+    const localPlayer = this.entityManager.getLocalPlayerEntity();
+    this.gameStateManager.reset();
+    this.gameStateManager.addPlayer({
+      id: localPlayer.id,
+      position: localPlayer.position,
+      spriteData: localPlayer.spriteData,
+      subEntities: localPlayer.subEntities,
+      health: 100,
+      maxHealth: 100,
+      isAlive: true,
+    });
+    this.gameStateManager.setWinnerId('');
+    this.movementController.resetPositionTracking();
+    this.gameStateManager.setGameState('playing');
+  }
+
   async connect(): Promise<void> {
+    const localPlayer = this.entityManager.getLocalPlayerEntity();
     const playerId = await this.communicationService.connect();
+    this.gameStateManager.removePlayer(localPlayer.id);
+    this.gameStateManager.addPlayer({
+      id: playerId,
+      position: localPlayer.position,
+      spriteData: localPlayer.spriteData,
+      subEntities: localPlayer.subEntities,
+      health: 100,
+      maxHealth: 100,
+      isAlive: true,
+    });
     this.entityManager.updateLocalPlayerId(playerId);
   }
 
   async requestMatchmaking(): Promise<void> {
-    if (this.gameStateManager.isPlaying()) {
-      return;
-    }
+    if (this.gameStateManager.isPlaying() && this.gameSession.isOnlineMatch) return;
+    if (!this.communicationService.isConnected()) return;
     this.gameStateManager.setGameState('waiting');
     this.gameStateManager.setWinnerId('');
     await this.communicationService.requestMatchmaking();
@@ -98,7 +132,7 @@ export class Game implements CallbacksHandler {
 
   async leaveGame(): Promise<void> {
     await this.communicationService.leaveGame();
-    this.clear();
+    this.enterLocalSandbox();
   }
 
   async sendMessage(message: string, type: ChatMessageType): Promise<void> {
@@ -109,7 +143,7 @@ export class Game implements CallbacksHandler {
 
   onClose = async (error: Error | undefined): Promise<void> => {
     console.warn(`Lost connection with the server: ${error}`);
-    this.clear();
+    this.enterLocalSandbox();
     let retryCounter = 1;
     while (!this.isExplicitlyStopped) {
       const reconnectTime = Math.min(250 * retryCounter, 8000);
@@ -129,7 +163,6 @@ export class Game implements CallbacksHandler {
 
   onLobbyStart = async (lobbyId: string, players: Player[]): Promise<void> => {
     await this.delay();
-    console.log('Lobby started:', { lobbyId, players });
     const playerId = this.entityManager.getLocalPlayerEntity().id;
     if (!playerId) {
       console.error('Current player ID not available');
@@ -146,6 +179,8 @@ export class Game implements CallbacksHandler {
       );
       return;
     }
+
+    this.gameSession.isOnlineMatch = true;
 
     for (const player of players) {
       this.gameStateManager.addPlayer(player);
@@ -175,7 +210,7 @@ export class Game implements CallbacksHandler {
     this.entityManager.removeRemotePlayer(playerId);
     this.gameStateManager.removePlayer(playerId);
     if (this.gameStateManager.getAllPlayers().size === 1) {
-      this.clear();
+      this.enterLocalSandbox();
     }
   };
 
@@ -187,6 +222,10 @@ export class Game implements CallbacksHandler {
 
   onAttackPerformed = async (attackEntities: AttackEntity[]): Promise<void> => {
     await this.delay();
+    this.applyAttackPerformedEffects(attackEntities);
+  };
+
+  applyAttackPerformedEffects = (attackEntities: AttackEntity[]): void => {
     for (const attackEntity of attackEntities) {
       this.attackController.addAttack(attackEntity);
       switch (attackEntity.type) {
@@ -207,7 +246,6 @@ export class Game implements CallbacksHandler {
     await this.delay();
     this.audioController.playShortRunningSound('attack_damage.mp3', 0.4);
     this.gameStateManager.updatePlayerHealth(playerId, newHealth);
-    console.log('Player damaged:', { playerId, damage, newHealth });
   };
 
   onPlayerDied = async (playerId: string): Promise<void> => {
@@ -216,7 +254,6 @@ export class Game implements CallbacksHandler {
     this.audioController.playShortRunningSound('player_died.mp3');
     this.gameStateManager.updatePlayerHealth(playerId, 0, false);
     this.entityManager.hidePlayer(playerId);
-    console.log('Player died:', playerId);
   };
 
   onPlayerRespawned = async (playerId: string, position: Position): Promise<void> => {
@@ -231,10 +268,9 @@ export class Game implements CallbacksHandler {
 
   onGameEnded = async (winnerId: string): Promise<void> => {
     await this.delay();
-    this.clear();
     this.gameStateManager.setGameState('ended');
     this.gameStateManager.setWinnerId(winnerId);
-    console.log('Game ended, winner:', winnerId);
+    sleepAsync(3000).then(() => this.enterLocalSandbox());
   };
 
   private handleAttackInput = (attackType: AttackType): void => {
@@ -261,12 +297,6 @@ export class Game implements CallbacksHandler {
     }
     this.renderingService.render();
     this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
-  }
-
-  private clear() {
-    this.entityManager.clearRemoteEntities();
-    this.attackController.clear();
-    this.gameStateManager.reset();
   }
 
   private delay(): Promise<void> {

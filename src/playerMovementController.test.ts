@@ -92,6 +92,15 @@ describe('PlayerMovementController', () => {
       projectileCooldownMs: 200,
       specialCooldownMs: 300,
       specialRange: 100,
+      meleeRange: 300,
+      projectileSpeed: 800,
+      specialSpeed: 400,
+      meleeLifetime: 200,
+      projectileLifetime: 3000,
+      specialLifetime: 1000,
+      meleeDamage: 10,
+      projectileDamage: 15,
+      specialDamage: 20,
     };
 
     mockTime = { deltaTime: 0, averageFrameTime: 0, frameTimestamp: 0 };
@@ -167,6 +176,45 @@ describe('PlayerMovementController', () => {
       expect(mockEntityManager.updateLocalPlayerPosition).toHaveBeenCalledWith(
         expect.objectContaining({ x: expectedX, y: 100 }),
       );
+    });
+  });
+
+  describe('dash', () => {
+    beforeEach(() => {
+      mockGameStateManager.isPlaying.mockReturnValue(true);
+      mockInputHandler.isRightPressed = vi.fn().mockReturnValue(true);
+      mockInputHandler.isLeftPressed = vi.fn().mockReturnValue(false);
+      mockInputHandler.isUpPressed = vi.fn().mockReturnValue(false);
+      mockInputHandler.isDownPressed = vi.fn().mockReturnValue(false);
+      (mockTime as { frameTimestamp: number }).frameTimestamp = 10_000;
+    });
+
+    it('keeps isDashing true when communicationService.dash resolves true', async () => {
+      mockCommunicationService.dash.mockResolvedValue(true);
+
+      await sut.dash();
+
+      expect(sut['isDashing']).toBe(true);
+      expect(mockCommunicationService.dash).toHaveBeenCalledTimes(1);
+    });
+
+    it('sets isDashing false when communicationService.dash resolves false (server declined)', async () => {
+      mockCommunicationService.dash.mockResolvedValue(false);
+
+      await sut.dash();
+
+      expect(sut['isDashing']).toBe(false);
+      expect(mockCommunicationService.dash).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not start a dash when the game is not playing', async () => {
+      mockGameStateManager.isPlaying.mockReturnValue(false);
+      mockCommunicationService.dash.mockResolvedValue(true);
+
+      await sut.dash();
+
+      expect(mockCommunicationService.dash).not.toHaveBeenCalled();
+      expect(sut['isDashing']).toBe(false);
     });
   });
 });

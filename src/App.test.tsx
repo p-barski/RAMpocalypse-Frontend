@@ -18,6 +18,7 @@ describe('App tests', () => {
     connectMock = vi.fn(async () => {});
     gameMock = {
       connect: connectMock,
+      prepareFirstFrameOfflinePlay: vi.fn(),
       start: vi.fn(),
       stop: vi.fn(),
       onMessageReceived: {},

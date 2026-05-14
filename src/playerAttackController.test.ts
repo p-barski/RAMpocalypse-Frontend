@@ -82,6 +82,15 @@ describe('PlayerAttackController', () => {
       projectileCooldownMs: 200,
       specialCooldownMs: 300,
       specialRange: 100,
+      meleeRange: 300,
+      projectileSpeed: 800,
+      specialSpeed: 400,
+      meleeLifetime: 200,
+      projectileLifetime: 3000,
+      specialLifetime: 1000,
+      meleeDamage: 10,
+      projectileDamage: 15,
+      specialDamage: 20,
     };
 
     attackController = new PlayerAttackController(

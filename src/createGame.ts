@@ -6,6 +6,7 @@ import { GameStateManager } from './gameStateManager';
 import { PlayerInputHandler } from './playerInputHandler';
 import { PlayerMovementController } from './playerMovementController';
 import { Renderer } from './renderer';
+import { CommunicationServiceWrapperForLocalGameplay } from './communicationServiceWrapperForLocalGameplay';
 import { SignalRService } from './signalRService';
 import { SpriteLoader } from './spriteLoader';
 import { GameViewportManager } from './gameViewportManager';
@@ -47,6 +48,8 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): 
   const viewportManager = new GameViewportManager(gameConfig, canvas);
   const callbacksHandler = new SignalRCallbacksHandler();
   const signalRService = new SignalRService(serverUrl, callbacksHandler);
+  const gameSession = { isOnlineMatch: false };
+  const communicationServiceWrapper = new CommunicationServiceWrapperForLocalGameplay(signalRService, gameSession);
   const spriteManager = new SpriteLoader(missingSprite);
   const localPlayerSprite = await spriteManager.getSpriteImage(playerSpriteData);
   const localPlayerPosition = { x: gameConfig.gameWidth / 2, y: gameConfig.gameHeight / 2, angle: 0 };
@@ -56,14 +59,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): 
     playerSpriteData,
     localPlayerSprite,
   );
-  entityManager.updateLocalPlayerSubEntities([
-    {
-      position: { x: playerSpriteData.width * playerSpriteData.scaleFactor - 10, y: 0, angle: 0 },
-      spriteData: weaponSpriteData,
-      id: 'weapon',
-      subEntities: [],
-    },
-  ]);
+  await entityManager.addDefaultWeaponToLocalPlayer(weaponSpriteData);
   await entityManager.createEntity(
     'arena',
     {
@@ -82,13 +78,13 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): 
     entityManager,
     gameStateManager,
     inputHandler,
-    signalRService,
+    communicationServiceWrapper,
     gameTime,
   );
   const attackController = new PlayerAttackController(
     gameConfig,
     entityManager,
-    signalRService,
+    communicationServiceWrapper,
     gameStateManager,
     gameTime,
   );
@@ -104,7 +100,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): 
   );
 
   const game = new Game(
-    signalRService,
+    communicationServiceWrapper,
     entityManager,
     gameStateManager,
     inputHandler,
@@ -115,7 +111,14 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): 
     audioController,
     animationController,
     gameTime,
+    gameSession,
   );
+  communicationServiceWrapper.attachLocalAttackBridge({
+    gameConfig,
+    entityManager,
+    getCreationTime: () => gameTime.frameTimestamp,
+    applyAttackEffects: game.applyAttackPerformedEffects,
+  });
   callbacksHandler.handler = game;
   return game;
 }
