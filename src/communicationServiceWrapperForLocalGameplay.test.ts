@@ -6,57 +6,22 @@ import {
 } from './communicationServiceWrapperForLocalGameplay';
 import type { CommunicationService } from './interfaces/communicatonService';
 import type { EntityManager } from './interfaces/entityManager';
-import type { GameConfig } from './interfaces/gameConfig';
 import type { AttackEntity, Position, Vector2D } from './interfaces/messageInterfaces';
 import { ChatMessageTypeValue } from './interfaces/messageInterfaces';
 import * as localAttackFactory from './localAttackFactory';
 import { createTestLocalPlayerWithWeapon } from './testHelpers/entityTestFactories';
+import { createMockCommunicationService, MockGameConfig } from './testHelpers/mocks';
 
 describe('CommunicationServiceWrapperForLocalGameplay', () => {
   let signalR: Mocked<CommunicationService>;
   let session: GameSession;
   let sut: CommunicationServiceWrapperForLocalGameplay;
-
-  const minimalGameConfig: GameConfig = {
-    gameWidth: 1920,
-    gameHeight: 1080,
-    movementSpeed: 500,
-    positionUpdateIntervalMs: 20,
-    dashSpeedMultiplier: 4,
-    dashCooldownMs: 2000,
-    dashDurationMs: 250,
-    meleeCooldownMs: 100,
-    sharedAttackCooldownMs: 50,
-    projectileCooldownMs: 200,
-    specialCooldownMs: 300,
-    specialRange: 100,
-    meleeRange: 300,
-    projectileSpeed: 800,
-    specialSpeed: 400,
-    meleeLifetime: 200,
-    projectileLifetime: 3000,
-    specialLifetime: 1000,
-    meleeDamage: 10,
-    projectileDamage: 15,
-    specialDamage: 20,
-  };
+  let mockGameConfig: MockGameConfig;
 
   beforeEach(() => {
-    signalR = {
-      connect: vi.fn().mockResolvedValue('player_1'),
-      isConnected: vi.fn(),
-      disconnect: vi.fn(),
-      sendMessage: vi.fn(),
-      requestMatchmaking: vi.fn(),
-      updatePlayerPosition: vi.fn(),
-      dash: vi.fn(),
-      performMeleeAttack: vi.fn(),
-      performProjectileAttack: vi.fn(),
-      performSpecialAttack: vi.fn(),
-      projectileHitPlayer: vi.fn(),
-      specialExplosion: vi.fn(),
-      leaveGame: vi.fn(),
-    };
+    mockGameConfig = new MockGameConfig();
+    signalR = createMockCommunicationService();
+    signalR.connect.mockResolvedValue('player_1');
     session = { isOnlineMatch: false };
     sut = new CommunicationServiceWrapperForLocalGameplay(signalR, session);
   });
@@ -122,7 +87,7 @@ describe('CommunicationServiceWrapperForLocalGameplay', () => {
       mockEntityManager.getLocalPlayerEntity.mockReturnValue(player);
       applyAttackSpy = vi.fn();
       bridge = {
-        gameConfig: minimalGameConfig,
+        gameConfig: mockGameConfig,
         entityManager: mockEntityManager as unknown as EntityManager,
         getCreationTime: () => creationTime,
         applyAttackEffects: applyAttackSpy as LocalAttackBridge['applyAttackEffects'],
@@ -142,7 +107,7 @@ describe('CommunicationServiceWrapperForLocalGameplay', () => {
 
       expect(signalR.performMeleeAttack).not.toHaveBeenCalled();
       expect(localAttackFactory.createMeleeAttack).toHaveBeenCalledTimes(1);
-      expect(localAttackFactory.createMeleeAttack).toHaveBeenCalledWith(player, minimalGameConfig, creationTime);
+      expect(localAttackFactory.createMeleeAttack).toHaveBeenCalledWith(player, mockGameConfig, creationTime);
       const meleeAttacks = vi.mocked(localAttackFactory.createMeleeAttack).mock.results[0]?.value as AttackEntity[];
       expect(applyAttackSpy).toHaveBeenCalledTimes(1);
       expect(applyAttackSpy).toHaveBeenCalledWith(meleeAttacks);
@@ -152,7 +117,7 @@ describe('CommunicationServiceWrapperForLocalGameplay', () => {
       await sut.performProjectileAttack();
 
       expect(localAttackFactory.createProjectileAttack).toHaveBeenCalledTimes(1);
-      expect(localAttackFactory.createProjectileAttack).toHaveBeenCalledWith(player, minimalGameConfig, creationTime);
+      expect(localAttackFactory.createProjectileAttack).toHaveBeenCalledWith(player, mockGameConfig, creationTime);
       const projectileAttacks = vi.mocked(localAttackFactory.createProjectileAttack).mock.results[0]
         ?.value as AttackEntity[];
       expect(applyAttackSpy).toHaveBeenCalledTimes(1);

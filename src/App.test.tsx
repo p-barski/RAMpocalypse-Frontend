@@ -8,22 +8,17 @@ vi.mock('./Chat', () => ({
 }));
 import App from './App';
 import { createGame } from './createGame';
+import { createMockGameApi, type MockGameApi } from './testHelpers/mocks';
 
 describe('App tests', () => {
   let connectMock: Mock<() => Promise<void>>;
-  let gameMock: any;
+  let gameMock: MockGameApi;
 
   beforeEach(() => {
     vi.clearAllMocks();
     connectMock = vi.fn(async () => {});
-    gameMock = {
-      connect: connectMock,
-      prepareFirstFrameOfflinePlay: vi.fn(),
-      start: vi.fn(),
-      stop: vi.fn(),
-      onMessageReceived: {},
-    };
-    (createGame as any).mockReturnValue(gameMock);
+    gameMock = createMockGameApi({ connect: connectMock });
+    (createGame as Mock).mockReturnValue(gameMock);
   });
 
   it('connects to the game', async () => {

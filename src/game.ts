@@ -161,7 +161,7 @@ export class Game implements CallbacksHandler {
     }
   };
 
-  onLobbyStart = async (lobbyId: string, players: Player[]): Promise<void> => {
+  onLobbyStart = async (_lobbyId: string, players: Player[]): Promise<void> => {
     await this.delay();
     const playerId = this.entityManager.getLocalPlayerEntity().id;
     if (!playerId) {
@@ -242,7 +242,7 @@ export class Game implements CallbacksHandler {
     this.audioController.playShortRunningSound('attack_swing.mp3');
   };
 
-  onPlayerDamaged = async (playerId: string, damage: number, newHealth: number): Promise<void> => {
+  onPlayerDamaged = async (playerId: string, _damage: number, newHealth: number): Promise<void> => {
     await this.delay();
     this.audioController.playShortRunningSound('attack_damage.mp3', 0.4);
     this.gameStateManager.updatePlayerHealth(playerId, newHealth);

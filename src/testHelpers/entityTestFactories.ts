@@ -9,7 +9,7 @@ export function createTestWeapon(
   image: ImageBitmap = EMPTY_IMAGE_BITMAP,
 ): Entity {
   return {
-    id: 'weapon',
+    id: 'weapon_test',
     position: { x: position.x, y: position.y, angle: 0 },
     spriteData: {
       url: 'weapon_test.png',
