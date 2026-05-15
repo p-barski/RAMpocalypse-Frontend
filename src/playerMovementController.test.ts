@@ -104,6 +104,58 @@ describe('PlayerMovementController', () => {
         expect.objectContaining({ x: expectedX, y: 100 }),
       );
     });
+
+    it('increases angle when rotate-right is held', () => {
+      const initialAngle = 1.0;
+      const deltaTime = 0.016;
+      const mockPlayer = { position: { x: 100, y: 100, angle: initialAngle }, width: 64, height: 64 } as Entity;
+      const expectedAngle = initialAngle + mockGameConfig.rotationSpeedRadPerSec * deltaTime;
+
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
+      mockTime.deltaTime = deltaTime;
+      mockInputHandler.isRotateRightPressed.mockReturnValue(true);
+      mockInputHandler.isRotateLeftPressed.mockReturnValue(false);
+
+      sut.update();
+
+      expect(mockEntityManager.updateLocalPlayerPosition).toHaveBeenCalledWith(
+        expect.objectContaining({ angle: expectedAngle }),
+      );
+    });
+
+    it('decreases angle when rotate-left is held', () => {
+      const initialAngle = 1.0;
+      const deltaTime = 0.016;
+      const mockPlayer = { position: { x: 100, y: 100, angle: initialAngle }, width: 64, height: 64 } as Entity;
+      const expectedAngle = initialAngle - mockGameConfig.rotationSpeedRadPerSec * deltaTime;
+
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
+      mockTime.deltaTime = deltaTime;
+      mockInputHandler.isRotateLeftPressed.mockReturnValue(true);
+      mockInputHandler.isRotateRightPressed.mockReturnValue(false);
+
+      sut.update();
+
+      expect(mockEntityManager.updateLocalPlayerPosition).toHaveBeenCalledWith(
+        expect.objectContaining({ angle: expectedAngle }),
+      );
+    });
+
+    it('keeps angle unchanged when neither rotate key is pressed', () => {
+      const initialAngle = 1.0;
+      const mockPlayer = { position: { x: 100, y: 100, angle: initialAngle }, width: 64, height: 64 } as Entity;
+
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
+      mockTime.deltaTime = 0.016;
+      mockInputHandler.isRotateLeftPressed.mockReturnValue(false);
+      mockInputHandler.isRotateRightPressed.mockReturnValue(false);
+
+      sut.update();
+
+      expect(mockEntityManager.updateLocalPlayerPosition).toHaveBeenCalledWith(
+        expect.objectContaining({ angle: initialAngle }),
+      );
+    });
   });
 
   describe('dash', () => {

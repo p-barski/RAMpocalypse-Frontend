@@ -57,7 +57,13 @@ export class PlayerMovementController implements MovementController {
     x = this.clampToBoundary(x + velocityVector.x, localPlayer.width, this.gameConfig.gameWidth);
     y = this.clampToBoundary(y + velocityVector.y, localPlayer.height, this.gameConfig.gameHeight);
 
-    const angle = Math.atan2(this.inputHandler.mouseX - x, -(this.inputHandler.mouseY - y));
+    let angle = localPlayer.position.angle;
+    if (this.inputHandler.isRotateLeftPressed()) {
+      angle -= this.gameConfig.rotationSpeedRadPerSec * this.time.deltaTime;
+    }
+    if (this.inputHandler.isRotateRightPressed()) {
+      angle += this.gameConfig.rotationSpeedRadPerSec * this.time.deltaTime;
+    }
     const position: Position = { x, y, angle };
     this.entityManager.updateLocalPlayerPosition(position);
 

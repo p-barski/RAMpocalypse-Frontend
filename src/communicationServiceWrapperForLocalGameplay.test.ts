@@ -13,9 +13,9 @@ import { createTestLocalPlayerWithWeapon } from './testHelpers/entityTestFactori
 import { createMockCommunicationService, MockGameConfig } from './testHelpers/mocks';
 
 describe('CommunicationServiceWrapperForLocalGameplay', () => {
+  let sut: CommunicationServiceWrapperForLocalGameplay;
   let signalR: Mocked<CommunicationService>;
   let session: GameSession;
-  let sut: CommunicationServiceWrapperForLocalGameplay;
   let mockGameConfig: MockGameConfig;
 
   beforeEach(() => {

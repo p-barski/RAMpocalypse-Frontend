@@ -2,6 +2,7 @@ export interface GameConfig {
   readonly gameWidth: number;
   readonly gameHeight: number;
   readonly movementSpeed: number;
+  readonly rotationSpeedRadPerSec: number;
   readonly dashSpeedMultiplier: number;
   readonly dashCooldownMs: number;
   readonly dashDurationMs: number;

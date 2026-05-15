@@ -72,7 +72,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): 
     true,
   );
   const animationController = new EntityAnimationController(gameConfig, entityManager, gameTime);
-  const inputHandler = new PlayerInputHandler(canvas, viewportManager);
+  const inputHandler = new PlayerInputHandler(canvas);
   const movementController = new PlayerMovementController(
     gameConfig,
     entityManager,

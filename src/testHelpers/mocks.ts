@@ -10,6 +10,7 @@ export class MockGameConfig implements GameConfig {
   gameWidth = 1920;
   gameHeight = 1080;
   movementSpeed = 500;
+  rotationSpeedRadPerSec = 2.0;
   positionUpdateIntervalMs = 20;
   dashSpeedMultiplier = 4;
   dashCooldownMs = 2000;
@@ -112,13 +113,13 @@ export function createMockStateManager(): Mocked<StateManager> {
 
 export function createMockInputHandler(overrides?: Partial<Mocked<InputHandler>>): Mocked<InputHandler> {
   return {
-    mouseX: 200,
-    mouseY: 100,
     isKeyPressed: vi.fn(),
     isUpPressed: vi.fn(),
     isDownPressed: vi.fn(),
     isLeftPressed: vi.fn(),
     isRightPressed: vi.fn(),
+    isRotateLeftPressed: vi.fn(),
+    isRotateRightPressed: vi.fn(),
     setup: vi.fn(),
     cleanup: vi.fn(),
     ...overrides,

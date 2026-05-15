@@ -1,19 +1,14 @@
 import type { InputHandler, AttackInputCallback, DashInputCallback } from './interfaces/inputHandler';
-import type { ViewportManager } from './interfaces/viewportManager';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
 
 export class PlayerInputHandler implements InputHandler {
-  public mouseX = 0;
-  public mouseY = 0;
   private readonly canvas: HTMLCanvasElement;
-  private readonly viewportManager: ViewportManager;
   private readonly keys: Set<string> = new Set();
   private attackCallback: AttackInputCallback;
   private dashCallback: DashInputCallback;
 
-  constructor(canvas: HTMLCanvasElement, viewportManager: ViewportManager) {
+  constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.viewportManager = viewportManager;
     this.attackCallback = (_) => {};
     this.dashCallback = () => {};
   }
@@ -23,25 +18,32 @@ export class PlayerInputHandler implements InputHandler {
   }
 
   isUpPressed(): boolean {
-    return this.keys.has('w') || this.keys.has('arrowup');
+    return this.keys.has('w');
   }
 
   isDownPressed(): boolean {
-    return this.keys.has('s') || this.keys.has('arrowdown');
+    return this.keys.has('s');
   }
 
   isLeftPressed(): boolean {
-    return this.keys.has('a') || this.keys.has('arrowleft');
+    return this.keys.has('a');
   }
 
   isRightPressed(): boolean {
-    return this.keys.has('d') || this.keys.has('arrowright');
+    return this.keys.has('d');
+  }
+
+  isRotateLeftPressed(): boolean {
+    return this.keys.has('arrowleft');
+  }
+
+  isRotateRightPressed(): boolean {
+    return this.keys.has('arrowright');
   }
 
   setup(attackCallback: AttackInputCallback, dashCallback: DashInputCallback): void {
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
-    window.addEventListener('mousemove', this.handleMouseMove);
     this.canvas.addEventListener('click', this.handleClick);
     this.attackCallback = attackCallback;
     this.dashCallback = dashCallback;
@@ -50,7 +52,6 @@ export class PlayerInputHandler implements InputHandler {
   cleanup(): void {
     window.removeEventListener('keydown', this.handleKeyDown);
     window.removeEventListener('keyup', this.handleKeyUp);
-    window.removeEventListener('mousemove', this.handleMouseMove);
     this.canvas.removeEventListener('click', this.handleClick);
     this.keys.clear();
     this.attackCallback = (_) => {};
@@ -81,21 +82,5 @@ export class PlayerInputHandler implements InputHandler {
 
   private handleKeyUp = (e: KeyboardEvent): void => {
     this.keys.delete(e.key.toLowerCase());
-  };
-
-  private handleMouseMove = (e: MouseEvent): void => {
-    const rect = this.canvas.getBoundingClientRect();
-
-    // Convert to canvas coordinates
-    const canvasX = e.clientX - rect.left;
-    const canvasY = e.clientY - rect.top;
-
-    // Convert to viewport-relative coordinates
-    const viewportRelativeX = canvasX - this.viewportManager.viewportX;
-    const viewportRelativeY = canvasY - this.viewportManager.viewportY;
-
-    // Convert to game world coordinates
-    this.mouseX = viewportRelativeX / this.viewportManager.scale;
-    this.mouseY = viewportRelativeY / this.viewportManager.scale;
   };
 }
