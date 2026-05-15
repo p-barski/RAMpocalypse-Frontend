@@ -50,11 +50,11 @@ function App() {
         window.game = game;
         game.onMessageReceived = onMessageReceivedRef.current;
         game.enterLocalSandbox();
+        game.start();
         await game.connect().catch((error) => {
           if (isMounted) game?.onClose(error);
         });
         if (!isMounted) throw new Error(dismountMessage);
-        game.start();
       } catch (err) {
         if ((err as Error)?.message !== dismountMessage) console.warn(err);
         game?.stop();
