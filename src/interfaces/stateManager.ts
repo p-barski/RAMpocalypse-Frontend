@@ -1,6 +1,6 @@
 import type { Player } from './messageInterfaces';
 
-export type GameState = 'waiting' | 'playing' | 'ended';
+export type GameState = 'waiting' | 'matchmaking' | 'lobbyReady' | 'playing' | 'ended';
 
 export interface StateManager {
   getGameState(): GameState;
@@ -14,6 +14,8 @@ export interface StateManager {
   removePlayer(playerId: string): void;
   reset(): void;
   isPlaying(): boolean;
+  isMatchmaking(): boolean;
+  isLobbyReady(): boolean;
   hasEnded(): boolean;
   isWaiting(): boolean;
 }

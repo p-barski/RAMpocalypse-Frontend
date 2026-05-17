@@ -78,8 +78,12 @@ export class Renderer implements RenderingService {
 
     // UI
     switch (this.gameStateManager.getGameState()) {
-      case 'waiting':
-        this.drawWaitingOverlay();
+      case 'matchmaking':
+        this.drawCooldownIndicators();
+        this.drawMatchmakingStatus();
+        break;
+      case 'lobbyReady':
+        this.drawLobbyReadyOverlay();
         break;
       case 'ended':
         this.drawEndGameOverlay();
@@ -216,7 +220,31 @@ export class Renderer implements RenderingService {
     this.ctx.stroke();
   }
 
-  private drawWaitingOverlay(): void {
+  private drawMatchmakingStatus(): void {
+    const displayWidth = this.viewportManager.displayWidth;
+    const text = 'Waiting for players...';
+    const font = '16px Arial';
+    const padding = 12;
+    const margin = 10;
+
+    this.ctx.font = font;
+    const textWidth = this.ctx.measureText(text).width;
+    const panelWidth = textWidth + padding * 2;
+    const panelHeight = 16 + padding * 2;
+    const panelX = displayWidth - panelWidth - margin;
+    const panelY = margin;
+
+    this.ctx.fillStyle = this.COLOR_OVERLAY_BG;
+    this.ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+
+    this.ctx.fillStyle = this.COLOR_UI_TEXT;
+    this.ctx.font = font;
+    this.ctx.textAlign = 'left';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(text, panelX + padding, panelY + panelHeight / 2);
+  }
+
+  private drawLobbyReadyOverlay(): void {
     const displayWidth = this.viewportManager.displayWidth;
     const displayHeight = this.viewportManager.displayHeight;
 
@@ -226,7 +254,7 @@ export class Renderer implements RenderingService {
     this.ctx.fillStyle = this.COLOR_UI_TEXT;
     this.ctx.font = '48px Arial';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('Waiting for players...', displayWidth / 2, displayHeight / 2);
+    this.ctx.fillText('Lobby is ready!', displayWidth / 2, displayHeight / 2);
   }
 
   private drawEndGameOverlay(): void {

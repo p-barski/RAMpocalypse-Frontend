@@ -55,7 +55,15 @@ export class GameStateManager implements StateManager {
   }
 
   isPlaying(): boolean {
-    return this.gameState === 'playing';
+    return this.gameState === 'playing' || this.gameState === 'matchmaking';
+  }
+
+  isMatchmaking(): boolean {
+    return this.gameState === 'matchmaking';
+  }
+
+  isLobbyReady(): boolean {
+    return this.gameState === 'lobbyReady';
   }
 
   hasEnded(): boolean {

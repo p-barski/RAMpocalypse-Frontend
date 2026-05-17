@@ -123,9 +123,10 @@ export class Game implements CallbacksHandler {
   }
 
   async requestMatchmaking(): Promise<void> {
+    if (this.gameStateManager.isMatchmaking()) return;
     if (this.gameStateManager.isPlaying() && this.gameSession.isOnlineMatch) return;
     if (!this.communicationService.isConnected()) return;
-    this.gameStateManager.setGameState('waiting');
+    this.gameStateManager.setGameState('matchmaking');
     this.gameStateManager.setWinnerId('');
     await this.communicationService.requestMatchmaking();
   }
@@ -180,6 +181,8 @@ export class Game implements CallbacksHandler {
       return;
     }
 
+    this.gameStateManager.setGameState('lobbyReady');
+    await sleepAsync(1000);
     this.gameSession.isOnlineMatch = true;
 
     for (const player of players) {
@@ -191,13 +194,14 @@ export class Game implements CallbacksHandler {
     await this.entityManager.updateLocalPlayerSubEntities(currentPlayer.subEntities);
 
     this.movementController.resetPositionTracking();
-    this.gameStateManager.setGameState('playing');
 
     for (const player of players) {
       if (player.id !== playerId) {
         await this.entityManager.createRemotePlayer(player.id, player.position, player.spriteData, player.subEntities);
       }
     }
+
+    this.gameStateManager.setGameState('playing');
   };
 
   onOtherPlayerPositionUpdated = async (playerId: string, position: Position): Promise<void> => {

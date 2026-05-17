@@ -106,6 +106,8 @@ export function createMockStateManager(): Mocked<StateManager> {
     removePlayer: vi.fn(),
     reset: vi.fn(),
     isPlaying: vi.fn(),
+    isMatchmaking: vi.fn(),
+    isLobbyReady: vi.fn(),
     hasEnded: vi.fn(),
     isWaiting: vi.fn(),
   };
