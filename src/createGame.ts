@@ -14,8 +14,13 @@ import { GameAudioController } from './gameAudioController';
 import { EntityAnimationController } from './entityAnimationController';
 import { GameTime } from './gameTime';
 import { SignalRCallbacksHandler } from './signalRCallbacksHandler';
+import type { GameSettings } from './gameSettings';
 
-export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): Promise<Game> {
+export async function createGame(
+  serverUrl: string,
+  canvas: HTMLCanvasElement,
+  settings: GameSettings,
+): Promise<Game> {
   const ctx = canvas.getContext('2d');
   if (!ctx) {
     throw new Error('Could not get 2D context from canvas');
@@ -43,7 +48,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): 
   const gameConfig: GameConfig = await response.json();
 
   const gameTime = new GameTime();
-  const audioController = new GameAudioController();
+  const audioController = new GameAudioController(settings.audio);
   const gameStateManager = new GameStateManager();
   const viewportManager = new GameViewportManager(gameConfig, canvas);
   const callbacksHandler = new SignalRCallbacksHandler();
@@ -72,7 +77,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement): 
     true,
   );
   const animationController = new EntityAnimationController(gameConfig, entityManager, gameTime);
-  const inputHandler = new PlayerInputHandler(canvas);
+  const inputHandler = new PlayerInputHandler(canvas, settings.controls);
   const movementController = new PlayerMovementController(
     gameConfig,
     entityManager,

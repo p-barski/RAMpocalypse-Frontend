@@ -1,8 +1,10 @@
-import { useRef, useEffect, useCallback } from 'react';
-import { createGame } from './createGame';
+import { useRef, useCallback, useState } from 'react';
+import { loadSettings } from './gameSettings';
 import type { Game } from './game';
 import type { ChatMessageServer, ChatMessageType } from './interfaces/messageInterfaces';
 import Chat from './Chat';
+import GameComponent from './GameComponent';
+import Settings from './Settings';
 import './App.css';
 
 declare global {
@@ -15,7 +17,9 @@ export {};
 function App() {
   const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:5027';
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [settings] = useState(loadSettings);
   const gameRef = useRef<Game>(null);
+  const openSettingsRef = useRef<() => void>(() => {});
   const onMessageReceivedRef = useRef<(message: ChatMessageServer) => void>(() => {});
 
   const registerOnMessageReceived = useCallback((handler: (message: ChatMessageServer) => void) => {
@@ -34,39 +38,9 @@ function App() {
     await gameRef.current?.leaveGame();
   }, []);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const dismountMessage = 'Component dismounted.';
-    let isMounted = true;
-    let game: Game | null = null;
-
-    (async () => {
-      try {
-        game = await createGame(serverUrl, canvas);
-        if (!isMounted) throw new Error(dismountMessage);
-        gameRef.current = game;
-        window.game = game;
-        game.onMessageReceived = onMessageReceivedRef.current;
-        game.enterLocalSandbox();
-        game.start();
-        await game.connect().catch((error) => {
-          if (isMounted) game?.onClose(error);
-        });
-        if (!isMounted) throw new Error(dismountMessage);
-      } catch (err) {
-        if ((err as Error)?.message !== dismountMessage) console.warn(err);
-        game?.stop();
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-      game?.stop();
-      gameRef.current = null;
-    };
-  });
+  const handleOpenSettings = useCallback(() => {
+    openSettingsRef.current?.();
+  }, []);
 
   return (
     <div className="App">
@@ -78,9 +52,19 @@ function App() {
           <button className="game-button" onClick={handleLeaveGame}>
             Leave game
           </button>
+          <button className="game-button" onClick={handleOpenSettings}>
+            Settings
+          </button>
         </div>
       </header>
-      <canvas ref={canvasRef} tabIndex={0}></canvas>
+      <GameComponent
+        serverUrl={serverUrl}
+        canvasRef={canvasRef}
+        settings={settings}
+        gameRef={gameRef}
+        onMessageReceivedRef={onMessageReceivedRef}
+      />
+      <Settings settings={settings} canvasRef={canvasRef} openSettingsRef={openSettingsRef} />
       <Chat
         canvasRef={canvasRef}
         serverUrl={serverUrl}

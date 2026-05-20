@@ -115,7 +115,6 @@ export function createMockStateManager(): Mocked<StateManager> {
 
 export function createMockInputHandler(overrides?: Partial<Mocked<InputHandler>>): Mocked<InputHandler> {
   return {
-    isKeyPressed: vi.fn(),
     isUpPressed: vi.fn(),
     isDownPressed: vi.fn(),
     isLeftPressed: vi.fn(),

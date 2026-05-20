@@ -35,3 +35,7 @@ export function convertChatMessageFromServer(message: ChatMessageServer): ChatMe
     timestamp: dateToChatTimestamp(new Date(message.timestamp)),
   };
 }
+
+export function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

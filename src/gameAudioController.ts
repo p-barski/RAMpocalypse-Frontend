@@ -1,28 +1,36 @@
-import type { AudioController } from './interfaces/audioController';
+import type { AudioCategory, AudioController } from './interfaces/audioController';
+import type { AudioSettings } from './gameSettings';
 
 export class GameAudioController implements AudioController {
+  private readonly settings: AudioSettings;
   private readonly audioContext = new AudioContext();
   private readonly audioCache: Map<string, AudioBuffer> = new Map();
   private readonly longRunningSounds: Map<string, AudioBufferSourceNode> = new Map();
 
-  async playShortRunningSound(sound: string, volume = 1): Promise<void> {
-    const cached = this.audioCache.get(sound);
-    if (cached) {
-      this.playAudioBuffer(cached, volume);
-      return;
-    }
-    await this.fetchAudioAndPlay(sound, false, volume);
+  constructor(settings: AudioSettings) {
+    this.settings = settings;
   }
 
-  async playLongRunningSound(sound: string, volume = 1): Promise<void> {
+  async playShortRunningSound(sound: string, volume = 1, category: AudioCategory = 'sfx'): Promise<void> {
+    const finalVolume = this.calculateVolume(volume, category);
     const cached = this.audioCache.get(sound);
     if (cached) {
-      const source = this.playAudioBuffer(cached, volume);
+      this.playAudioBuffer(cached, finalVolume);
+      return;
+    }
+    await this.fetchAudioAndPlay(sound, false, finalVolume);
+  }
+
+  async playLongRunningSound(sound: string, volume = 1, category: AudioCategory = 'sfx'): Promise<void> {
+    const finalVolume = this.calculateVolume(volume, category);
+    const cached = this.audioCache.get(sound);
+    if (cached) {
+      const source = this.playAudioBuffer(cached, finalVolume);
       source.loop = true;
       this.longRunningSounds.set(sound, source);
       return;
     }
-    await this.fetchAudioAndPlay(sound, true, volume);
+    await this.fetchAudioAndPlay(sound, true, finalVolume);
   }
 
   async stopSound(sound: string): Promise<void> {
@@ -70,5 +78,11 @@ export class GameAudioController implements AudioController {
     gain.connect(this.audioContext.destination);
     source.start();
     return source;
+  }
+
+  private calculateVolume(perSoundVolume: number, category: AudioCategory): number {
+    if (this.settings.muted) return 0;
+    const channel = category === 'music' ? this.settings.musicVolume : this.settings.sfxVolume;
+    return perSoundVolume * channel * this.settings.masterVolume;
   }
 }

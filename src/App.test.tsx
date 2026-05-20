@@ -1,5 +1,5 @@
 import { expect, vi, describe, beforeEach, type Mock, it } from 'vitest';
-import { render, waitFor, screen } from '@testing-library/react';
+import { render, waitFor, screen, fireEvent } from '@testing-library/react';
 vi.mock('./createGame', () => ({
   createGame: vi.fn(),
 }));
@@ -32,5 +32,12 @@ describe('App tests', () => {
   it('renders mocked Chat', () => {
     render(<App />);
     expect(screen.getByTestId('mock-chat')).toBeInTheDocument();
+  });
+
+  it('shows settings overlay when Settings is clicked', () => {
+    const { container } = render(<App />);
+    expect(container.querySelector('.settings-overlay')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(container.querySelector('.settings-overlay')).toBeInTheDocument();
   });
 });

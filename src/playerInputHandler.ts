@@ -1,44 +1,43 @@
 import type { InputHandler, AttackInputCallback, DashInputCallback } from './interfaces/inputHandler';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
+import type { ControlBindings } from './gameSettings';
 
 export class PlayerInputHandler implements InputHandler {
   private readonly canvas: HTMLCanvasElement;
+  private readonly bindings: ControlBindings;
   private readonly keys: Set<string> = new Set();
   private attackCallback: AttackInputCallback;
   private dashCallback: DashInputCallback;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, bindings: ControlBindings) {
     this.canvas = canvas;
+    this.bindings = bindings;
     this.attackCallback = (_) => {};
     this.dashCallback = () => {};
   }
 
-  isKeyPressed(key: string): boolean {
-    return this.keys.has(key.toLowerCase());
-  }
-
   isUpPressed(): boolean {
-    return this.keys.has('w');
+    return this.isAnyBound(this.bindings.moveUp);
   }
 
   isDownPressed(): boolean {
-    return this.keys.has('s');
+    return this.isAnyBound(this.bindings.moveDown);
   }
 
   isLeftPressed(): boolean {
-    return this.keys.has('a');
+    return this.isAnyBound(this.bindings.moveLeft);
   }
 
   isRightPressed(): boolean {
-    return this.keys.has('d');
+    return this.isAnyBound(this.bindings.moveRight);
   }
 
   isRotateLeftPressed(): boolean {
-    return this.keys.has('arrowleft');
+    return this.isAnyBound(this.bindings.rotateLeft);
   }
 
   isRotateRightPressed(): boolean {
-    return this.keys.has('arrowright');
+    return this.isAnyBound(this.bindings.rotateRight);
   }
 
   setup(attackCallback: AttackInputCallback, dashCallback: DashInputCallback): void {
@@ -58,21 +57,26 @@ export class PlayerInputHandler implements InputHandler {
     this.dashCallback = () => {};
   }
 
+  private isAnyBound(keys: string[]): boolean {
+    return keys.some((k) => this.keys.has(k));
+  }
+
   private handleKeyDown = (e: KeyboardEvent): void => {
     if (e.target !== this.canvas) return;
     const keyLower = e.key.toLowerCase();
     this.keys.add(keyLower);
 
-    switch (keyLower) {
-      case ' ':
-      case 'shift':
-        this.dashCallback();
-        break;
-      case 'e':
-        this.attackCallback(AttackTypeValue.Projectile);
-        break;
-      case 'q':
-        this.attackCallback(AttackTypeValue.Special);
+    if (this.bindings.dash.includes(keyLower)) {
+      this.dashCallback();
+    }
+    if (this.bindings.projectileAttack.includes(keyLower)) {
+      this.attackCallback(AttackTypeValue.Projectile);
+    }
+    if (this.bindings.specialAttack.includes(keyLower)) {
+      this.attackCallback(AttackTypeValue.Special);
+    }
+    if (this.bindings.meleeAttack.includes(keyLower)) {
+      this.attackCallback(AttackTypeValue.Melee);
     }
   };
 
