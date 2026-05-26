@@ -1,48 +1,81 @@
-import { expect, vi, describe, beforeEach, type Mock, it, afterEach } from 'vitest';
-import { render, waitFor, screen, fireEvent } from '@testing-library/react';
+import { expect, describe, it, afterEach, vi, assert } from 'vitest';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import './testHelpers/mockServer';
+import { cleanup, type RenderAppResult, renderApp } from './testHelpers/renderApp';
+import { DEFAULT_GAME_SETTINGS } from './gameSettings';
+import gameConfig from '../public/gameconfig.json';
+import { PlayerMovementController } from './playerMovementController';
 
-vi.mock('./createGame', () => ({
-  createGame: vi.fn(),
-}));
-vi.mock('./Chat', () => ({
-  default: () => <div data-testid="mock-chat">Mocked Chat</div>,
-}));
+function keyDownOnCanvas(canvas: HTMLCanvasElement, key: string): void {
+  const event = new KeyboardEvent('keydown', { key, bubbles: true });
+  Object.defineProperty(event, 'target', { value: canvas });
+  window.dispatchEvent(event);
+}
 
-import App from './App';
-import { createGame } from './createGame';
-import { createMockGameApi, type MockGameApi } from './testHelpers/mocks';
-
-describe('App integration', () => {
-  let gameMock: MockGameApi;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-    gameMock = createMockGameApi();
-    (createGame as Mock).mockResolvedValue(gameMock);
-  });
+describe('App integration tests', () => {
+  let app: RenderAppResult;
 
   afterEach(() => {
-    localStorage.clear();
+    if (app) cleanup(app);
   });
 
   it('does not reinitialize the game when settings are opened and closed', async () => {
-    const { container } = render(<App />);
+    app = await renderApp();
+
+    const game = window.game!;
+    const stopSpy = vi.spyOn(game, 'stop');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(app.renderResult.container.querySelector('.settings-overlay')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(app.renderResult.container.querySelector('.settings-overlay')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(window.game).toBe(game);
+    expect(app.mockServer.hub.startSpy).toHaveBeenCalledTimes(1);
+    expect(stopSpy).not.toHaveBeenCalled();
+  });
+
+  it('calls dash on the server when direction and dash key is pressed', async () => {
+    app = await renderApp();
+
+    const game = window.game!;
+    const canvas = document.querySelector('canvas');
+    assert(canvas instanceof HTMLCanvasElement);
+    expect(game.communicationService.isConnected()).toBe(true);
+    expect(game.gameStateManager.isPlaying()).toBe(true);
+
+    game.gameSession.isOnlineMatch = true;
+
+    const dashSpeed = gameConfig.movementSpeed * gameConfig.dashSpeedMultiplier;
+    keyDownOnCanvas(canvas, DEFAULT_GAME_SETTINGS.controls.moveLeft[0]);
+    keyDownOnCanvas(canvas, DEFAULT_GAME_SETTINGS.controls.dash[0]);
 
     await waitFor(() => {
-      expect(createGame).toHaveBeenCalledTimes(1);
+      expect(app.mockServer.hub.invokeSpy).toHaveBeenCalledWith('Dash', -dashSpeed, 0);
     });
+  });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
-    expect(container.querySelector('.settings-overlay')).toBeInTheDocument();
+  it('cancels dash when server returns false', async () => {
+    app = await renderApp();
+    app.mockServer.hub.invokeHandler = (method) => (method === 'Dash' ? false : undefined);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    expect(container.querySelector('.settings-overlay')).not.toBeInTheDocument();
+    const game = window.game!;
+    const canvas = document.querySelector('canvas');
+    assert(canvas instanceof HTMLCanvasElement);
+    game.gameSession.isOnlineMatch = true;
 
-    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    const movementController = game.movementController as PlayerMovementController;
+    const dashSpeed = gameConfig.movementSpeed * gameConfig.dashSpeedMultiplier;
+    keyDownOnCanvas(canvas, DEFAULT_GAME_SETTINGS.controls.moveLeft[0]);
+    keyDownOnCanvas(canvas, DEFAULT_GAME_SETTINGS.controls.dash[0]);
 
-    expect(createGame).toHaveBeenCalledTimes(1);
-    expect(gameMock.stop).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(app.mockServer.hub.invokeSpy).toHaveBeenCalledWith('Dash', -dashSpeed, 0);
+      expect(movementController['isDashing']).toBe(false);
+    });
   });
 });

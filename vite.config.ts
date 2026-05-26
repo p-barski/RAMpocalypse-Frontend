@@ -18,7 +18,25 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: './src/setupTests.ts',
+    setupFiles: ['./src/setupTests.ts'],
     execArgv: ['--no-webstorage'],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'unit',
+          include: ['src/**/*.{test,spec}.{ts,tsx}'],
+          exclude: ['src/**/*.integration.test.{ts,tsx}'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'integration',
+          include: ['src/**/*.integration.test.{ts,tsx}'],
+          setupFiles: ['./src/setupTests.ts', './src/setupIntegrationTests.ts'],
+        },
+      },
+    ],
   },
 });
