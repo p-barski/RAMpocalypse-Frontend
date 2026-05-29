@@ -156,7 +156,7 @@ function isGameConfigRequest(url: string): boolean {
   return url === '/gameconfig.json' || url.endsWith('/gameconfig.json');
 }
 
-export function createMockServer(serverUrl = 'http://localhost:5027'): MockServer {
+export function createMockServer(serverUrl: string): MockServer {
   const hub = createHub('test-player');
 
   const server: MockServer = {

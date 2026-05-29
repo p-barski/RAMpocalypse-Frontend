@@ -255,7 +255,7 @@ export class Game implements CallbacksHandler {
   onPlayerDied = async (playerId: string): Promise<void> => {
     await this.delay();
     this.audioController.playShortRunningSound('attack_damage.mp3', 0.4);
-    this.audioController.playShortRunningSound('player_died.mp3');
+    this.audioController.playShortRunningSound('player_death.mp3', 0.7);
     this.gameStateManager.updatePlayerHealth(playerId, 0, false);
     this.entityManager.hidePlayer(playerId);
   };

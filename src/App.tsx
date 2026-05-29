@@ -15,7 +15,7 @@ declare global {
 
 export {};
 function App() {
-  const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:5027';
+  const serverUrl = import.meta.env.VITE_SERVER_URL;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [settings] = useState(loadSettings);
   const gameRef = useRef<Game>(null);

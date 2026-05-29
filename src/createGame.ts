@@ -16,23 +16,19 @@ import { GameTime } from './gameTime';
 import { SignalRCallbacksHandler } from './signalRCallbacksHandler';
 import type { GameSettings } from './gameSettings';
 
-export async function createGame(
-  serverUrl: string,
-  canvas: HTMLCanvasElement,
-  settings: GameSettings,
-): Promise<Game> {
+export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, settings: GameSettings): Promise<Game> {
   const ctx = canvas.getContext('2d');
   if (!ctx) {
     throw new Error('Could not get 2D context from canvas');
   }
   const playerSpriteData = {
-    url: 'dability.png',
-    width: 64,
-    height: 32,
-    scaleFactor: 8,
+    url: 'player_1.png',
+    width: 420,
+    height: 128,
+    scaleFactor: 1.0,
   };
   const arenaSpriteData = {
-    url: 'arena_1.png',
+    url: 'arena.png',
     width: 1920,
     height: 1080,
     scaleFactor: 1,
