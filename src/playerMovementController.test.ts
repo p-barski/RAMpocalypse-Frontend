@@ -195,5 +195,19 @@ describe('PlayerMovementController', () => {
       expect(mockCommunicationService.dash).not.toHaveBeenCalled();
       expect(sut['isDashing']).toBe(false);
     });
+
+    it('reports remaining dash cooldown after dashing', async () => {
+      mockCommunicationService.dash.mockResolvedValue(true);
+      mockGameConfig.dashCooldownMs = 2000;
+
+      await sut.dash();
+
+      mockTime.frameTimestamp = 5500;
+      expect(sut.getDashCooldownRemaining()).toBe(1500);
+    });
+
+    it('reports zero dash cooldown when ready', () => {
+      expect(sut.getDashCooldownRemaining()).toBe(0);
+    });
   });
 });

@@ -96,8 +96,10 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
     viewportManager,
     gameStateManager,
     attackController,
+    movementController,
     animationController,
     gameTime,
+    settings.controls,
   );
 
   const game = new Game(

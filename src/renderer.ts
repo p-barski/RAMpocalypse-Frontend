@@ -4,7 +4,10 @@ import type { ViewportManager } from './interfaces/viewportManager';
 import type { StateManager } from './interfaces/stateManager';
 import type { AttackController } from './interfaces/attackController';
 import type { AnimationController } from './interfaces/animationController';
+import type { MovementController } from './interfaces/movementController';
 import type { Time } from './interfaces/time';
+import type { ControlBindings } from './gameSettings';
+import { formatKeyLabel } from './utils';
 import type { Entity } from './interfaces/entity';
 import type { AttackType } from './interfaces/messageInterfaces';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
@@ -18,8 +21,10 @@ export class Renderer implements RenderingService {
   private readonly viewportManager: ViewportManager;
   private readonly gameStateManager: StateManager;
   private readonly attackController: AttackController;
+  private readonly movementController: MovementController;
   private readonly animationController: AnimationController;
   private readonly time: Time;
+  private readonly controls: ControlBindings;
 
   private readonly HEALTH_BAR_HEIGHT = 16;
   private readonly HEALTH_BAR_OFFSET_Y = 20;
@@ -45,17 +50,21 @@ export class Renderer implements RenderingService {
     viewportManager: ViewportManager,
     gameStateManager: StateManager,
     attackController: AttackController,
+    movementController: MovementController,
     animationController: AnimationController,
     time: Time,
+    controls: ControlBindings,
   ) {
     this.ctx = ctx;
     this.entityManager = entityManager;
     this.viewportManager = viewportManager;
     this.gameStateManager = gameStateManager;
     this.attackController = attackController;
+    this.movementController = movementController;
     this.animationController = animationController;
     this.time = time;
     this.gameConfig = gameConfig;
+    this.controls = controls;
   }
 
   render(): void {
@@ -278,15 +287,24 @@ export class Renderer implements RenderingService {
     this.ctx.textAlign = 'left';
     let y = 30;
 
-    y = this.drawCooldownLine('Melee (Space)', AttackTypeValue.Melee, y);
-    y = this.drawCooldownLine('Projectile (E)', AttackTypeValue.Projectile, y);
-    y = this.drawCooldownLine('Special (Q)', AttackTypeValue.Special, y);
+    y = this.drawAttackCooldownLine('Melee', this.controls.meleeAttack, AttackTypeValue.Melee, y);
+    y = this.drawAttackCooldownLine('Projectile', this.controls.projectileAttack, AttackTypeValue.Projectile, y);
+    y = this.drawAttackCooldownLine('Special', this.controls.specialAttack, AttackTypeValue.Special, y);
+    const dashCooldown = this.movementController.getDashCooldownRemaining();
+    y = this.drawCooldownLine(this.formatActionLabel('Dash', this.controls.dash), dashCooldown, y);
     this.ctx.fillText(`FPS: ${~~(1 / this.time.averageFrameTime)}`, 10, y);
   }
 
-  private drawCooldownLine(label: string, attackType: AttackType, y: number): number {
-    const cooldownRemaining = this.attackController.getCooldownRemaining(attackType);
+  private formatActionLabel(name: string, keys: string[]): string {
+    return `${name} (${formatKeyLabel(keys[0])})`;
+  }
 
+  private drawAttackCooldownLine(name: string, keys: string[], attackType: AttackType, y: number): number {
+    const cooldown = this.attackController.getCooldownRemaining(attackType);
+    return this.drawCooldownLine(this.formatActionLabel(name, keys), cooldown, y);
+  }
+
+  private drawCooldownLine(label: string, cooldownRemaining: number, y: number): number {
     if (cooldownRemaining > 0) {
       const remainingSeconds = (cooldownRemaining / 1000).toFixed(1);
       this.ctx.fillText(`${label}: ${remainingSeconds}s`, 10, y);

@@ -76,9 +76,14 @@ export class PlayerMovementController implements MovementController {
     }
   }
 
+  getDashCooldownRemaining(): number {
+    const cooldownEnd = this.lastDashTime + this.gameConfig.dashCooldownMs;
+    return Math.max(0, cooldownEnd - this.time.frameTimestamp);
+  }
+
   dash = async (): Promise<void> => {
     if (!this.gameStateManager.isPlaying()) return;
-    if (this.time.frameTimestamp - this.lastDashTime < this.gameConfig.dashCooldownMs) return;
+    if (this.getDashCooldownRemaining() > 0) return;
 
     const dashSpeed = this.gameConfig.movementSpeed * this.gameConfig.dashSpeedMultiplier;
     this.dashVelocity = this.calculateVelocityVector(dashSpeed);

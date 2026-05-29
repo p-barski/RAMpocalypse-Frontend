@@ -9,7 +9,7 @@ import {
   type GameSettings,
 } from './gameSettings';
 import './Settings.css';
-import { capitalize } from './utils';
+import { capitalize, formatKeyLabel } from './utils';
 
 function keyToLabel(str: string): string {
   return capitalize(str.replace(/([A-Z])/g, ' $1').toLowerCase());
@@ -20,27 +20,6 @@ const CONTROL_BINDING_LABELS = Object.fromEntries(
     return [key, keyToLabel(key)];
   }),
 ) as Record<ControlBindingKey, string>;
-
-function formatKeyLabel(key: string): string {
-  switch (key) {
-    case ' ':
-      return 'Space';
-    case 'arrowleft':
-      return 'Arrow Left';
-    case 'arrowright':
-      return 'Arrow Right';
-    case 'arrowup':
-      return 'Arrow Up';
-    case 'arrowdown':
-      return 'Arrow Down';
-    default: {
-      if (key.length === 1) {
-        return key.toUpperCase();
-      }
-      return capitalize(key);
-    }
-  }
-}
 
 export interface SettingsOverlayProps {
   settings: GameSettings;

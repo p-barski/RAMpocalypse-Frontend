@@ -39,3 +39,24 @@ export function convertChatMessageFromServer(message: ChatMessageServer): ChatMe
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export function formatKeyLabel(key: string): string {
+  switch (key) {
+    case ' ':
+      return 'Space';
+    case 'arrowleft':
+      return 'Arrow Left';
+    case 'arrowright':
+      return 'Arrow Right';
+    case 'arrowup':
+      return 'Arrow Up';
+    case 'arrowdown':
+      return 'Arrow Down';
+    default: {
+      if (key.length === 1) {
+        return key.toUpperCase();
+      }
+      return capitalize(key);
+    }
+  }
+}
