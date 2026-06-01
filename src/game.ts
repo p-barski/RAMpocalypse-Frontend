@@ -243,19 +243,19 @@ export class Game implements CallbacksHandler {
           break;
       }
     }
-    this.audioController.playShortRunningSound('attack_swing.mp3');
+    this.audioController.playShortRunningSound('/app/attack_swing.mp3');
   };
 
   onPlayerDamaged = async (playerId: string, _damage: number, newHealth: number): Promise<void> => {
     await this.delay();
-    this.audioController.playShortRunningSound('attack_damage.mp3', 0.4);
+    this.audioController.playShortRunningSound('/app/attack_damage.mp3', 0.4);
     this.gameStateManager.updatePlayerHealth(playerId, newHealth);
   };
 
   onPlayerDied = async (playerId: string): Promise<void> => {
     await this.delay();
-    this.audioController.playShortRunningSound('attack_damage.mp3', 0.4);
-    this.audioController.playShortRunningSound('player_death.mp3', 0.7);
+    this.audioController.playShortRunningSound('/app/attack_damage.mp3', 0.4);
+    this.audioController.playShortRunningSound('/app/player_death.mp3', 0.7);
     this.gameStateManager.updatePlayerHealth(playerId, 0, false);
     this.entityManager.hidePlayer(playerId);
   };

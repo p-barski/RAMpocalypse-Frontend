@@ -68,6 +68,8 @@ export class SpriteLoader implements SpriteManager {
   }
 
   static async loadMissingSprite(): Promise<ImageBitmap> {
-    return (await SpriteLoader.loadSprite('missing_sprite.png')) ?? (await createImageBitmap(new ImageData(32, 32)));
+    return (
+      (await SpriteLoader.loadSprite('/app/missing_sprite.png')) ?? (await createImageBitmap(new ImageData(32, 32)))
+    );
   }
 }

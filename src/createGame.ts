@@ -22,25 +22,25 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
     throw new Error('Could not get 2D context from canvas');
   }
   const playerSpriteData = {
-    url: 'player_1.png',
+    url: '/app/player_1.png',
     width: 420,
     height: 128,
     scaleFactor: 1.0,
   };
   const arenaSpriteData = {
-    url: 'arena.png',
+    url: '/app/arena.png',
     width: 1920,
     height: 1080,
     scaleFactor: 1,
   };
   const weaponSpriteData = {
-    url: 'lightning_1.png',
+    url: '/app/lightning_1.png',
     width: 17,
     height: 53,
     scaleFactor: 6,
   };
   const missingSprite = await SpriteLoader.loadMissingSprite();
-  const response = await fetch('/gameconfig.json');
+  const response = await fetch('/app/gameconfig.json'); //.catch(() => fetch(`${serverUrl}/gameconfig.json`));
   const gameConfig: GameConfig = await response.json();
 
   const gameTime = new GameTime();
