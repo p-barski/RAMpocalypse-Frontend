@@ -1,73 +1,52 @@
-# React + TypeScript + Vite
+# RAMpocalypse
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Online 2-player battle arena.
 
-Currently, two official plugins are available:
+![Example](example.jpg)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+|              |                                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| **Frontend** | [RAMpocalypse-Frontend](https://github.com/p-barski/RAMpocalypse-Frontend) — Vite, React, TypeScript    |
+| **Backend**  | [RAMpocalypse-Backend](https://github.com/p-barski/RAMpocalypse-Backend) — ASP.NET 10, SignalR, MongoDB |
+| **Live**     | https://rampocalypse-ajesd7evfrh5acad.polandcentral-01.azurewebsites.net/                               |
 
-## React Compiler
+Github workflow builds the frontend, copies it into `wwwroot/app`, and publishes whole app to Azure.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Backend
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd src/RAMpocalypse.Server
+dotnet run
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+API: http://localhost:5027 — SignalR hub: `/gamehub`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+MongoDB is optional. Without a connection string the server uses an in-memory stub (`DummyDb`). MongoDB settings:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+as env vars:
+
 ```
+MongoDB__ConnectionString="<your-connection-string>"
+MongoDB__DatabaseName="rampocalypse"
+```
+
+as user-secrets:
+
+```bash
+dotnet user-secrets set "MongoDB:ConnectionString" "<your-connection-string>"
+dotnet user-secrets set "MongoDB:DatabaseName" "rampocalypse"
+```
+
+### Frontend
+
+Env vars:
+
+```
+VITE_SERVER_URL=http://localhost:5027
+```
+
+```bash
+npm run dev
+```
+
+App: http://localhost:5173
