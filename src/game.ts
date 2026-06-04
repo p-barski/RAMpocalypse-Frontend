@@ -163,7 +163,6 @@ export class Game implements CallbacksHandler {
   };
 
   onLobbyStart = async (_lobbyId: string, players: Player[]): Promise<void> => {
-    await this.delay();
     const playerId = this.entityManager.getLocalPlayerEntity().id;
     if (!playerId) {
       console.error('Current player ID not available');
@@ -205,12 +204,10 @@ export class Game implements CallbacksHandler {
   };
 
   onOtherPlayerPositionUpdated = async (playerId: string, position: Position): Promise<void> => {
-    await this.delay();
     this.entityManager.updateEntityPosition(playerId, position);
   };
 
   onPlayerLeftLobby = async (playerId: string): Promise<void> => {
-    await this.delay();
     this.entityManager.removeRemotePlayer(playerId);
     this.gameStateManager.removePlayer(playerId);
     if (this.gameStateManager.getAllPlayers().size === 1) {
@@ -219,13 +216,11 @@ export class Game implements CallbacksHandler {
   };
 
   onPositionCorrected = async (correctedPosition: Position): Promise<void> => {
-    await this.delay();
     this.movementController.onPositionCorrected(correctedPosition);
     console.log('Position corrected by server:', correctedPosition);
   };
 
   onAttackPerformed = async (attackEntities: AttackEntity[]): Promise<void> => {
-    await this.delay();
     this.applyAttackPerformedEffects(attackEntities);
   };
 
@@ -247,13 +242,11 @@ export class Game implements CallbacksHandler {
   };
 
   onPlayerDamaged = async (playerId: string, _damage: number, newHealth: number): Promise<void> => {
-    await this.delay();
     this.audioController.playShortRunningSound('/app/attack_damage.mp3', 0.4);
     this.gameStateManager.updatePlayerHealth(playerId, newHealth);
   };
 
   onPlayerDied = async (playerId: string): Promise<void> => {
-    await this.delay();
     this.audioController.playShortRunningSound('/app/attack_damage.mp3', 0.4);
     this.audioController.playShortRunningSound('/app/player_death.mp3', 0.7);
     this.gameStateManager.updatePlayerHealth(playerId, 0, false);
@@ -261,7 +254,6 @@ export class Game implements CallbacksHandler {
   };
 
   onPlayerRespawned = async (playerId: string, position: Position): Promise<void> => {
-    await this.delay();
     const player = this.gameStateManager.getPlayer(playerId);
     if (player) {
       this.gameStateManager.updatePlayerHealth(playerId, player.maxHealth, true);
@@ -271,7 +263,6 @@ export class Game implements CallbacksHandler {
   };
 
   onGameEnded = async (winnerId: string): Promise<void> => {
-    await this.delay();
     this.gameStateManager.setGameState('ended');
     this.gameStateManager.setWinnerId(winnerId);
     sleepAsync(3000).then(() => this.enterLocalSandbox());
@@ -301,9 +292,5 @@ export class Game implements CallbacksHandler {
     }
     this.renderingService.render();
     this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
-  }
-
-  private delay(): Promise<void> {
-    return sleepAsync(100);
   }
 }
