@@ -35,6 +35,8 @@ jobs:
         with:
           repository: p-barski/RAMpocalypse-Backend
           path: ./Backend_tmp
+
+      - name: Move backend one folder back
         run: mv ./Backend_tmp ../Backend
 
       - name: Install Playwright Browsers
