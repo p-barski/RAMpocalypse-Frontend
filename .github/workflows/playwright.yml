@@ -34,7 +34,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: p-barski/RAMpocalypse-Backend
-          path: ../Backend
+          path: ./Backend_tmp
+        run: mv ./Backend_tmp ../Backend
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
