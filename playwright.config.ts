@@ -25,6 +25,9 @@ export default defineConfig({
       command: 'dotnet run --project ../Backend/src/RAMpocalypse.Server/RAMpocalypse.Server.csproj',
       url: 'http://localhost:5027/',
       reuseExistingServer: true,
+      timeout: 120000,
+      stdout: 'pipe',
+      stderr: 'pipe',
     },
     {
       command: 'npm run dev',
