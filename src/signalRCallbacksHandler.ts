@@ -6,6 +6,7 @@ export class SignalRCallbacksHandler implements CallbacksHandler {
   onMessageReceived = (message: ChatMessageServer) => this.handler.onMessageReceived(message);
   onClose = (error: Error | undefined) => this.handler.onClose(error);
   onLobbyStart = (lobbyId: string, players: Player[]) => this.handler.onLobbyStart(lobbyId, players);
+  onPlayerJoinedLobby = (player: Player) => this.handler.onPlayerJoinedLobby(player);
   onOtherPlayerPositionUpdated = (playerId: string, position: Position) =>
     this.handler.onOtherPlayerPositionUpdated(playerId, position);
   onPlayerLeftLobby = (playerId: string) => this.handler.onPlayerLeftLobby(playerId);

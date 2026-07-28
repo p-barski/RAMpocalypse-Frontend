@@ -141,6 +141,26 @@ describe('PlayerMovementController', () => {
       );
     });
 
+    it('does nothing when the local player is dead', () => {
+      const mockPlayer = { position: { x: 100, y: 100, angle: 0 }, width: 64, height: 64 } as Entity;
+      mockEntityManager.getLocalPlayerEntity.mockReturnValue(mockPlayer);
+      mockGameStateManager.getPlayer.mockReturnValue({
+        id: 'local',
+        position: { x: 100, y: 100, angle: 0 },
+        spriteData: {} as never,
+        subEntities: [],
+        health: 0,
+        maxHealth: 100,
+        isAlive: false,
+      });
+      mockInputHandler.isRightPressed = vi.fn().mockReturnValue(true);
+
+      sut.update();
+
+      expect(mockEntityManager.updateLocalPlayerPosition).not.toHaveBeenCalled();
+      expect(mockCommunicationService.updatePlayerPosition).not.toHaveBeenCalled();
+    });
+
     it('keeps angle unchanged when neither rotate key is pressed', () => {
       const initialAngle = 1.0;
       const mockPlayer = { position: { x: 100, y: 100, angle: initialAngle }, width: 64, height: 64 } as Entity;

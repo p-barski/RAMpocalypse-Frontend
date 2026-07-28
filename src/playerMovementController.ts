@@ -42,6 +42,9 @@ export class PlayerMovementController implements MovementController {
 
   update(): void {
     const localPlayer = this.entityManager.getLocalPlayerEntity();
+    const localPlayerState = this.gameStateManager.getPlayer(localPlayer.id);
+    if (localPlayerState && !localPlayerState.isAlive) return;
+
     let x = localPlayer.position.x;
     let y = localPlayer.position.y;
     let velocityVector: Vector2D;

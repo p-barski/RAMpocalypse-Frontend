@@ -4,6 +4,7 @@ export interface CallbacksHandler {
   onMessageReceived: (message: ChatMessageServer) => void;
   onClose: (error: Error | undefined) => Promise<void>;
   onLobbyStart: (lobbyId: string, players: Player[]) => void;
+  onPlayerJoinedLobby: (player: Player) => void;
   onOtherPlayerPositionUpdated: (playerId: string, position: Position) => void;
   onPlayerLeftLobby: (playerId: string) => void;
   onPositionCorrected: (correctedPosition: Position) => void;

@@ -5,6 +5,7 @@ export class GameStateManager implements StateManager {
   private gameState: GameState = 'waiting';
   private winnerId = '';
   private players: Map<string, Player> = new Map();
+  private deathTimes: Map<string, number> = new Map();
 
   getGameState(): GameState {
     return this.gameState;
@@ -40,18 +41,32 @@ export class GameStateManager implements StateManager {
     }
   }
 
+  setPlayerDeathTime(playerId: string, deathTime: number | undefined): void {
+    if (deathTime === undefined) {
+      this.deathTimes.delete(playerId);
+    } else {
+      this.deathTimes.set(playerId, deathTime);
+    }
+  }
+
+  getPlayerDeathTime(playerId: string): number | undefined {
+    return this.deathTimes.get(playerId);
+  }
+
   getAllPlayers(): Map<string, Player> {
     return this.players;
   }
 
   removePlayer(playerId: string): void {
     this.players.delete(playerId);
+    this.deathTimes.delete(playerId);
   }
 
   reset(): void {
     this.gameState = 'waiting';
     this.winnerId = '';
     this.players.clear();
+    this.deathTimes.clear();
   }
 
   isPlaying(): boolean {

@@ -99,8 +99,17 @@ export class Renderer implements RenderingService {
         break;
       default:
         this.drawCooldownIndicators();
+        if (this.isLocalPlayerDead()) {
+          this.drawDeathOverlay();
+        }
         break;
     }
+  }
+
+  private isLocalPlayerDead(): boolean {
+    const localId = this.entityManager.getLocalPlayerEntity().id;
+    const player = this.gameStateManager.getPlayer(localId);
+    return player !== undefined && !player.isAlive;
   }
 
   private drawEntity(entity: Entity, parentCenterX = 0, parentCenterY = 0, offsetAngle = 0): void {
@@ -279,6 +288,30 @@ export class Renderer implements RenderingService {
     const winnerId = this.gameStateManager.getWinnerId();
     const message = winnerId === this.entityManager.getLocalPlayerEntity().id ? 'You Win!' : 'You Lose!';
     this.ctx.fillText(message, displayWidth / 2, displayHeight / 2);
+  }
+
+  private drawDeathOverlay(): void {
+    const displayWidth = this.viewportManager.displayWidth;
+    const displayHeight = this.viewportManager.displayHeight;
+
+    this.ctx.fillStyle = this.COLOR_OVERLAY_BG;
+    this.ctx.fillRect(0, 0, displayWidth, displayHeight);
+
+    this.ctx.fillStyle = this.COLOR_UI_TEXT;
+    this.ctx.textAlign = 'center';
+
+    this.ctx.font = '48px Arial';
+    this.ctx.fillText('You died!', displayWidth / 2, displayHeight / 2 - 20);
+
+    const localId = this.entityManager.getLocalPlayerEntity().id;
+    const deathTime = this.gameStateManager.getPlayerDeathTime(localId);
+    const remainingMs =
+      deathTime !== undefined
+        ? Math.max(0, this.gameConfig.respawnCooldownMs - (this.time.frameTimestamp - deathTime))
+        : 0;
+
+    this.ctx.font = '24px Arial';
+    this.ctx.fillText(`Respawning in ${(remainingMs / 1000).toFixed(1)}s...`, displayWidth / 2, displayHeight / 2 + 30);
   }
 
   private drawCooldownIndicators(): void {

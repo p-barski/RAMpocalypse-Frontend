@@ -203,6 +203,14 @@ export class Game implements CallbacksHandler {
     this.gameStateManager.setGameState('playing');
   };
 
+  onPlayerJoinedLobby = async (player: Player): Promise<void> => {
+    const playerId = this.entityManager.getLocalPlayerEntity().id;
+    if (player.id === playerId) return;
+
+    this.gameStateManager.addPlayer(player);
+    await this.entityManager.createRemotePlayer(player.id, player.position, player.spriteData, player.subEntities);
+  };
+
   onOtherPlayerPositionUpdated = async (playerId: string, position: Position): Promise<void> => {
     this.entityManager.updateEntityPosition(playerId, position);
   };
@@ -250,6 +258,7 @@ export class Game implements CallbacksHandler {
     this.audioController.playShortRunningSound('/app/attack_damage.mp3', 0.4);
     this.audioController.playShortRunningSound('/app/player_death.mp3', 0.7);
     this.gameStateManager.updatePlayerHealth(playerId, 0, false);
+    this.gameStateManager.setPlayerDeathTime(playerId, this.time.frameTimestamp);
     this.entityManager.hidePlayer(playerId);
   };
 
@@ -258,6 +267,7 @@ export class Game implements CallbacksHandler {
     if (player) {
       this.gameStateManager.updatePlayerHealth(playerId, player.maxHealth, true);
     }
+    this.gameStateManager.setPlayerDeathTime(playerId, undefined);
     this.entityManager.showPlayer(playerId, position);
     console.log('Player respawned:', { playerId, position });
   };

@@ -126,7 +126,7 @@ export class PlayerEntityManager implements EntityManager {
   }
 
   hidePlayer(playerId: string): void {
-    const entity = this.remoteEntities.get(playerId);
+    const entity = this.getEntityById(playerId);
     if (entity) {
       const index = this.entities.indexOf(entity);
       if (index > -1) {
@@ -136,11 +136,9 @@ export class PlayerEntityManager implements EntityManager {
   }
 
   showPlayer(playerId: string, position: Position): void {
-    const entity = this.remoteEntities.get(playerId);
+    const entity = this.getEntityById(playerId);
     if (entity) {
-      if (position !== undefined) {
-        entity.position = position;
-      }
+      entity.position = position;
 
       if (!this.entities.includes(entity)) {
         this.entities.push(entity);

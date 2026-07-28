@@ -20,6 +20,7 @@ export class SignalRService implements CommunicationService {
 
     this.connection.on('MessageReceived', callbacksHandler.onMessageReceived);
     this.connection.on('LobbyStarted', callbacksHandler.onLobbyStart);
+    this.connection.on('PlayerJoinedLobby', callbacksHandler.onPlayerJoinedLobby);
     this.connection.on('PlayerLeftLobby', callbacksHandler.onPlayerLeftLobby);
     this.connection.on('PlayerPositionUpdated', callbacksHandler.onOtherPlayerPositionUpdated);
     this.connection.on('PositionCorrected', callbacksHandler.onPositionCorrected);

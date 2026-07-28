@@ -10,6 +10,8 @@ export interface StateManager {
   getPlayer(playerId: string): Player | undefined;
   addPlayer(player: Player): void;
   updatePlayerHealth(playerId: string, health: number, isAlive?: boolean): void;
+  setPlayerDeathTime(playerId: string, deathTime: number | undefined): void;
+  getPlayerDeathTime(playerId: string): number | undefined;
   getAllPlayers(): Map<string, Player>;
   removePlayer(playerId: string): void;
   reset(): void;

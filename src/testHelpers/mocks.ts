@@ -29,6 +29,7 @@ export class MockGameConfig implements GameConfig {
   meleeDamage = 10;
   projectileDamage = 15;
   specialDamage = 20;
+  respawnCooldownMs = 3000;
 }
 
 export class MockTime implements Time {
@@ -102,6 +103,8 @@ export function createMockStateManager(): Mocked<StateManager> {
     getPlayer: vi.fn(),
     addPlayer: vi.fn(),
     updatePlayerHealth: vi.fn(),
+    setPlayerDeathTime: vi.fn(),
+    getPlayerDeathTime: vi.fn(),
     getAllPlayers: vi.fn(),
     removePlayer: vi.fn(),
     reset: vi.fn(),

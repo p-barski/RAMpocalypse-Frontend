@@ -21,4 +21,5 @@ export interface GameConfig {
   readonly meleeDamage: number;
   readonly projectileDamage: number;
   readonly specialDamage: number;
+  readonly respawnCooldownMs: number;
 }
