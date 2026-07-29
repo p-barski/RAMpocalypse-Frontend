@@ -5,6 +5,12 @@ import type { CommunicationService } from '../interfaces/communicatonService';
 import type { StateManager } from '../interfaces/stateManager';
 import type { Time } from '../interfaces/time';
 import type { InputHandler } from '../interfaces/inputHandler';
+import type { MovementController } from '../interfaces/movementController';
+import type { AttackController } from '../interfaces/attackController';
+import type { RenderingService } from '../interfaces/renderingService';
+import type { AudioController } from '../interfaces/audioController';
+import type { AnimationController } from '../interfaces/animationController';
+import type { ViewportManager } from '../interfaces/viewportManager';
 
 export class MockGameConfig implements GameConfig {
   gameWidth = 1920;
@@ -30,6 +36,7 @@ export class MockGameConfig implements GameConfig {
   projectileDamage = 15;
   specialDamage = 20;
   respawnCooldownMs = 3000;
+  spawnProtectionMs = 1000;
 }
 
 export class MockTime implements Time {
@@ -127,5 +134,67 @@ export function createMockInputHandler(overrides?: Partial<Mocked<InputHandler>>
     setup: vi.fn(),
     cleanup: vi.fn(),
     ...overrides,
+  };
+}
+
+export function createMockMovementController(): Mocked<MovementController> {
+  return {
+    update: vi.fn(),
+    dash: vi.fn(),
+    getDashCooldownRemaining: vi.fn(),
+    onPositionCorrected: vi.fn(),
+    resetPositionTracking: vi.fn(),
+  };
+}
+
+export function createMockAttackController(): Mocked<AttackController> {
+  return {
+    performMeleeAttack: vi.fn(),
+    performProjectileAttack: vi.fn(),
+    performSpecialAttack: vi.fn(),
+    getCooldownRemaining: vi.fn(),
+    addAttack: vi.fn(),
+    getAttacks: vi.fn(),
+    update: vi.fn(),
+    clear: vi.fn(),
+  };
+}
+
+export function createMockRenderingService(): Mocked<RenderingService> {
+  return {
+    render: vi.fn(),
+  };
+}
+
+export function createMockAudioController(): Mocked<AudioController> {
+  return {
+    playShortRunningSound: vi.fn(),
+    playLongRunningSound: vi.fn(),
+    stopSound: vi.fn(),
+    cleanup: vi.fn(),
+  };
+}
+
+export function createMockAnimationController(): Mocked<AnimationController> {
+  return {
+    createMeleeAttackAnimation: vi.fn(),
+    createProjectileAttackAnimation: vi.fn(),
+    getAnimatedEntity: vi.fn(),
+  };
+}
+
+export function createMockViewportManager(): Mocked<ViewportManager> {
+  return {
+    viewportX: 0,
+    viewportY: 0,
+    viewportWidth: 1920,
+    viewportHeight: 1080,
+    scale: 1,
+    displayWidth: 1920,
+    displayHeight: 1080,
+    cleanup: vi.fn(),
+    gameToCanvasX: vi.fn(),
+    gameToCanvasY: vi.fn(),
+    gameToCanvasSize: vi.fn(),
   };
 }

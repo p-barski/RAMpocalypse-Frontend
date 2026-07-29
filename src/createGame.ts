@@ -103,6 +103,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
   );
 
   const game = new Game(
+    gameConfig,
     communicationServiceWrapper,
     entityManager,
     gameStateManager,

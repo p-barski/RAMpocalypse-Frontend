@@ -8,6 +8,7 @@ import type {
 } from './interfaces/messageInterfaces';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
 import type { CallbacksHandler } from './interfaces/callbacksHandler';
+import type { GameConfig } from './interfaces/gameConfig';
 import type { CommunicationService } from './interfaces/communicatonService';
 import type { EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
@@ -23,6 +24,7 @@ import type { GameSession } from './communicationServiceWrapperForLocalGameplay'
 import { sleepAsync } from './utils';
 
 export class Game implements CallbacksHandler {
+  public readonly gameConfig: GameConfig;
   public readonly communicationService: CommunicationService;
   public readonly gameSession: GameSession;
   public readonly entityManager: EntityManager;
@@ -39,6 +41,7 @@ export class Game implements CallbacksHandler {
   private animationFrameId: number | null = null;
 
   constructor(
+    gameConfig: GameConfig,
     communicationService: CommunicationService,
     entityManager: EntityManager,
     gameStateManager: StateManager,
@@ -52,6 +55,7 @@ export class Game implements CallbacksHandler {
     time: GameTime,
     gameSession: GameSession,
   ) {
+    this.gameConfig = gameConfig;
     this.communicationService = communicationService;
     this.gameSession = gameSession;
     this.entityManager = entityManager;
@@ -181,7 +185,7 @@ export class Game implements CallbacksHandler {
     }
 
     this.gameStateManager.setGameState('lobbyReady');
-    await sleepAsync(1000);
+    await sleepAsync(this.gameConfig.spawnProtectionMs);
     this.gameSession.isOnlineMatch = true;
 
     for (const player of players) {
@@ -208,10 +212,14 @@ export class Game implements CallbacksHandler {
     if (player.id === playerId) return;
 
     this.gameStateManager.addPlayer(player);
+    await sleepAsync(this.gameConfig.spawnProtectionMs);
+    // Check in case player left
+    if (!this.gameStateManager.getPlayer(player.id)) return;
     await this.entityManager.createRemotePlayer(player.id, player.position, player.spriteData, player.subEntities);
   };
 
   onOtherPlayerPositionUpdated = async (playerId: string, position: Position): Promise<void> => {
+    if (!this.entityManager.getEntityById(playerId)) return;
     this.entityManager.updateEntityPosition(playerId, position);
   };
 
