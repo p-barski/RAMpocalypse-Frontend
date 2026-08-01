@@ -21,20 +21,13 @@ describe('Game', () => {
   let sut: Game;
   let mockEntityManager: ReturnType<typeof createMockEntityManager>;
   let mockGameStateManager: ReturnType<typeof createMockStateManager>;
+  let mockCommunicationService: ReturnType<typeof createMockCommunicationService>;
   let mockGameConfig: MockGameConfig;
 
-  beforeEach(() => {
-    vi.useFakeTimers();
-    mockEntityManager = createMockEntityManager();
-    mockGameStateManager = createMockStateManager();
-    mockGameConfig = new MockGameConfig();
-    mockGameConfig.spawnProtectionMs = 1000;
-
-    mockEntityManager.getLocalPlayerEntity.mockReturnValue({ id: 'local' } as Entity);
-
-    sut = new Game(
+  function createSut(playerName = ''): Game {
+    return new Game(
       mockGameConfig,
-      createMockCommunicationService(),
+      mockCommunicationService,
       mockEntityManager,
       mockGameStateManager,
       createMockInputHandler(),
@@ -46,7 +39,22 @@ describe('Game', () => {
       createMockAnimationController(),
       new GameTime(),
       { isOnlineMatch: false },
+      playerName,
     );
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mockEntityManager = createMockEntityManager();
+    mockGameStateManager = createMockStateManager();
+    mockCommunicationService = createMockCommunicationService();
+    mockCommunicationService.connect.mockResolvedValue('local');
+    mockGameConfig = new MockGameConfig();
+    mockGameConfig.spawnProtectionMs = 1000;
+
+    mockEntityManager.getLocalPlayerEntity.mockReturnValue({ id: 'local' } as Entity);
+
+    sut = createSut();
   });
 
   afterEach(() => {
@@ -126,6 +134,42 @@ describe('Game', () => {
       await sut.onOtherPlayerPositionUpdated('remote', position);
 
       expect(mockEntityManager.updateEntityPosition).toHaveBeenCalledWith('remote', position);
+    });
+  });
+
+  describe('connect', () => {
+    it('does not send a name to the server when none is configured', async () => {
+      await sut.connect();
+
+      expect(mockCommunicationService.setPlayerName).not.toHaveBeenCalled();
+    });
+
+    it('sends the configured player name to the server after connecting', async () => {
+      sut = createSut('Alice');
+
+      await sut.connect();
+
+      expect(mockCommunicationService.setPlayerName).toHaveBeenCalledWith('Alice');
+    });
+  });
+
+  describe('setPlayerName', () => {
+    it('pushes the new name to the server immediately while connected', async () => {
+      mockCommunicationService.isConnected.mockReturnValue(true);
+
+      await sut.setPlayerName('Bob');
+
+      expect(mockCommunicationService.setPlayerName).toHaveBeenCalledWith('Bob');
+    });
+
+    it('uses the updated name on the next connect (e.g. after a reconnect)', async () => {
+      mockCommunicationService.isConnected.mockReturnValue(false);
+      await sut.setPlayerName('Bob');
+      mockCommunicationService.setPlayerName.mockClear();
+
+      await sut.connect();
+
+      expect(mockCommunicationService.setPlayerName).toHaveBeenCalledWith('Bob');
     });
   });
 });

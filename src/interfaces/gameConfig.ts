@@ -23,4 +23,5 @@ export interface GameConfig {
   readonly specialDamage: number;
   readonly respawnCooldownMs: number;
   readonly spawnProtectionMs: number;
+  readonly maxNameLength: number;
 }

@@ -31,6 +31,7 @@ export interface GameSettings {
   version: typeof SETTINGS_VERSION;
   controls: ControlBindings;
   audio: AudioSettings;
+  playerName: string;
 }
 
 const DEFAULT_CONTROLS: ControlBindings = {
@@ -53,10 +54,13 @@ const DEFAULT_AUDIO: AudioSettings = {
   muted: false,
 };
 
+export const DEFAULT_PLAYER_NAME = '';
+
 export const DEFAULT_GAME_SETTINGS: GameSettings = {
   version: SETTINGS_VERSION,
   controls: { ...DEFAULT_CONTROLS },
   audio: { ...DEFAULT_AUDIO },
+  playerName: DEFAULT_PLAYER_NAME,
 };
 
 export function normalizeKey(key: string): string {
@@ -103,6 +107,13 @@ function normalizeAudio(audio: unknown): AudioSettings {
   };
 }
 
+function normalizePlayerName(playerName: unknown): string {
+  if (typeof playerName !== 'string') {
+    return DEFAULT_PLAYER_NAME;
+  }
+  return playerName.trim();
+}
+
 export function normalizeGameSettings(raw: unknown): GameSettings {
   const partial = (raw ?? {}) as Partial<GameSettings>;
 
@@ -110,6 +121,7 @@ export function normalizeGameSettings(raw: unknown): GameSettings {
     version: SETTINGS_VERSION,
     controls: normalizeControls(partial.controls),
     audio: normalizeAudio(partial.audio),
+    playerName: normalizePlayerName(partial.playerName),
   };
 }
 
@@ -174,4 +186,8 @@ export function setAudioSetting<K extends keyof AudioSettings>(
   value: AudioSettings[K],
 ): void {
   settings.audio[field] = value;
+}
+
+export function setPlayerName(settings: GameSettings, playerName: string): void {
+  settings.playerName = normalizePlayerName(playerName);
 }

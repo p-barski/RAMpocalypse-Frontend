@@ -6,6 +6,7 @@ import {
   loadSettings,
   normalizeGameSettings,
   saveSettings,
+  setPlayerName,
 } from './gameSettings';
 
 describe('gameSettings', () => {
@@ -61,6 +62,25 @@ describe('gameSettings', () => {
       });
 
       expect(result.controls.moveUp).toEqual(['w']);
+    });
+
+    it('defaults playerName to an empty string when missing or not a string', () => {
+      expect(normalizeGameSettings({}).playerName).toBe('');
+      expect(normalizeGameSettings({ playerName: 42 }).playerName).toBe('');
+    });
+
+    it('trims playerName', () => {
+      expect(normalizeGameSettings({ playerName: '  Alice  ' }).playerName).toBe('Alice');
+    });
+  });
+
+  describe('setPlayerName', () => {
+    it('normalizes the name onto the settings object', () => {
+      const settings = normalizeGameSettings(DEFAULT_GAME_SETTINGS);
+
+      setPlayerName(settings, '  Bob  ');
+
+      expect(settings.playerName).toBe('Bob');
     });
   });
 

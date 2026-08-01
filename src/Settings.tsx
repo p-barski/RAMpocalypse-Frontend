@@ -5,11 +5,13 @@ import {
   removeControlKey,
   saveSettings,
   setAudioSetting,
+  setPlayerName,
   type ControlBindingKey,
   type GameSettings,
 } from './gameSettings';
+import type { Game } from './game';
 import './Settings.css';
-import { capitalize, formatKeyLabel } from './utils';
+import { capitalize, formatKeyLabel, sanitizePlayerName } from './utils';
 
 function keyToLabel(str: string): string {
   return capitalize(str.replace(/([A-Z])/g, ' $1').toLowerCase());
@@ -23,14 +25,17 @@ const CONTROL_BINDING_LABELS = Object.fromEntries(
 
 export interface SettingsOverlayProps {
   settings: GameSettings;
+  gameRef: RefObject<Game | null>;
   canvasRef: RefObject<HTMLCanvasElement | null>;
   openSettingsRef: RefObject<() => void>;
+  maxNameLength?: number;
 }
 
-function Settings({ settings, canvasRef, openSettingsRef }: SettingsOverlayProps) {
+function Settings({ settings, gameRef, canvasRef, openSettingsRef, maxNameLength }: SettingsOverlayProps) {
   const [open, setOpen] = useState(false);
   const [, rerender] = useReducer((n: number) => n + 1, 0);
   const [listeningAction, setListeningAction] = useState<ControlBindingKey | null>(null);
+  const [nameInput, setNameInput] = useState(settings.playerName);
 
   const handleChange = useCallback((settings: GameSettings) => {
     saveSettings(settings);
@@ -57,14 +62,24 @@ function Settings({ settings, canvasRef, openSettingsRef }: SettingsOverlayProps
     persist();
   };
 
+  const savePlayerName = () => {
+    const cleaned = sanitizePlayerName(nameInput, maxNameLength);
+    setNameInput(cleaned);
+    if (cleaned === settings.playerName) return;
+    setPlayerName(settings, cleaned);
+    persist();
+    gameRef.current?.setPlayerName(cleaned);
+  };
+
   useEffect(() => {
     openSettingsRef.current = () => {
+      setNameInput(settings.playerName);
       setOpen(true);
     };
     return () => {
       openSettingsRef.current = () => {};
     };
-  }, [openSettingsRef]);
+  }, [openSettingsRef, settings]);
 
   useEffect(() => {
     if (!open) return;
@@ -94,6 +109,29 @@ function Settings({ settings, canvasRef, openSettingsRef }: SettingsOverlayProps
             Close
           </button>
         </header>
+
+        <section className="settings-section">
+          <h3>Profile</h3>
+          <div className="settings-profile">
+            <label className="settings-text-row">
+              <span>Player name</span>
+              <input
+                type="text"
+                maxLength={maxNameLength}
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onBlur={savePlayerName}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    savePlayerName();
+                    canvasRef.current?.focus();
+                  }
+                }}
+                placeholder="Enter a name..."
+              />
+            </label>
+          </div>
+        </section>
 
         <section className="settings-section">
           <h3>Controls</h3>

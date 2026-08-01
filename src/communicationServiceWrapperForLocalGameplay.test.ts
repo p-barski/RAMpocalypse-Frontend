@@ -183,5 +183,10 @@ describe('CommunicationServiceWrapperForLocalGameplay', () => {
       await sut.sendMessage('hi', ChatMessageTypeValue.Lobby);
       expect(signalR.sendMessage).toHaveBeenCalledWith('hi', ChatMessageTypeValue.Lobby);
     });
+
+    it('always delegates setPlayerName to SignalR', async () => {
+      await sut.setPlayerName('Alice');
+      expect(signalR.setPlayerName).toHaveBeenCalledWith('Alice');
+    });
   });
 });

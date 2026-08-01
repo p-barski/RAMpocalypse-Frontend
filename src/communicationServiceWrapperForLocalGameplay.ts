@@ -48,6 +48,10 @@ export class CommunicationServiceWrapperForLocalGameplay implements Communicatio
     return this.signalR.requestMatchmaking();
   }
 
+  setPlayerName(name: string): Promise<void> {
+    return this.signalR.setPlayerName(name);
+  }
+
   async updatePlayerPosition(position: Position): Promise<void> {
     if (!this.useServerForGameplay()) return;
     await this.signalR.updatePlayerPosition(position);

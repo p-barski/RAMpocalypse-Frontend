@@ -1,5 +1,5 @@
 import { expect, describe, it, afterEach } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import './testHelpers/mockServer';
 import { cleanup, type RenderAppResult, renderApp } from './testHelpers/renderApp';
 import { loadSettings, SETTINGS_STORAGE_KEY } from './gameSettings';
@@ -27,6 +27,10 @@ function getMasterVolumeSlider(): HTMLInputElement {
 
 function getMuteCheckbox(): HTMLInputElement {
   return settingsOverlay().querySelector('.settings-mute-row input[type="checkbox"]') as HTMLInputElement;
+}
+
+function getPlayerNameInput(): HTMLInputElement {
+  return settingsOverlay().querySelector('.settings-text-row input[type="text"]') as HTMLInputElement;
 }
 
 function getDashRow(): HTMLElement {
@@ -94,6 +98,27 @@ describe('Settings integration', () => {
 
     expect(getMuteCheckbox()).toBeChecked();
     expect(loadSettings().audio.muted).toBe(true);
+  });
+
+  it('persists player name across close and reopen and notifies the server', async () => {
+    app = await renderApp();
+    openSettings();
+
+    const input = getPlayerNameInput();
+    fireEvent.change(input, { target: { value: '  Alice  ' } });
+    fireEvent.blur(input);
+
+    expect(input).toHaveValue('Alice');
+
+    await waitFor(() => {
+      expect(app.mockServer.hub.invokeSpy).toHaveBeenCalledWith('SetPlayerName', 'Alice');
+    });
+
+    closeSettings();
+    openSettings();
+
+    expect(getPlayerNameInput()).toHaveValue('Alice');
+    expect(loadSettings().playerName).toBe('Alice');
   });
 
   it('persists removing secondary dash key across close and reopen', async () => {

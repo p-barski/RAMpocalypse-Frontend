@@ -145,6 +145,32 @@
   cursor: not-allowed;
 }
 
+.settings-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.settings-text-row {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 9.5rem) 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.settings-text-row input[type='text'] {
+  width: 100%;
+  padding: 0.35rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background-color: rgba(0, 0, 0, 0.35);
+  color: white;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
 .settings-audio {
   display: flex;
   flex-direction: column;
@@ -191,7 +217,8 @@
 
 @media (max-width: 520px) {
   .settings-control-row,
-  .settings-slider-row {
+  .settings-slider-row,
+  .settings-text-row {
     grid-template-columns: 1fr;
     gap: 0.35rem;
   }

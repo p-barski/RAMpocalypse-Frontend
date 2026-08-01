@@ -5,6 +5,7 @@ export interface CommunicationService {
   isConnected: () => boolean;
   disconnect: () => Promise<void>;
   sendMessage: (message: string, type: ChatMessageType) => Promise<void>;
+  setPlayerName: (name: string) => Promise<void>;
   requestMatchmaking: () => Promise<void>;
   updatePlayerPosition: (position: Position) => Promise<void>;
   dash: (velocityVector: Vector2D) => Promise<boolean>;

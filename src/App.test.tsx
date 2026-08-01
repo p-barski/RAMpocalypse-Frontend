@@ -1,4 +1,4 @@
-import { expect, vi, describe, beforeEach, type Mock, it } from 'vitest';
+import { expect, vi, describe, beforeEach, afterEach, type Mock, it } from 'vitest';
 import { render, waitFor, screen, fireEvent } from '@testing-library/react';
 vi.mock('./createGame', () => ({
   createGame: vi.fn(),
@@ -9,6 +9,7 @@ vi.mock('./Chat', () => ({
 import App from './App';
 import { createGame } from './createGame';
 import { createMockGameApi, type MockGameApi } from './testHelpers/mocks';
+import gameConfig from '../public/gameconfig.json';
 
 describe('App tests', () => {
   let connectMock: Mock<() => Promise<void>>;
@@ -19,6 +20,14 @@ describe('App tests', () => {
     connectMock = vi.fn(async () => {});
     gameMock = createMockGameApi({ connect: connectMock });
     (createGame as Mock).mockReturnValue(gameMock);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify(gameConfig))),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('connects to the game', async () => {

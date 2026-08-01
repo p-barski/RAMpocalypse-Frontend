@@ -59,6 +59,14 @@ export class SignalRService implements CommunicationService {
     }
   }
 
+  async setPlayerName(name: string): Promise<void> {
+    try {
+      if (this.isConnected()) await this.connection.invoke('SetPlayerName', name);
+    } catch (error) {
+      console.error('SignalR: Failed to set player name', error);
+    }
+  }
+
   async requestMatchmaking(): Promise<void> {
     try {
       if (this.isConnected()) await this.connection.invoke('RequestMatchmaking');

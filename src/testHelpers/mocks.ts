@@ -37,6 +37,7 @@ export class MockGameConfig implements GameConfig {
   specialDamage = 20;
   respawnCooldownMs = 3000;
   spawnProtectionMs = 1000;
+  maxNameLength = 20;
 }
 
 export class MockTime implements Time {
@@ -89,6 +90,7 @@ export function createMockCommunicationService(): Mocked<CommunicationService> {
     isConnected: vi.fn(),
     disconnect: vi.fn(),
     sendMessage: vi.fn(),
+    setPlayerName: vi.fn(),
     requestMatchmaking: vi.fn(),
     updatePlayerPosition: vi.fn(),
     dash: vi.fn(),

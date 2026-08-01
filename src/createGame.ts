@@ -1,4 +1,4 @@
-import type { GameConfig } from './interfaces/gameConfig';
+import { loadGameConfig } from './gameConfigLoader';
 import { PlayerAttackController } from './playerAttackController';
 import { PlayerEntityManager } from './playerEntityManager';
 import { Game } from './game';
@@ -40,8 +40,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
     scaleFactor: 6,
   };
   const missingSprite = await SpriteLoader.loadMissingSprite();
-  const response = await fetch('/app/gameconfig.json'); //.catch(() => fetch(`${serverUrl}/gameconfig.json`));
-  const gameConfig: GameConfig = await response.json();
+  const gameConfig = await loadGameConfig();
 
   const gameTime = new GameTime();
   const audioController = new GameAudioController(settings.audio);
@@ -116,6 +115,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
     animationController,
     gameTime,
     gameSession,
+    settings.playerName,
   );
   communicationServiceWrapper.attachLocalAttackBridge({
     gameConfig,

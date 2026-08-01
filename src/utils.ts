@@ -3,6 +3,10 @@ import { Filter } from 'bad-words';
 
 export const profanityFilter = new Filter();
 
+export function sanitizePlayerName(name: string, maxNameLength = Infinity): string {
+  return profanityFilter.clean(name.trim().slice(0, maxNameLength));
+}
+
 export function sleep(ms: number) {
   const start = Date.now();
   let now = start;
@@ -31,7 +35,7 @@ export function dateToChatTimestamp(date: Date): string {
 export function convertChatMessageFromServer(message: ChatMessageServer): ChatMessage {
   return {
     text: profanityFilter.clean(message.text),
-    ownerName: message.ownerName,
+    ownerName: profanityFilter.clean(message.ownerName),
     timestamp: dateToChatTimestamp(new Date(message.timestamp)),
   };
 }

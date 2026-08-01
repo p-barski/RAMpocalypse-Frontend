@@ -39,6 +39,7 @@ export class Game implements CallbacksHandler {
   public readonly time: GameTime;
   private isExplicitlyStopped = false;
   private animationFrameId: number | null = null;
+  private playerName: string;
 
   constructor(
     gameConfig: GameConfig,
@@ -54,6 +55,7 @@ export class Game implements CallbacksHandler {
     animationController: AnimationController,
     time: GameTime,
     gameSession: GameSession,
+    playerName: string = '',
   ) {
     this.gameConfig = gameConfig;
     this.communicationService = communicationService;
@@ -68,6 +70,7 @@ export class Game implements CallbacksHandler {
     this.audioController = audioController;
     this.animationController = animationController;
     this.time = time;
+    this.playerName = playerName;
     this.inputHandler.setup(this.handleAttackInput, this.movementController.dash);
   }
 
@@ -124,6 +127,14 @@ export class Game implements CallbacksHandler {
       isAlive: true,
     });
     this.entityManager.updateLocalPlayerId(playerId);
+    if (this.playerName) {
+      await this.communicationService.setPlayerName(this.playerName);
+    }
+  }
+
+  async setPlayerName(name: string): Promise<void> {
+    this.playerName = name;
+    await this.communicationService.setPlayerName(name);
   }
 
   async requestMatchmaking(): Promise<void> {
