@@ -15,17 +15,18 @@ function createPlayerAndWeapon(angle: number, weaponHeight = 16): { player: Enti
   return { player, weapon };
 }
 
-function getMeleeAnimatedAtHalfProgress(
+function getMeleeAnimatedAtProgress(
   sut: EntityAnimationController,
   mockEntityManager: Mocked<EntityManager>,
   mockTime: MockTime,
   mockGameConfig: MockGameConfig,
   weapon: Entity,
   player: Entity,
+  progressPercent: number,
 ): Entity {
   mockEntityManager.getEntityById.mockReturnValue(player);
   sut.createMeleeAttackAnimation('');
-  mockTime.frameTimestamp = 0.5 * mockGameConfig.sharedAttackCooldownMs;
+  mockTime.frameTimestamp = progressPercent * mockGameConfig.sharedAttackCooldownMs;
   return sut.getAnimatedEntity(weapon);
 }
 
@@ -69,22 +70,48 @@ describe('EntityAnimationController', () => {
   });
 
   describe('meleeAnimation', () => {
-    it('entity is rotated up, attack should go up', () => {
+    it('swings to the left of the facing direction during the windup', () => {
       const { player, weapon } = createPlayerAndWeapon(0);
-      const animated = getMeleeAnimatedAtHalfProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player);
-      const halfW = player.width / 2;
-      const halfH = player.height / 2;
-      expect(animated.position.x).toStrictEqual(weapon.position.x - halfW);
-      expect(animated.position.y).toStrictEqual(weapon.position.y - halfH);
+      const swingRadius = (player.width + player.height) / 4;
+      const animated = getMeleeAnimatedAtProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player, 0.2);
+      expect(animated.position.x).toStrictEqual(weapon.position.x - swingRadius);
+      expect(animated.position.y).toStrictEqual(weapon.position.y);
+      expect(animated.position.angle).toStrictEqual(weapon.position.angle - Math.PI / 2);
     });
 
-    it('entity is rotated down, attack should go down', () => {
+    it('sweeps through the facing direction at the midpoint', () => {
+      const { player, weapon } = createPlayerAndWeapon(0);
+      const swingRadius = (player.width + player.height) / 4;
+      const animated = getMeleeAnimatedAtProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player, 0.5);
+      expect(animated.position.x).toStrictEqual(weapon.position.x);
+      expect(animated.position.y).toStrictEqual(weapon.position.y - swingRadius);
+      expect(animated.position.angle).toStrictEqual(weapon.position.angle);
+    });
+
+    it('finishes the sweep to the right of the facing direction', () => {
+      const { player, weapon } = createPlayerAndWeapon(0);
+      const swingRadius = (player.width + player.height) / 4;
+      const animated = getMeleeAnimatedAtProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player, 0.8);
+      expect(animated.position.x).toStrictEqual(weapon.position.x + swingRadius);
+      expect(animated.position.y).toStrictEqual(weapon.position.y);
+      expect(animated.position.angle).toStrictEqual(weapon.position.angle + Math.PI / 2);
+    });
+
+    it('respects the entity facing direction when rotated', () => {
       const { player, weapon } = createPlayerAndWeapon(Math.PI);
-      const animated = getMeleeAnimatedAtHalfProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player);
-      const halfW = player.width / 2;
-      const halfH = player.height / 2;
-      expect(animated.position.x).toStrictEqual(weapon.position.x + halfW);
-      expect(animated.position.y).toStrictEqual(weapon.position.y + halfH);
+      const swingRadius = (player.width + player.height) / 4;
+      const animated = getMeleeAnimatedAtProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player, 0.5);
+      expect(animated.position.x).toStrictEqual(weapon.position.x);
+      expect(animated.position.y).toStrictEqual(weapon.position.y + swingRadius);
+      expect(animated.position.angle).toStrictEqual(weapon.position.angle);
+    });
+
+    it('returns to rest once the animation finishes', () => {
+      const { player, weapon } = createPlayerAndWeapon(0);
+      const animated = getMeleeAnimatedAtProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player, 1);
+      expect(animated.position.x).toStrictEqual(weapon.position.x);
+      expect(animated.position.y).toStrictEqual(weapon.position.y);
+      expect(animated.position.angle).toStrictEqual(weapon.position.angle);
     });
   });
 

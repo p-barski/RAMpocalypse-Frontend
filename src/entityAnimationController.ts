@@ -26,12 +26,30 @@ export class EntityAnimationController implements AnimationController {
     }
     const entity = found.player;
     const weapon = found.weapon;
-    const quarterWidth = entity.width / 4;
-    const quarterHeight = entity.height / 4;
-    const steps: AnimationStep[] = [
-      { position: { x: -2 * quarterWidth, y: -2 * quarterHeight, angle: +Math.PI } satisfies Position, percent: 0.5 },
-      { position: { x: +2 * quarterWidth, y: +2 * quarterHeight, angle: -Math.PI } satisfies Position, percent: 1 },
+    // Sweeps the weapon through the front-facing half circle (left -> forward -> right)
+    // that matches melee hit-detection area
+    const swingRadius = (entity.width + entity.height) / 4;
+    const sweepKeyframes: { percent: number; position: Position }[] = [
+      { percent: 0.2, position: { x: -swingRadius, y: 0, angle: -Math.PI / 2 } satisfies Position },
+      { percent: 0.5, position: { x: 0, y: -swingRadius, angle: 0 } satisfies Position },
+      { percent: 0.8, position: { x: swingRadius, y: 0, angle: Math.PI / 2 } satisfies Position },
+      { percent: 1, position: { x: 0, y: 0, angle: 0 } satisfies Position },
     ];
+
+    const steps: AnimationStep[] = [];
+    let previous: Position = { x: 0, y: 0, angle: 0 };
+    for (const { percent, position } of sweepKeyframes) {
+      steps.push({
+        position: {
+          x: position.x - previous.x,
+          y: position.y - previous.y,
+          angle: position.angle - previous.angle,
+        } satisfies Position,
+        percent,
+      });
+      previous = position;
+    }
+
     const animation: Animation = {
       entity: weapon,
       durationMiliseconds: this.gameConfig.sharedAttackCooldownMs,
