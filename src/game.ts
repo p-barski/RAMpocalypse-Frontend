@@ -261,6 +261,9 @@ export class Game implements CallbacksHandler {
         case AttackTypeValue.Projectile:
           this.animationController.createProjectileAttackAnimation(attackEntity.ownerId);
           break;
+        case AttackTypeValue.Special:
+          this.animationController.createSpecialAttackAnimation(attackEntity.ownerId);
+          break;
         default:
           break;
       }

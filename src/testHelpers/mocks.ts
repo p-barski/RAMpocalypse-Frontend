@@ -181,6 +181,7 @@ export function createMockAnimationController(): Mocked<AnimationController> {
   return {
     createMeleeAttackAnimation: vi.fn(),
     createProjectileAttackAnimation: vi.fn(),
+    createSpecialAttackAnimation: vi.fn(),
     getAnimatedEntity: vi.fn(),
   };
 }

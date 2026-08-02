@@ -81,6 +81,9 @@ export class EntityAnimationController implements AnimationController {
     };
     this.animations.set(weapon.id, animation);
   }
+  createSpecialAttackAnimation(playerId: string): void {
+    this.createProjectileAttackAnimation(playerId);
+  }
 
   getAnimatedEntity(entity: Entity): Entity {
     const animation = this.animations.get(entity.id);
