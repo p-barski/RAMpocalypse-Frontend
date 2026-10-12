@@ -25,6 +25,7 @@ function App() {
   const gameRef = useRef<Game>(null);
   const openSettingsRef = useRef<() => void>(() => {});
   const onMessageReceivedRef = useRef<(message: ChatMessageServer) => void>(() => {});
+  const onClearLobbyChat = useRef<() => void>(() => {});
 
   useEffect(() => {
     loadGameConfig()
@@ -36,11 +37,16 @@ function App() {
     onMessageReceivedRef.current = handler;
   }, []);
 
+  const registerOnClearLobbyChat = useCallback((handler: () => void) => {
+    onClearLobbyChat.current = handler;
+  }, []);
+
   const sendMessage = useCallback(async (message: string, type: ChatMessageType) => {
     await gameRef.current?.sendMessage(message, type);
   }, []);
 
   const handleRequestMatchmaking = useCallback(async () => {
+    if (!gameRef.current?.gameSession.isOnlineMatch) onClearLobbyChat.current();
     await gameRef.current?.requestMatchmaking();
   }, []);
 
@@ -87,6 +93,7 @@ function App() {
         serverUrl={serverUrl}
         sendMessage={sendMessage}
         registerOnMessageReceived={registerOnMessageReceived}
+        registerOnClearLobbyChat={registerOnClearLobbyChat}
       />
     </div>
   );

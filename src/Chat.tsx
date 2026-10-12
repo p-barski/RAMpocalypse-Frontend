@@ -31,9 +31,10 @@ interface ChatProps {
   serverUrl: string;
   sendMessage: (message: string, type: ChatMessageType) => Promise<void>;
   registerOnMessageReceived: (callback: (msg: ChatMessageServer) => void) => void;
+  registerOnClearLobbyChat: (callback: () => void) => void;
 }
 
-function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived }: ChatProps) {
+function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived, registerOnClearLobbyChat }: ChatProps) {
   const isChatActiveRef = useRef(false);
   const chatCooldownRef = useRef<ChatCooldown | null>(null);
   const [onCooldown, setOnCooldown] = useState(false);
@@ -77,6 +78,10 @@ function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived }: 
       }
     };
 
+    const onClearLobbyChat = () => {
+      setLobbyMessages([]);
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       const isActive = isChatActiveRef.current;
       if (e.key === 'Enter') {
@@ -91,6 +96,7 @@ function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived }: 
     };
 
     registerOnMessageReceived(onMessageReceived);
+    registerOnClearLobbyChat(onClearLobbyChat);
     window.addEventListener('keydown', handleKeyDown);
 
     (async () => {
@@ -110,7 +116,7 @@ function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived }: 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [registerOnMessageReceived, canvasRef, serverUrl, setIsChatActiveState]);
+  }, [registerOnClearLobbyChat, registerOnMessageReceived, canvasRef, serverUrl, setIsChatActiveState]);
 
   useEffect(() => {
     bottomOfMessagesDivRef.current?.scrollIntoView({ behavior: 'instant' });
