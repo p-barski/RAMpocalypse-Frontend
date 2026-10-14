@@ -85,13 +85,13 @@ function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived, re
     const handleKeyDown = (e: KeyboardEvent) => {
       const isActive = isChatActiveRef.current;
       if (e.key === 'Enter') {
-        if (isActive) canvasRef.current?.focus();
-        else messageInputRef.current?.focus();
-        setIsChatActiveState(!isActive);
-      }
-      if (e.key === 'Escape') {
-        setIsChatActiveState(false);
-        canvasRef.current?.focus();
+        if (isActive) {
+          canvasRef.current?.focus();
+          setIsChatActiveState(!isActive);
+        } else if (document.activeElement instanceof HTMLCanvasElement) {
+          messageInputRef.current?.focus();
+          setIsChatActiveState(!isActive);
+        }
       }
     };
 
