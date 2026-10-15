@@ -49,6 +49,7 @@
   height: 10vh;
   width: 100%;
   overflow-y: scroll;
+  align-content: end;
 }
 
 .message {
