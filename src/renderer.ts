@@ -33,6 +33,13 @@ export class Renderer implements RenderingService {
   private readonly MELEE_RADIUS = 30;
   private readonly PROJECTILE_RADIUS = 10;
 
+  // Googly eye geometry, as fractions of the sprite's drawn width/height
+  private readonly EYE_RADIUS_RATIO = 0.09;
+  private readonly EYE_SPACING_RATIO = 0.15;
+  private readonly EYE_FORWARD_OFFSET_RATIO = 0.04;
+  private readonly PUPIL_RADIUS_RATIO = 0.6;
+  private readonly PUPIL_OFFSET_RATIO = 1.07;
+
   private readonly COLOR_BORDER = '#ffffff';
   private readonly COLOR_HEALTH_BG = '#ff0000';
   private readonly COLOR_HEALTH_FG = '#00ff00';
@@ -42,6 +49,8 @@ export class Renderer implements RenderingService {
   private readonly COLOR_UI_TEXT = '#ffffff';
   private readonly COLOR_OVERLAY_BG = 'rgba(0, 0, 0, 0.7)';
   private readonly COLOR_BACKGROUND = '#282c34';
+  private readonly COLOR_EYE_WHITE = '#ffffff';
+  private readonly COLOR_EYE_PUPIL = '#000000';
 
   constructor(
     ctx: CanvasRenderingContext2D,
@@ -131,12 +140,16 @@ export class Renderer implements RenderingService {
     const worldAngle = offsetAngle + entity.position.angle;
 
     this.drawImageToCanvas(entity.image, canvasX, canvasY, canvasScale, worldAngle);
+    if (entity.id.startsWith('player_')) {
+      this.drawGooglyEyes(canvasX, canvasY, drawWidth, drawHeight, worldAngle);
+    }
 
     for (const subEntity of entity.subEntities) {
       this.drawEntity(subEntity, worldCenterX, worldCenterY, worldAngle);
     }
     this.drawEntityHealthBar(entity, canvasX - drawWidth / 2, canvasY - drawHeight / 2);
   }
+
   private drawImageToCanvas(image: ImageBitmap, centerX: number, centerY: number, scale: number, angle: number): void {
     const drawWidth = Math.round(image.width * scale);
     const drawHeight = Math.round(image.height * scale);
@@ -145,6 +158,30 @@ export class Renderer implements RenderingService {
     this.ctx.translate(centerX, centerY);
     this.ctx.rotate(angle);
     this.ctx.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+    this.ctx.restore();
+  }
+
+  private drawGooglyEyes(centerX: number, centerY: number, width: number, height: number, angle: number): void {
+    const eyeRadius = width * this.EYE_RADIUS_RATIO;
+    const pupilRadius = eyeRadius * this.PUPIL_RADIUS_RATIO;
+    const pupilOffset = eyeRadius - pupilRadius * this.PUPIL_OFFSET_RATIO;
+    const eyeX = width * this.EYE_SPACING_RATIO;
+    const eyeY = -height * this.EYE_FORWARD_OFFSET_RATIO;
+
+    this.ctx.save();
+    this.ctx.translate(centerX, centerY);
+    this.ctx.rotate(angle);
+    for (const x of [-eyeX, eyeX]) {
+      this.ctx.fillStyle = this.COLOR_EYE_WHITE;
+      this.ctx.beginPath();
+      this.ctx.arc(x, eyeY, eyeRadius, 0, TAU);
+      this.ctx.fill();
+
+      this.ctx.fillStyle = this.COLOR_EYE_PUPIL;
+      this.ctx.beginPath();
+      this.ctx.arc(x, eyeY - pupilOffset, pupilRadius, 0, TAU);
+      this.ctx.fill();
+    }
     this.ctx.restore();
   }
 
