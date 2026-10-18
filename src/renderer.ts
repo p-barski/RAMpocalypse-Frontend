@@ -40,6 +40,16 @@ export class Renderer implements RenderingService {
   private readonly PUPIL_RADIUS_RATIO = 0.6;
   private readonly PUPIL_OFFSET_RATIO = 1.07;
 
+  // Legs geometry, as fractions of the sprite's drawn height
+  private readonly LEG_SPACING_RATIO = 0.1;
+  private readonly LEG_LENGTH_RATIO = 0.3;
+  private readonly LEG_THICKNESS_RATIO = 0.1;
+  private readonly LEG_OUTLINE_RATIO = 0.02;
+  private readonly BOOT_LENGTH_RATIO = 0.4;
+  private readonly BOOT_HEIGHT_RATIO = 0.14;
+  private readonly TOE_RADIUS_RATIO = 0.8;
+  private readonly HEEL_RADIUS_RATIO = 0.2;
+
   private readonly COLOR_BORDER = '#ffffff';
   private readonly COLOR_HEALTH_BG = '#ff0000';
   private readonly COLOR_HEALTH_FG = '#00ff00';
@@ -49,8 +59,12 @@ export class Renderer implements RenderingService {
   private readonly COLOR_UI_TEXT = '#ffffff';
   private readonly COLOR_OVERLAY_BG = 'rgba(0, 0, 0, 0.7)';
   private readonly COLOR_BACKGROUND = '#282c34';
+
   private readonly COLOR_EYE_WHITE = '#ffffff';
   private readonly COLOR_EYE_PUPIL = '#000000';
+
+  private readonly COLOR_LEG = '#000000';
+  private readonly COLOR_LEG_OUTLINE = '#ffffff';
 
   constructor(
     ctx: CanvasRenderingContext2D,
@@ -139,8 +153,11 @@ export class Renderer implements RenderingService {
     const canvasY = Math.round(this.viewportManager.gameToCanvasY(worldCenterY));
     const worldAngle = offsetAngle + entity.position.angle;
 
+    if (this.isPlayerEntity(entity)) {
+      this.drawLegs(entity, canvasX, canvasY, worldAngle);
+    }
     this.drawImageToCanvas(entity.image, canvasX, canvasY, canvasScale, worldAngle);
-    if (entity.id.startsWith('player_')) {
+    if (this.isPlayerEntity(entity)) {
       this.drawGooglyEyes(canvasX, canvasY, drawWidth, drawHeight, worldAngle);
     }
 
@@ -148,6 +165,71 @@ export class Renderer implements RenderingService {
       this.drawEntity(subEntity, worldCenterX, worldCenterY, worldAngle);
     }
     this.drawEntityHealthBar(entity, canvasX - drawWidth / 2, canvasY - drawHeight / 2);
+  }
+
+  private isPlayerEntity(entity: Entity): boolean {
+    return entity.id.startsWith('player_');
+  }
+
+  private drawLegs(entity: Entity, centerX: number, centerY: number, angle: number): void {
+    const scale = this.viewportManager.scale;
+    const height = entity.height * scale;
+    const hipOffsetX = entity.width * scale * this.LEG_SPACING_RATIO;
+    const hipY = height / 2;
+
+    this.ctx.save();
+    this.ctx.translate(centerX, centerY);
+    this.ctx.rotate(angle);
+    this.ctx.lineCap = 'round';
+    this.ctx.lineJoin = 'round';
+    this.drawLeg(-hipOffsetX, hipY, height);
+    this.drawLeg(hipOffsetX, hipY, height);
+    this.ctx.restore();
+  }
+
+  private drawLeg(hipX: number, hipY: number, height: number): void {
+    const legLength = height * this.LEG_LENGTH_RATIO;
+    const legThickness = height * this.LEG_THICKNESS_RATIO;
+    const outline = height * this.LEG_OUTLINE_RATIO;
+    const bootLength = height * this.BOOT_LENGTH_RATIO;
+    const bootHeight = height * this.BOOT_HEIGHT_RATIO;
+
+    this.ctx.save();
+    this.ctx.translate(hipX, hipY);
+
+    const heelX = -legThickness;
+    const bootX = Math.min(heelX, heelX + bootLength);
+    const bootY = legLength - bootHeight / 2;
+    const toeRadius = bootHeight * this.TOE_RADIUS_RATIO;
+    const heelRadius = bootHeight * this.HEEL_RADIUS_RATIO;
+    const bootRadii = [heelRadius, toeRadius, heelRadius, heelRadius];
+
+    const draw = (style: string, outline: number) => {
+      this.ctx.strokeStyle = style;
+      this.ctx.fillStyle = style;
+      this.ctx.lineWidth = legThickness + 2 * outline;
+
+      // leg
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, 0);
+      this.ctx.lineTo(0, legLength);
+      this.ctx.stroke();
+
+      // boot
+      this.ctx.beginPath();
+      this.ctx.roundRect(
+        bootX - outline,
+        bootY - outline,
+        bootLength + 2 * outline,
+        bootHeight + 2 * outline,
+        bootRadii,
+      );
+      this.ctx.fill();
+    };
+    draw(this.COLOR_LEG_OUTLINE, outline);
+    draw(this.COLOR_LEG, 0);
+
+    this.ctx.restore();
   }
 
   private drawImageToCanvas(image: ImageBitmap, centerX: number, centerY: number, scale: number, angle: number): void {
@@ -186,8 +268,8 @@ export class Renderer implements RenderingService {
   }
 
   private drawEntityHealthBar(entity: Entity, canvasX: number, canvasY: number): void {
+    if (!this.isPlayerEntity(entity)) return;
     const playerId = entity.id;
-    if (!playerId.startsWith('player_')) return;
 
     const player = this.gameStateManager.getPlayer(playerId);
     if (!player) return;
