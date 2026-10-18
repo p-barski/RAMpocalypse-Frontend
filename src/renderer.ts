@@ -131,11 +131,11 @@ export class Renderer implements RenderingService {
     const worldAngle = offsetAngle + entity.position.angle;
 
     this.drawImageToCanvas(entity.image, canvasX, canvasY, canvasScale, worldAngle);
-    this.drawEntityHealthBar(entity, canvasX - drawWidth / 2, canvasY - drawHeight / 2);
 
     for (const subEntity of entity.subEntities) {
       this.drawEntity(subEntity, worldCenterX, worldCenterY, worldAngle);
     }
+    this.drawEntityHealthBar(entity, canvasX - drawWidth / 2, canvasY - drawHeight / 2);
   }
   private drawImageToCanvas(image: ImageBitmap, centerX: number, centerY: number, scale: number, angle: number): void {
     const drawWidth = Math.round(image.width * scale);
@@ -158,7 +158,9 @@ export class Renderer implements RenderingService {
     const health = player.health;
     const maxHealth = player.maxHealth;
     const scale = this.viewportManager.scale;
-    this.drawHealthBar(canvasX, canvasY - this.HEALTH_BAR_OFFSET_Y * scale, entity.width * scale, health, maxHealth);
+    const halfWidth = (entity.width / 2) * scale;
+    const centeredX = canvasX + halfWidth / 2;
+    this.drawHealthBar(centeredX, canvasY - this.HEALTH_BAR_OFFSET_Y * scale, halfWidth, health, maxHealth);
   }
 
   private drawHealthBar(x: number, y: number, width: number, health: number, maxHealth: number): void {
