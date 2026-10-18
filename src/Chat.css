@@ -59,6 +59,10 @@
   overflow-wrap: break-word;
 }
 
+.chat-warning {
+  color: rgb(255, 120, 120);
+}
+
 .chat-input-container {
   display: flex;
   align-content: left;

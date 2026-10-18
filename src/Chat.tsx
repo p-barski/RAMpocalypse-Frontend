@@ -30,14 +30,26 @@ interface ChatProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   serverUrl: string;
   sendMessage: (message: string, type: ChatMessageType) => Promise<void>;
+  isConnected: () => boolean;
   registerOnMessageReceived: (callback: (msg: ChatMessageServer) => void) => void;
   registerOnClearLobbyChat: (callback: () => void) => void;
 }
 
-function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived, registerOnClearLobbyChat }: ChatProps) {
+const NO_CONNECTION_WARNING_DURATION_MS = 3000;
+
+function Chat({
+  canvasRef,
+  serverUrl,
+  sendMessage,
+  isConnected,
+  registerOnMessageReceived,
+  registerOnClearLobbyChat,
+}: ChatProps) {
   const isChatActiveRef = useRef(false);
   const chatCooldownRef = useRef<ChatCooldown | null>(null);
   const [onCooldown, setOnCooldown] = useState(false);
+  const [showNoConnectionWarning, setShowNoConnectionWarning] = useState(false);
+  const noConnectionWarningTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [isChatActive, setIsChatActive] = useState(false);
   const [activeTab, setActiveTab] = useState<ChatMessageType>(ChatMessageTypeValue.Global);
   const [globalMessages, setGlobalMessages] = useState<ChatMessage[]>([]);
@@ -54,6 +66,15 @@ function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived, re
   const handleSendMessage = useCallback(() => {
     const message = messageInputRef.current?.value;
     if (message === undefined || !message.trim()) return;
+    if (!isConnected()) {
+      setShowNoConnectionWarning(true);
+      clearTimeout(noConnectionWarningTimeoutRef.current);
+      noConnectionWarningTimeoutRef.current = setTimeout(
+        () => setShowNoConnectionWarning(false),
+        NO_CONNECTION_WARNING_DURATION_MS,
+      );
+      return;
+    }
     const cooldown = chatCooldownRef.current?.getRemainingCooldown();
     if (cooldown !== undefined && cooldown > 0) {
       setOnCooldown(true);
@@ -63,7 +84,7 @@ function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived, re
     chatCooldownRef.current?.updateCooldowns();
     sendMessage(profanityFilter.clean(message), activeTab);
     messageInputRef.current!.value = '';
-  }, [sendMessage, activeTab]);
+  }, [sendMessage, isConnected, activeTab]);
 
   useEffect(() => {
     chatCooldownRef.current = new ChatCooldown();
@@ -115,12 +136,13 @@ function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived, re
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      clearTimeout(noConnectionWarningTimeoutRef.current);
     };
   }, [registerOnClearLobbyChat, registerOnMessageReceived, canvasRef, serverUrl, setIsChatActiveState]);
 
   useEffect(() => {
     bottomOfMessagesDivRef.current?.scrollIntoView({ behavior: 'instant' });
-  }, [activeMessages]);
+  }, [activeMessages, showNoConnectionWarning]);
 
   return (
     <div className={`chat-container ${isChatActive ? 'active' : ''}`}>
@@ -147,6 +169,9 @@ function Chat({ canvasRef, serverUrl, sendMessage, registerOnMessageReceived, re
               <span>{msg.text}</span>
             </div>
           ))}
+          {showNoConnectionWarning && (
+            <div className="chat-warning">No connection to the server. Message was not sent.</div>
+          )}
         </div>
         <div ref={bottomOfMessagesDivRef} />
       </div>

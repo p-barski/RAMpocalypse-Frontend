@@ -1,5 +1,5 @@
-import { expect, describe, it, afterEach } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { expect, describe, it, afterEach, vi } from 'vitest';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react';
 import './testHelpers/mockServer';
 import { cleanup, type RenderAppResult, renderApp } from './testHelpers/renderApp';
 import { ChatMessageTypeValue, type ChatMessageServer } from './interfaces/messageInterfaces';
@@ -36,6 +36,7 @@ describe('Chat integration tests', () => {
 
   afterEach(() => {
     if (app) cleanup(app);
+    vi.useRealTimers();
   });
 
   it('loads global chat history from the server', async () => {
@@ -74,6 +75,24 @@ describe('Chat integration tests', () => {
     await waitFor(() => {
       expect(app.mockServer.hub.invokeSpy).toHaveBeenCalledWith('SendMessage', msgText, ChatMessageTypeValue.Global);
     });
+  });
+
+  it('shows a warning for 3s and keeps the input when sending without a connection', async () => {
+    app = await renderApp();
+    app.mockServer.hub.connected = false;
+    vi.useFakeTimers();
+    const msgText = 'Offline message';
+    typeAndSend(msgText);
+
+    const warningText = 'No connection to the server. Message was not sent.';
+    expect(screen.getByText(warningText)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText<HTMLInputElement>('Type a message...').value).toBe(msgText);
+    expect(app.mockServer.hub.invokeSpy).not.toHaveBeenCalledWith('SendMessage', msgText, ChatMessageTypeValue.Global);
+
+    act(() => vi.advanceTimersByTime(2999));
+    expect(screen.getByText(warningText)).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.queryByText(warningText)).not.toBeInTheDocument();
   });
 
   it('renders incoming hub messages in the UI', async () => {

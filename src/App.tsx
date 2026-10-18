@@ -45,6 +45,8 @@ function App() {
     await gameRef.current?.sendMessage(message, type);
   }, []);
 
+  const isConnected = useCallback(() => gameRef.current?.communicationService.isConnected() ?? false, []);
+
   const handleRequestMatchmaking = useCallback(async () => {
     if (!gameRef.current?.gameSession.isOnlineMatch) onClearLobbyChat.current();
     await gameRef.current?.requestMatchmaking();
@@ -92,6 +94,7 @@ function App() {
         canvasRef={canvasRef}
         serverUrl={serverUrl}
         sendMessage={sendMessage}
+        isConnected={isConnected}
         registerOnMessageReceived={registerOnMessageReceived}
         registerOnClearLobbyChat={registerOnClearLobbyChat}
       />
