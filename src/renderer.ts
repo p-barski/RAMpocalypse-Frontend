@@ -135,8 +135,9 @@ export class Renderer implements RenderingService {
     return player !== undefined && !player.isAlive;
   }
 
-  private drawEntity(entity: Entity, parentCenterX = 0, parentCenterY = 0, offsetAngle = 0): void {
-    entity = this.animationController.getAnimatedEntity(entity);
+  // offsetAngle rotates both position and entity, facingAngle rotates only the entity around its own center
+  private drawEntity(entity: Entity, parentCenterX = 0, parentCenterY = 0, offsetAngle = 0, facingAngle = 0): void {
+    entity = this.animationController.getAnimatedEntity(entity, facingAngle);
     const canvasScale = this.viewportManager.gameToCanvasSize(entity.spriteData.scaleFactor);
     const drawWidth = Math.round(entity.image.width * canvasScale);
     const drawHeight = Math.round(entity.image.height * canvasScale);
@@ -151,18 +152,24 @@ export class Renderer implements RenderingService {
 
     const canvasX = Math.round(this.viewportManager.gameToCanvasX(worldCenterX));
     const canvasY = Math.round(this.viewportManager.gameToCanvasY(worldCenterY));
-    const worldAngle = offsetAngle + entity.position.angle;
+    const worldAngle = offsetAngle + facingAngle + entity.position.angle;
+    const isPlayer = this.isPlayerEntity(entity);
 
-    if (this.isPlayerEntity(entity)) {
+    // Player body stays upright, only weapon, pupils and boots follow the player's angle in place
+    if (isPlayer) {
       this.drawLegs(entity, canvasX, canvasY, worldAngle);
     }
-    this.drawImageToCanvas(entity.image, canvasX, canvasY, canvasScale, worldAngle);
-    if (this.isPlayerEntity(entity)) {
+    this.drawImageToCanvas(entity.image, canvasX, canvasY, canvasScale, isPlayer ? offsetAngle : worldAngle);
+    if (isPlayer) {
       this.drawGooglyEyes(canvasX, canvasY, drawWidth, drawHeight, worldAngle);
     }
 
     for (const subEntity of entity.subEntities) {
-      this.drawEntity(subEntity, worldCenterX, worldCenterY, worldAngle);
+      if (isPlayer) {
+        this.drawEntity(subEntity, worldCenterX, worldCenterY, offsetAngle, worldAngle - offsetAngle);
+      } else {
+        this.drawEntity(subEntity, worldCenterX, worldCenterY, worldAngle);
+      }
     }
     this.drawEntityHealthBar(entity, canvasX - drawWidth / 2, canvasY - drawHeight / 2);
   }
@@ -179,15 +186,15 @@ export class Renderer implements RenderingService {
 
     this.ctx.save();
     this.ctx.translate(centerX, centerY);
-    this.ctx.rotate(angle);
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
-    this.drawLeg(-hipOffsetX, hipY, height);
-    this.drawLeg(hipOffsetX, hipY, height);
+    this.drawLeg(-hipOffsetX, hipY, height, angle);
+    this.drawLeg(hipOffsetX, hipY, height, angle);
     this.ctx.restore();
   }
 
-  private drawLeg(hipX: number, hipY: number, height: number): void {
+  // Legs hang straight down, boots rotate around the ankle so the toe points where the player faces
+  private drawLeg(hipX: number, hipY: number, height: number, angle: number): void {
     const legLength = height * this.LEG_LENGTH_RATIO;
     const legThickness = height * this.LEG_THICKNESS_RATIO;
     const outline = height * this.LEG_OUTLINE_RATIO;
@@ -199,7 +206,7 @@ export class Renderer implements RenderingService {
 
     const heelX = -legThickness;
     const bootX = Math.min(heelX, heelX + bootLength);
-    const bootY = legLength - bootHeight / 2;
+    const bootY = -bootHeight / 2;
     const toeRadius = bootHeight * this.TOE_RADIUS_RATIO;
     const heelRadius = bootHeight * this.HEEL_RADIUS_RATIO;
     const bootRadii = [heelRadius, toeRadius, heelRadius, heelRadius];
@@ -216,6 +223,9 @@ export class Renderer implements RenderingService {
       this.ctx.stroke();
 
       // boot
+      this.ctx.save();
+      this.ctx.translate(0, legLength);
+      this.ctx.rotate(angle - Math.PI / 2);
       this.ctx.beginPath();
       this.ctx.roundRect(
         bootX - outline,
@@ -225,6 +235,7 @@ export class Renderer implements RenderingService {
         bootRadii,
       );
       this.ctx.fill();
+      this.ctx.restore();
     };
     draw(this.COLOR_LEG_OUTLINE, outline);
     draw(this.COLOR_LEG, 0);
@@ -249,10 +260,11 @@ export class Renderer implements RenderingService {
     const pupilOffset = eyeRadius - pupilRadius * this.PUPIL_OFFSET_RATIO;
     const eyeX = width * this.EYE_SPACING_RATIO;
     const eyeY = -height * this.EYE_FORWARD_OFFSET_RATIO;
+    const pupilX = Math.sin(angle) * pupilOffset;
+    const pupilY = -Math.cos(angle) * pupilOffset;
 
     this.ctx.save();
     this.ctx.translate(centerX, centerY);
-    this.ctx.rotate(angle);
     for (const x of [-eyeX, eyeX]) {
       this.ctx.fillStyle = this.COLOR_EYE_WHITE;
       this.ctx.beginPath();
@@ -261,7 +273,7 @@ export class Renderer implements RenderingService {
 
       this.ctx.fillStyle = this.COLOR_EYE_PUPIL;
       this.ctx.beginPath();
-      this.ctx.arc(x, eyeY - pupilOffset, pupilRadius, 0, TAU);
+      this.ctx.arc(x + pupilX, eyeY + pupilY, pupilRadius, 0, TAU);
       this.ctx.fill();
     }
     this.ctx.restore();

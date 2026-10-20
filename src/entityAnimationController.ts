@@ -85,7 +85,8 @@ export class EntityAnimationController implements AnimationController {
     this.createProjectileAttackAnimation(playerId);
   }
 
-  getAnimatedEntity(entity: Entity): Entity {
+  // parentAngle - angle of the frame animation offsets are expressed in, on top of entity's own angle
+  getAnimatedEntity(entity: Entity, parentAngle = 0): Entity {
     const animation = this.animations.get(entity.id);
     if (animation === undefined) {
       return entity;
@@ -120,8 +121,8 @@ export class EntityAnimationController implements AnimationController {
     offsetX += nextStep.position.x * stepProgressPercent;
     offsetY += nextStep.position.y * stepProgressPercent;
     offsetAngle += nextStep.position.angle * stepProgressPercent;
-    const cos = Math.cos(entity.position.angle);
-    const sin = Math.sin(entity.position.angle);
+    const cos = Math.cos(parentAngle + entity.position.angle);
+    const sin = Math.sin(parentAngle + entity.position.angle);
     const newPosition: Position = {
       x: entity.position.x + (offsetX * cos - offsetY * sin),
       y: entity.position.y + (offsetX * sin + offsetY * cos),

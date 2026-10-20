@@ -139,14 +139,10 @@ export class PlayerAttackController implements AttackController {
         if (entity.id != localPlayer.id && entity.id.startsWith('player_')) {
           const halfWidth = entity.width / 2;
           const halfHeight = entity.height / 2;
-          const cos = Math.cos(-entity.position.angle);
-          const sin = Math.sin(-entity.position.angle);
           for (const [id, attack] of this.ownProjectiles) {
             const dx = attack.currentPosition.x - entity.position.x;
             const dy = attack.currentPosition.y - entity.position.y;
-            const localX = dx * cos - dy * sin;
-            const localY = dx * sin + dy * cos;
-            if (Math.abs(localX) <= halfWidth && Math.abs(localY) <= halfHeight) {
+            if (Math.abs(dx) <= halfWidth && Math.abs(dy) <= halfHeight) {
               this.communicationService.projectileHitPlayer(attack.id, entity.id);
               toRemove.push(id);
             }
