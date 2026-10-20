@@ -98,6 +98,8 @@ export class Game implements CallbacksHandler {
     this.entityManager.clearRemoteEntities();
     this.attackController.clear();
     const localPlayer = this.entityManager.getLocalPlayerEntity();
+    // In case of dying in a match before
+    this.entityManager.showPlayer(localPlayer.id, localPlayer.position);
     this.gameStateManager.reset();
     this.gameStateManager.addPlayer({
       id: localPlayer.id,
@@ -141,6 +143,8 @@ export class Game implements CallbacksHandler {
     if (this.gameStateManager.isMatchmaking()) return;
     if (this.gameStateManager.isPlaying() && this.gameSession.isOnlineMatch) return;
     if (!this.communicationService.isConnected()) return;
+    // cleanup after match
+    if (this.gameStateManager.hasEnded()) this.enterLocalSandbox();
     this.gameStateManager.setGameState('matchmaking');
     this.gameStateManager.setWinnerId('');
     await this.communicationService.requestMatchmaking();
@@ -203,7 +207,7 @@ export class Game implements CallbacksHandler {
       this.gameStateManager.addPlayer(player);
     }
 
-    this.entityManager.updateLocalPlayerPosition(currentPlayer.position);
+    this.entityManager.showPlayer(playerId, currentPlayer.position);
     await this.entityManager.updateLocalPlayerSprite(currentPlayer.spriteData);
     await this.entityManager.updateLocalPlayerSubEntities(currentPlayer.subEntities);
 
@@ -297,7 +301,9 @@ export class Game implements CallbacksHandler {
   onGameEnded = async (winnerId: string): Promise<void> => {
     this.gameStateManager.setGameState('ended');
     this.gameStateManager.setWinnerId(winnerId);
-    sleepAsync(3000).then(() => this.enterLocalSandbox());
+    sleepAsync(3000).then(() => {
+      if (this.gameStateManager.hasEnded()) this.enterLocalSandbox();
+    });
   };
 
   private handleAttackInput = (attackType: AttackType): void => {

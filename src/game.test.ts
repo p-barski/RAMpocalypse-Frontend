@@ -118,6 +118,35 @@ describe('Game', () => {
     });
   });
 
+  describe('after losing a match', () => {
+    it('shows the local player again once back in the local sandbox', async () => {
+      await sut.onPlayerDied('local');
+      expect(mockEntityManager.hidePlayer).toHaveBeenCalledWith('local');
+
+      mockGameStateManager.hasEnded.mockReturnValue(true);
+      await sut.onGameEnded('remote');
+      await vi.advanceTimersByTimeAsync(3000);
+
+      expect(mockEntityManager.showPlayer).toHaveBeenCalledWith('local', undefined);
+    });
+
+    it('does not switch to the local sandbox if the player requeued from the end screen', async () => {
+      mockCommunicationService.isConnected.mockReturnValue(true);
+      mockGameStateManager.hasEnded.mockReturnValue(true);
+      await sut.onGameEnded('remote');
+
+      await sut.requestMatchmaking();
+      expect(mockEntityManager.clearRemoteEntities).toHaveBeenCalledTimes(1);
+      expect(mockGameStateManager.setGameState).toHaveBeenLastCalledWith('matchmaking');
+
+      mockGameStateManager.hasEnded.mockReturnValue(false);
+      await vi.advanceTimersByTimeAsync(3000);
+
+      expect(mockEntityManager.clearRemoteEntities).toHaveBeenCalledTimes(1);
+      expect(mockGameStateManager.setGameState).toHaveBeenLastCalledWith('matchmaking');
+    });
+  });
+
   describe('onOtherPlayerPositionUpdated', () => {
     it('ignores updates for players whose entity has not been revealed yet', async () => {
       mockEntityManager.getEntityById.mockReturnValue(undefined);
