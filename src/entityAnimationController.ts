@@ -1,17 +1,32 @@
-import type { Animation, AnimationController, AnimationStep } from './interfaces/animationController';
+import type { Animation, AnimationController, AnimationStep, LegLifts } from './interfaces/animationController';
 import type { EntityManager } from './interfaces/entityManager';
 import type { Time } from './interfaces/time';
 import type { Position } from './interfaces/messageInterfaces';
 import type { Entity } from './interfaces/entity';
 import type { GameConfig } from './interfaces/gameConfig';
+import { clamp, TAU } from './mathUtils';
 
 const STEP_ZERO: AnimationStep = { position: { x: 0, y: 0, angle: 0 } satisfies Position, percent: 0 };
 
+interface WalkState {
+  x: number;
+  y: number;
+  lastMovedAt: number;
+  phase: number;
+  intensity: number;
+}
+
 export class EntityAnimationController implements AnimationController {
   private readonly animations: Map<string, Animation> = new Map();
+  private readonly walkStates: Map<string, WalkState> = new Map();
   private readonly gameConfig: GameConfig;
   private readonly entityManager: EntityManager;
   private readonly time: Time;
+
+  private readonly WALK_CYCLE_S = 0.3;
+  private readonly WALK_LIFT_RATIO = 0.06;
+  private readonly WALK_STOP_DELAY_MS = 150;
+  private readonly WALK_BLEND_S = 0.05;
 
   constructor(gameConfig: GameConfig, entityManager: EntityManager, time: Time) {
     this.gameConfig = gameConfig;
@@ -133,6 +148,41 @@ export class EntityAnimationController implements AnimationController {
     };
     newEntity.position = newPosition;
     return newEntity;
+  }
+
+  getWalkingLegLifts(player: Entity): LegLifts {
+    const state = this.updateWalkState(player);
+    const maxLift = player.height * this.WALK_LIFT_RATIO * state.intensity;
+    return {
+      left: Math.max(0, Math.sin(state.phase)) * maxLift,
+      right: Math.max(0, -Math.sin(state.phase)) * maxLift,
+    };
+  }
+
+  resetWalkState(entityId: string): void {
+    this.walkStates.delete(entityId);
+  }
+
+  private updateWalkState(player: Entity): WalkState {
+    let state = this.walkStates.get(player.id);
+    if (!state) {
+      state = { x: player.position.x, y: player.position.y, lastMovedAt: -Infinity, phase: 0, intensity: 0 };
+      this.walkStates.set(player.id, state);
+    }
+
+    if (player.position.x !== state.x || player.position.y !== state.y) {
+      state.x = player.position.x;
+      state.y = player.position.y;
+      state.lastMovedAt = this.time.frameTimestamp;
+    }
+
+    const isWalking = this.time.frameTimestamp - state.lastMovedAt <= this.WALK_STOP_DELAY_MS;
+    const blendStep = this.time.deltaTime / this.WALK_BLEND_S;
+    state.intensity = clamp(state.intensity + (isWalking ? blendStep : -blendStep), 0, 1);
+    if (state.intensity > 0) {
+      state.phase = (state.phase + (this.time.deltaTime / this.WALK_CYCLE_S) * TAU) % TAU;
+    }
+    return state;
   }
 
   private getWeaponForPlayer(playerId: string): { player: Entity; weapon: Entity } | undefined {

@@ -12,9 +12,17 @@ export interface Animation {
   readonly steps: AnimationStep[];
   readonly startTime: number;
 }
+
+export interface LegLifts {
+  left: number;
+  right: number;
+}
+
 export interface AnimationController {
   createMeleeAttackAnimation(playerId: string): void;
   createProjectileAttackAnimation(playerId: string): void;
   createSpecialAttackAnimation(playerId: string): void;
   getAnimatedEntity(entity: Entity, parentAngle?: number): Entity;
+  getWalkingLegLifts(player: Entity): LegLifts;
+  resetWalkState(entityId: string): void;
 }

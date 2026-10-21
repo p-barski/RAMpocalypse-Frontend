@@ -100,6 +100,7 @@ export class Game implements CallbacksHandler {
     const localPlayer = this.entityManager.getLocalPlayerEntity();
     // In case of dying in a match before
     this.entityManager.showPlayer(localPlayer.id, localPlayer.position);
+    this.animationController.resetWalkState(localPlayer.id);
     this.gameStateManager.reset();
     this.gameStateManager.addPlayer({
       id: localPlayer.id,
@@ -208,6 +209,7 @@ export class Game implements CallbacksHandler {
     }
 
     this.entityManager.showPlayer(playerId, currentPlayer.position);
+    this.animationController.resetWalkState(playerId);
     await this.entityManager.updateLocalPlayerSprite(currentPlayer.spriteData);
     await this.entityManager.updateLocalPlayerSubEntities(currentPlayer.subEntities);
 
@@ -216,6 +218,7 @@ export class Game implements CallbacksHandler {
     for (const player of players) {
       if (player.id !== playerId) {
         await this.entityManager.createRemotePlayer(player.id, player.position, player.spriteData, player.subEntities);
+        this.animationController.resetWalkState(player.id);
       }
     }
 
@@ -231,6 +234,7 @@ export class Game implements CallbacksHandler {
     // Check in case player left
     if (!this.gameStateManager.getPlayer(player.id)) return;
     await this.entityManager.createRemotePlayer(player.id, player.position, player.spriteData, player.subEntities);
+    this.animationController.resetWalkState(player.id);
   };
 
   onOtherPlayerPositionUpdated = async (playerId: string, position: Position): Promise<void> => {
@@ -295,6 +299,7 @@ export class Game implements CallbacksHandler {
     }
     this.gameStateManager.setPlayerDeathTime(playerId, undefined);
     this.entityManager.showPlayer(playerId, position);
+    this.animationController.resetWalkState(playerId);
     console.log('Player respawned:', { playerId, position });
   };
 

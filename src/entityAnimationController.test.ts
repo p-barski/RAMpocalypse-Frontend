@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, type Mocked } from 'vitest';
 import { EntityAnimationController } from './entityAnimationController';
 import type { EntityManager } from './interfaces/entityManager';
 import type { Entity } from './interfaces/entity';
+import type { LegLifts } from './interfaces/animationController';
 import { createMockEntityManager, MockGameConfig, MockTime } from './testHelpers/mocks';
 import { createTestLocalPlayerWithWeapon } from './testHelpers/entityTestFactories';
 
@@ -73,7 +74,15 @@ describe('EntityAnimationController', () => {
     it('swings to the left of the facing direction during the windup', () => {
       const { player, weapon } = createPlayerAndWeapon(0);
       const swingRadius = (player.width + player.height) / 4;
-      const animated = getMeleeAnimatedAtProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player, 0.2);
+      const animated = getMeleeAnimatedAtProgress(
+        sut,
+        mockEntityManager,
+        mockTime,
+        mockGameConfig,
+        weapon,
+        player,
+        0.2,
+      );
       expect(animated.position.x).toStrictEqual(weapon.position.x - swingRadius);
       expect(animated.position.y).toStrictEqual(weapon.position.y);
       expect(animated.position.angle).toStrictEqual(weapon.position.angle - Math.PI / 2);
@@ -82,7 +91,15 @@ describe('EntityAnimationController', () => {
     it('sweeps through the facing direction at the midpoint', () => {
       const { player, weapon } = createPlayerAndWeapon(0);
       const swingRadius = (player.width + player.height) / 4;
-      const animated = getMeleeAnimatedAtProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player, 0.5);
+      const animated = getMeleeAnimatedAtProgress(
+        sut,
+        mockEntityManager,
+        mockTime,
+        mockGameConfig,
+        weapon,
+        player,
+        0.5,
+      );
       expect(animated.position.x).toStrictEqual(weapon.position.x);
       expect(animated.position.y).toStrictEqual(weapon.position.y - swingRadius);
       expect(animated.position.angle).toStrictEqual(weapon.position.angle);
@@ -91,7 +108,15 @@ describe('EntityAnimationController', () => {
     it('finishes the sweep to the right of the facing direction', () => {
       const { player, weapon } = createPlayerAndWeapon(0);
       const swingRadius = (player.width + player.height) / 4;
-      const animated = getMeleeAnimatedAtProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player, 0.8);
+      const animated = getMeleeAnimatedAtProgress(
+        sut,
+        mockEntityManager,
+        mockTime,
+        mockGameConfig,
+        weapon,
+        player,
+        0.8,
+      );
       expect(animated.position.x).toStrictEqual(weapon.position.x + swingRadius);
       expect(animated.position.y).toStrictEqual(weapon.position.y);
       expect(animated.position.angle).toStrictEqual(weapon.position.angle + Math.PI / 2);
@@ -100,7 +125,15 @@ describe('EntityAnimationController', () => {
     it('respects the entity facing direction when rotated', () => {
       const { player, weapon } = createPlayerAndWeapon(Math.PI);
       const swingRadius = (player.width + player.height) / 4;
-      const animated = getMeleeAnimatedAtProgress(sut, mockEntityManager, mockTime, mockGameConfig, weapon, player, 0.5);
+      const animated = getMeleeAnimatedAtProgress(
+        sut,
+        mockEntityManager,
+        mockTime,
+        mockGameConfig,
+        weapon,
+        player,
+        0.5,
+      );
       expect(animated.position.x).toStrictEqual(weapon.position.x);
       expect(animated.position.y).toStrictEqual(weapon.position.y + swingRadius);
       expect(animated.position.angle).toStrictEqual(weapon.position.angle);
@@ -128,6 +161,49 @@ describe('EntityAnimationController', () => {
       mockEntityManager.getEntityById.mockReturnValue(player);
       sut.createProjectileAttackAnimation('');
       assertProjectileKeyframes(sut, mockTime, mockGameConfig, weapon, 'down');
+    });
+  });
+
+  describe('walkingLegLifts', () => {
+    const FRAME_MS = 16;
+
+    function advanceFrame(player: Entity, dx = 0): LegLifts {
+      mockTime.deltaTime = FRAME_MS / 1000;
+      mockTime.frameTimestamp += FRAME_MS;
+      player.position = { ...player.position, x: player.position.x + dx };
+      return sut.getWalkingLegLifts(player);
+    }
+
+    it('keeps both legs down while standing still', () => {
+      const player = createTestLocalPlayerWithWeapon();
+      for (let i = 0; i < 30; i++) {
+        expect(advanceFrame(player)).toEqual({ left: 0, right: 0 });
+      }
+    });
+
+    it('lifts the legs alternately while moving', () => {
+      const player = createTestLocalPlayerWithWeapon();
+      advanceFrame(player);
+      let maxLeft = 0;
+      let maxRight = 0;
+      for (let i = 0; i < 60; i++) {
+        const lifts = advanceFrame(player, 1);
+        expect(lifts.left === 0 || lifts.right === 0).toBe(true);
+        maxLeft = Math.max(maxLeft, lifts.left);
+        maxRight = Math.max(maxRight, lifts.right);
+      }
+      expect(maxLeft).toBeGreaterThan(0);
+      expect(maxRight).toBeGreaterThan(0);
+      expect(Math.max(maxLeft, maxRight)).toBeLessThanOrEqual(player.height * 0.06);
+    });
+
+    it('settles both legs back down shortly after stopping', () => {
+      const player = createTestLocalPlayerWithWeapon();
+      advanceFrame(player);
+      for (let i = 0; i < 30; i++) advanceFrame(player, 1);
+      for (let i = 0; i < 30; i++) advanceFrame(player);
+
+      expect(advanceFrame(player)).toEqual({ left: 0, right: 0 });
     });
   });
 });

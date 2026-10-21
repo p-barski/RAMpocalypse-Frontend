@@ -183,6 +183,8 @@ export function createMockAnimationController(): Mocked<AnimationController> {
     createProjectileAttackAnimation: vi.fn(),
     createSpecialAttackAnimation: vi.fn(),
     getAnimatedEntity: vi.fn(),
+    getWalkingLegLifts: vi.fn(),
+    resetWalkState: vi.fn(),
   };
 }
 

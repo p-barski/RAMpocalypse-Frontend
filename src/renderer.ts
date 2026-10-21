@@ -3,7 +3,7 @@ import type { EntityManager } from './interfaces/entityManager';
 import type { ViewportManager } from './interfaces/viewportManager';
 import type { StateManager } from './interfaces/stateManager';
 import type { AttackController } from './interfaces/attackController';
-import type { AnimationController } from './interfaces/animationController';
+import type { AnimationController, LegLifts } from './interfaces/animationController';
 import type { MovementController } from './interfaces/movementController';
 import type { Time } from './interfaces/time';
 import type { ControlBindings } from './gameSettings';
@@ -157,7 +157,7 @@ export class Renderer implements RenderingService {
 
     // Player body stays upright, only weapon, pupils and boots follow the player's angle in place
     if (isPlayer) {
-      this.drawLegs(entity, canvasX, canvasY, worldAngle);
+      this.drawLegs(entity, canvasX, canvasY, worldAngle, this.animationController.getWalkingLegLifts(entity));
     }
     this.drawImageToCanvas(entity.image, canvasX, canvasY, canvasScale, isPlayer ? offsetAngle : worldAngle);
     if (isPlayer) {
@@ -178,7 +178,7 @@ export class Renderer implements RenderingService {
     return entity.id.startsWith('player_');
   }
 
-  private drawLegs(entity: Entity, centerX: number, centerY: number, angle: number): void {
+  private drawLegs(entity: Entity, centerX: number, centerY: number, angle: number, lifts: LegLifts): void {
     const scale = this.viewportManager.scale;
     const height = entity.height * scale;
     const hipOffsetX = entity.width * scale * this.LEG_SPACING_RATIO;
@@ -188,8 +188,8 @@ export class Renderer implements RenderingService {
     this.ctx.translate(centerX, centerY);
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
-    this.drawLeg(-hipOffsetX, hipY, height, angle);
-    this.drawLeg(hipOffsetX, hipY, height, angle);
+    this.drawLeg(-hipOffsetX, hipY - lifts.left * scale, height, angle);
+    this.drawLeg(hipOffsetX, hipY - lifts.right * scale, height, angle);
     this.ctx.restore();
   }
 
