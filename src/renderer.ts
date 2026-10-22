@@ -50,6 +50,12 @@ export class Renderer implements RenderingService {
   private readonly TOE_RADIUS_RATIO = 0.8;
   private readonly HEEL_RADIUS_RATIO = 0.2;
 
+  // Arm geometry, shoulder as fractions of the body's drawn width/height, grip as fraction of weapon's height
+  private readonly SHOULDER_X_RATIO = 0.5;
+  private readonly SHOULDER_Y_RATIO = 0.1;
+  private readonly GRIP_RATIO = 0.4;
+  private readonly ELBOW_BEND_RATIO = 0.25;
+
   private readonly COLOR_BORDER = '#ffffff';
   private readonly COLOR_HEALTH_BG = '#ff0000';
   private readonly COLOR_HEALTH_FG = '#00ff00';
@@ -142,17 +148,13 @@ export class Renderer implements RenderingService {
     const drawWidth = Math.round(entity.image.width * canvasScale);
     const drawHeight = Math.round(entity.image.height * canvasScale);
 
-    const cos = Math.cos(offsetAngle);
-    const sin = Math.sin(offsetAngle);
-    const rotatedX = entity.position.x * cos - entity.position.y * sin;
-    const rotatedY = entity.position.x * sin + entity.position.y * cos;
-
-    const worldCenterX = parentCenterX + rotatedX;
-    const worldCenterY = parentCenterY + rotatedY;
+    const worldAngle = offsetAngle + facingAngle + entity.position.angle;
+    const center = this.getRotatedCenter(entity, offsetAngle, worldAngle);
+    const worldCenterX = parentCenterX + center.x;
+    const worldCenterY = parentCenterY + center.y;
 
     const canvasX = Math.round(this.viewportManager.gameToCanvasX(worldCenterX));
     const canvasY = Math.round(this.viewportManager.gameToCanvasY(worldCenterY));
-    const worldAngle = offsetAngle + facingAngle + entity.position.angle;
     const isPlayer = this.isPlayerEntity(entity);
 
     // Player body stays upright, only weapon, pupils and boots follow the player's angle in place
@@ -166,6 +168,9 @@ export class Renderer implements RenderingService {
 
     for (const subEntity of entity.subEntities) {
       if (isPlayer) {
+        if (this.isWeaponEntity(subEntity)) {
+          this.drawArm(entity, subEntity, canvasX, canvasY, offsetAngle, worldAngle - offsetAngle);
+        }
         this.drawEntity(subEntity, worldCenterX, worldCenterY, offsetAngle, worldAngle - offsetAngle);
       } else {
         this.drawEntity(subEntity, worldCenterX, worldCenterY, worldAngle);
@@ -176,6 +181,79 @@ export class Renderer implements RenderingService {
 
   private isPlayerEntity(entity: Entity): boolean {
     return entity.id.startsWith('player_');
+  }
+
+  private isWeaponEntity(entity: Entity): boolean {
+    return entity.id.startsWith('weapon_');
+  }
+
+  // Center of the sprite relative to its parent. Weapons rotate around their bottom center (the handle),
+  // other entities around their own center. At worldAngle equal to offsetAngle both give the same result.
+  private getRotatedCenter(entity: Entity, offsetAngle: number, worldAngle: number): { x: number; y: number } {
+    const pivotY = this.isWeaponEntity(entity) ? entity.height / 2 : 0;
+    const cos = Math.cos(offsetAngle);
+    const sin = Math.sin(offsetAngle);
+    const pivotX = entity.position.x * cos - (entity.position.y + pivotY) * sin;
+    const pivotWorldY = entity.position.x * sin + (entity.position.y + pivotY) * cos;
+    return {
+      x: pivotX + pivotY * Math.sin(worldAngle),
+      y: pivotWorldY - pivotY * Math.cos(worldAngle),
+    };
+  }
+
+  private drawArm(
+    player: Entity,
+    weapon: Entity,
+    centerX: number,
+    centerY: number,
+    offsetAngle: number,
+    facingAngle: number,
+  ): void {
+    const scale = this.viewportManager.scale;
+    const animatedWeapon = this.animationController.getAnimatedEntity(weapon, facingAngle);
+    const cos = Math.cos(offsetAngle);
+    const sin = Math.sin(offsetAngle);
+    const shoulderX = player.width * this.SHOULDER_X_RATIO;
+    const shoulderY = player.height * this.SHOULDER_Y_RATIO;
+    const shoulder = { x: (shoulderX * cos - shoulderY * sin) * scale, y: (shoulderX * sin + shoulderY * cos) * scale };
+
+    const weaponAngle = offsetAngle + facingAngle + animatedWeapon.position.angle;
+    const weaponCenter = this.getRotatedCenter(animatedWeapon, offsetAngle, weaponAngle);
+    const gripDistance = weapon.height * this.GRIP_RATIO;
+    const gripX = (weaponCenter.x - Math.sin(weaponAngle) * gripDistance) * scale;
+    const gripY = (weaponCenter.y + Math.cos(weaponAngle) * gripDistance) * scale;
+
+    const midX = (shoulder.x + gripX) / 2;
+    const midY = (shoulder.y + gripY) / 2;
+    const dx = gripX - shoulder.x;
+    const dy = gripY - shoulder.y;
+    let normalX = -dy * this.ELBOW_BEND_RATIO;
+    let normalY = dx * this.ELBOW_BEND_RATIO;
+    if (normalX * midX + normalY * midY < 0) {
+      normalX = -normalX;
+      normalY = -normalY;
+    }
+
+    const height = player.height * scale;
+    const thickness = height * this.LEG_THICKNESS_RATIO;
+    const outline = height * this.LEG_OUTLINE_RATIO;
+
+    this.ctx.save();
+    this.ctx.translate(centerX, centerY);
+    this.ctx.lineCap = 'round';
+    this.ctx.lineJoin = 'round';
+    for (const [style, width] of [
+      [this.COLOR_LEG_OUTLINE, thickness + 2 * outline],
+      [this.COLOR_LEG, thickness],
+    ] as const) {
+      this.ctx.strokeStyle = style;
+      this.ctx.lineWidth = width;
+      this.ctx.beginPath();
+      this.ctx.moveTo(shoulder.x, shoulder.y);
+      this.ctx.quadraticCurveTo(midX + normalX, midY + normalY, gripX, gripY);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
   }
 
   private drawLegs(entity: Entity, centerX: number, centerY: number, angle: number, lifts: LegLifts): void {

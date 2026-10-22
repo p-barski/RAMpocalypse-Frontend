@@ -4,7 +4,7 @@ import type { Time } from './interfaces/time';
 import type { Position } from './interfaces/messageInterfaces';
 import type { Entity } from './interfaces/entity';
 import type { GameConfig } from './interfaces/gameConfig';
-import { clamp, TAU } from './mathUtils';
+import { clamp, HALF_PI, TAU } from './mathUtils';
 
 const STEP_ZERO: AnimationStep = { position: { x: 0, y: 0, angle: 0 } satisfies Position, percent: 0 };
 
@@ -28,6 +28,19 @@ export class EntityAnimationController implements AnimationController {
   private readonly WALK_STOP_DELAY_MS = 150;
   private readonly WALK_BLEND_S = 0.05;
 
+  private readonly MELEE_WINDUP_END = 0.3;
+  private readonly MELEE_SWEEP_END = 0.7;
+  private readonly MELEE_SWEEP_SEGMENTS = 6;
+  private readonly MELEE_SWEEP_DIRECTIONS = Array.from({ length: this.MELEE_SWEEP_SEGMENTS + 1 }, (_, i) => {
+    const angle = -HALF_PI + (Math.PI * i) / this.MELEE_SWEEP_SEGMENTS;
+    return {
+      percent: this.MELEE_WINDUP_END + ((this.MELEE_SWEEP_END - this.MELEE_WINDUP_END) * i) / this.MELEE_SWEEP_SEGMENTS,
+      angle,
+      sin: Math.sin(angle),
+      cos: Math.cos(angle),
+    };
+  });
+
   constructor(gameConfig: GameConfig, entityManager: EntityManager, time: Time) {
     this.gameConfig = gameConfig;
     this.entityManager = entityManager;
@@ -39,17 +52,15 @@ export class EntityAnimationController implements AnimationController {
     if (found === undefined) {
       return;
     }
-    const entity = found.player;
     const weapon = found.weapon;
     // Sweeps the weapon through the front-facing half circle (left -> forward -> right)
     // that matches melee hit-detection area
-    const swingRadius = (entity.width + entity.height) / 4;
-    const sweepKeyframes: { percent: number; position: Position }[] = [
-      { percent: 0.2, position: { x: -swingRadius, y: 0, angle: -Math.PI / 2 } satisfies Position },
-      { percent: 0.5, position: { x: 0, y: -swingRadius, angle: 0 } satisfies Position },
-      { percent: 0.8, position: { x: swingRadius, y: 0, angle: Math.PI / 2 } satisfies Position },
-      { percent: 1, position: { x: 0, y: 0, angle: 0 } satisfies Position },
-    ];
+    const pivotDistance = this.gameConfig.meleeRange - weapon.height;
+    const sweepKeyframes: AnimationStep[] = this.MELEE_SWEEP_DIRECTIONS.map(({ percent, angle, sin, cos }) => ({
+      percent,
+      position: { x: pivotDistance * sin, y: -weapon.height - pivotDistance * cos, angle } satisfies Position,
+    }));
+    sweepKeyframes.push({ percent: 1, position: { x: 0, y: 0, angle: 0 } satisfies Position });
 
     const steps: AnimationStep[] = [];
     let previous: Position = { x: 0, y: 0, angle: 0 };

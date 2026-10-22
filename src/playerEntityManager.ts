@@ -70,8 +70,8 @@ export class PlayerEntityManager implements EntityManager {
   async addDefaultWeaponToLocalPlayer(weaponSpriteData: SpriteData) {
     const weaponId = `weapon_${this.localPlayerEntity.id}`;
     const weaponOffset = {
-      x: this.localPlayerEntity.width / 2 - (weaponSpriteData.width * weaponSpriteData.scaleFactor) / 2,
-      y: 0,
+      x: this.localPlayerEntity.width / 2 + (weaponSpriteData.width * weaponSpriteData.scaleFactor) / 2,
+      y: -this.localPlayerEntity.height / 3,
       angle: 0,
     } satisfies Position;
     const weaponEntity = await this.createEntityInternal(weaponId, weaponOffset, weaponSpriteData);

@@ -12,7 +12,7 @@
   "specialCooldownMs": 3000,
   "sharedAttackCooldownMs": 400,
   "specialRange": 100,
-  "meleeRange": 300,
+  "meleeRange": 150,
   "projectileSpeed": 800,
   "specialSpeed": 400,
   "meleeLifetime": 200,

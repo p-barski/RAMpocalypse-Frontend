@@ -5,6 +5,7 @@ import type { Entity } from './interfaces/entity';
 import type { LegLifts } from './interfaces/animationController';
 import { createMockEntityManager, MockGameConfig, MockTime } from './testHelpers/mocks';
 import { createTestLocalPlayerWithWeapon } from './testHelpers/entityTestFactories';
+import { HALF_PI } from './mathUtils';
 
 function createPlayerAndWeapon(angle: number, weaponHeight = 16): { player: Entity; weapon: Entity } {
   const player = createTestLocalPlayerWithWeapon();
@@ -61,6 +62,9 @@ describe('EntityAnimationController', () => {
   let mockEntityManager: Mocked<EntityManager>;
   let mockTime: MockTime;
   let mockGameConfig: MockGameConfig;
+  let MELEE_WINDUP_END: number;
+  let MELEE_SWEEP_END: number;
+  let MELEE_SWEEP_SEGMENTS: number;
 
   beforeEach(() => {
     mockEntityManager = createMockEntityManager();
@@ -68,12 +72,16 @@ describe('EntityAnimationController', () => {
     mockGameConfig = new MockGameConfig();
 
     sut = new EntityAnimationController(mockGameConfig, mockEntityManager, mockTime);
+    MELEE_WINDUP_END = (sut as any).MELEE_WINDUP_END;
+    MELEE_SWEEP_END = (sut as any).MELEE_SWEEP_END;
+    MELEE_SWEEP_SEGMENTS = (sut as any).MELEE_SWEEP_SEGMENTS;
   });
 
   describe('meleeAnimation', () => {
+    // Tip follows half circle of meleeRange radius around the tip at rest, pivot (bottom center) trails it by weapon height
     it('swings to the left of the facing direction during the windup', () => {
       const { player, weapon } = createPlayerAndWeapon(0);
-      const swingRadius = (player.width + player.height) / 4;
+      const pivotDistance = mockGameConfig.meleeRange - weapon.height;
       const animated = getMeleeAnimatedAtProgress(
         sut,
         mockEntityManager,
@@ -81,16 +89,15 @@ describe('EntityAnimationController', () => {
         mockGameConfig,
         weapon,
         player,
-        0.2,
+        MELEE_WINDUP_END,
       );
-      expect(animated.position.x).toStrictEqual(weapon.position.x - swingRadius);
-      expect(animated.position.y).toStrictEqual(weapon.position.y);
-      expect(animated.position.angle).toStrictEqual(weapon.position.angle - Math.PI / 2);
+      expect(animated.position.x).toBeCloseTo(weapon.position.x - pivotDistance);
+      expect(animated.position.y).toBeCloseTo(weapon.position.y - weapon.height);
+      expect(animated.position.angle).toBeCloseTo(weapon.position.angle - HALF_PI);
     });
 
     it('sweeps through the facing direction at the midpoint', () => {
       const { player, weapon } = createPlayerAndWeapon(0);
-      const swingRadius = (player.width + player.height) / 4;
       const animated = getMeleeAnimatedAtProgress(
         sut,
         mockEntityManager,
@@ -98,16 +105,34 @@ describe('EntityAnimationController', () => {
         mockGameConfig,
         weapon,
         player,
-        0.5,
+        (MELEE_WINDUP_END + MELEE_SWEEP_END) / 2,
       );
-      expect(animated.position.x).toStrictEqual(weapon.position.x);
-      expect(animated.position.y).toStrictEqual(weapon.position.y - swingRadius);
-      expect(animated.position.angle).toStrictEqual(weapon.position.angle);
+      expect(animated.position.x).toBeCloseTo(weapon.position.x);
+      expect(animated.position.y).toBeCloseTo(weapon.position.y - mockGameConfig.meleeRange);
+      expect(animated.position.angle).toBeCloseTo(weapon.position.angle);
+    });
+
+    it('keeps the weapon tip on the melee range arc mid-sweep', () => {
+      const { player, weapon } = createPlayerAndWeapon(0);
+      const animated = getMeleeAnimatedAtProgress(
+        sut,
+        mockEntityManager,
+        mockTime,
+        mockGameConfig,
+        weapon,
+        player,
+        MELEE_WINDUP_END + (MELEE_SWEEP_END - MELEE_WINDUP_END) / MELEE_SWEEP_SEGMENTS,
+      );
+      const angle = animated.position.angle;
+      const tipX = animated.position.x + weapon.height * Math.sin(angle) - weapon.position.x;
+      const tipY = animated.position.y - weapon.height * Math.cos(angle) - (weapon.position.y - weapon.height);
+      expect(angle).toBeCloseTo(-HALF_PI + Math.PI / MELEE_SWEEP_SEGMENTS);
+      expect(Math.hypot(tipX, tipY)).toBeCloseTo(mockGameConfig.meleeRange);
     });
 
     it('finishes the sweep to the right of the facing direction', () => {
       const { player, weapon } = createPlayerAndWeapon(0);
-      const swingRadius = (player.width + player.height) / 4;
+      const pivotDistance = mockGameConfig.meleeRange - weapon.height;
       const animated = getMeleeAnimatedAtProgress(
         sut,
         mockEntityManager,
@@ -115,16 +140,15 @@ describe('EntityAnimationController', () => {
         mockGameConfig,
         weapon,
         player,
-        0.8,
+        MELEE_SWEEP_END,
       );
-      expect(animated.position.x).toStrictEqual(weapon.position.x + swingRadius);
-      expect(animated.position.y).toStrictEqual(weapon.position.y);
-      expect(animated.position.angle).toStrictEqual(weapon.position.angle + Math.PI / 2);
+      expect(animated.position.x).toBeCloseTo(weapon.position.x + pivotDistance);
+      expect(animated.position.y).toBeCloseTo(weapon.position.y - weapon.height);
+      expect(animated.position.angle).toBeCloseTo(weapon.position.angle + HALF_PI);
     });
 
     it('respects the entity facing direction when rotated', () => {
       const { player, weapon } = createPlayerAndWeapon(Math.PI);
-      const swingRadius = (player.width + player.height) / 4;
       const animated = getMeleeAnimatedAtProgress(
         sut,
         mockEntityManager,
@@ -132,11 +156,11 @@ describe('EntityAnimationController', () => {
         mockGameConfig,
         weapon,
         player,
-        0.5,
+        (MELEE_WINDUP_END + MELEE_SWEEP_END) / 2,
       );
-      expect(animated.position.x).toStrictEqual(weapon.position.x);
-      expect(animated.position.y).toStrictEqual(weapon.position.y + swingRadius);
-      expect(animated.position.angle).toStrictEqual(weapon.position.angle);
+      expect(animated.position.x).toBeCloseTo(weapon.position.x);
+      expect(animated.position.y).toBeCloseTo(weapon.position.y + mockGameConfig.meleeRange);
+      expect(animated.position.angle).toBeCloseTo(weapon.position.angle);
     });
 
     it('returns to rest once the animation finishes', () => {

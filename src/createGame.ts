@@ -37,7 +37,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
     url: '/app/lightning_1.png',
     width: 17,
     height: 53,
-    scaleFactor: 6,
+    scaleFactor: 3,
   };
   const missingSprite = await SpriteLoader.loadMissingSprite();
   const gameConfig = await loadGameConfig();

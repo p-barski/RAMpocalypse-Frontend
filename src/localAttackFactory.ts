@@ -15,11 +15,11 @@ export function getAttackPosition(player: Entity, sin?: number, cos?: number): P
   if (!weapon) {
     return { x: player.position.x, y: player.position.y, angle: 0 };
   }
-  // Weapon stays at its offset from the body and rotates around its own center, tip points where player faces
+  // Weapon stays at its offset from the body and rotates around its bottom center, tip points where player faces
   const weaponHalfHeight = weapon.height / 2;
   return {
-    x: player.position.x + weapon.position.x + weaponHalfHeight * sin,
-    y: player.position.y + weapon.position.y - weaponHalfHeight * cos,
+    x: player.position.x + weapon.position.x + weapon.height * sin,
+    y: player.position.y + weapon.position.y + weaponHalfHeight - weapon.height * cos,
     angle: 0,
   };
 }

@@ -47,6 +47,7 @@ function createStub2dContext(): CanvasRenderingContext2D {
     arc: noop,
     moveTo: noop,
     lineTo: noop,
+    quadraticCurveTo: noop,
     roundRect: noop,
     save: noop,
     restore: noop,
