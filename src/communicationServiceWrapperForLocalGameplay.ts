@@ -12,6 +12,7 @@ export type LocalAttackBridge = {
   entityManager: EntityManager;
   getCreationTime: () => number;
   applyAttackEffects: (attacks: AttackEntity[]) => void;
+  applyArmSwitchEffects: (playerId: string) => void;
 };
 
 export class CommunicationServiceWrapperForLocalGameplay implements CommunicationService {
@@ -94,6 +95,16 @@ export class CommunicationServiceWrapperForLocalGameplay implements Communicatio
   async specialExplosion(attackId: string): Promise<void> {
     if (!this.useServerForGameplay()) return;
     await this.signalR.specialExplosion(attackId);
+  }
+
+  async switchArm(): Promise<void> {
+    if (this.useServerForGameplay()) {
+      await this.signalR.switchArm();
+      return;
+    }
+    const bridge = this.localAttackBridge;
+    if (!bridge) return;
+    bridge.applyArmSwitchEffects(bridge.entityManager.getLocalPlayerEntity().id);
   }
 
   leaveGame(): Promise<void> {

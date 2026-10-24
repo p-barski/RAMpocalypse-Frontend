@@ -230,4 +230,40 @@ describe('EntityAnimationController', () => {
       expect(advanceFrame(player)).toEqual({ left: 0, right: 0 });
     });
   });
+
+  describe('armSwitchAnimation', () => {
+    // Weapon was in the left arm (x = -500) and has just been moved to the right arm
+    function createSwitchedPlayerAndWeapon(angle: number): { player: Entity; weapon: Entity } {
+      const { player, weapon } = createPlayerAndWeapon(angle);
+      mockEntityManager.getEntityById.mockReturnValue(player);
+      sut.createArmSwitchAnimation('');
+      return { player, weapon };
+    }
+
+    function getAnimatedAt(weapon: Entity, progressPercent: number, parentAngle = 0): Entity {
+      mockTime.frameTimestamp = progressPercent * mockGameConfig.armSwitchDurationMs;
+      return sut.getAnimatedEntity(weapon, parentAngle);
+    }
+
+    it('starts in the previous arm', () => {
+      const { weapon } = createSwitchedPlayerAndWeapon(0);
+      const animated = getAnimatedAt(weapon, 0);
+      expect(animated.position.x).toBeCloseTo(-weapon.position.x);
+      expect(animated.position.y).toBeCloseTo(weapon.position.y);
+    });
+
+    it('tosses the weapon over the head halfway through, regardless of facing direction', () => {
+      const { weapon } = createSwitchedPlayerAndWeapon(0);
+      const animated = getAnimatedAt(weapon, 0.5, Math.PI);
+      expect(animated.position.x).toBeCloseTo(0);
+      expect(animated.position.y).toBeLessThan(weapon.position.y);
+      expect(animated.position.angle).toBeCloseTo(Math.PI);
+    });
+
+    it('ends in the new arm', () => {
+      const { weapon } = createSwitchedPlayerAndWeapon(0);
+      const animated = getAnimatedAt(weapon, 1);
+      expect(animated.position).toStrictEqual(weapon.position);
+    });
+  });
 });

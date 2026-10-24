@@ -1,4 +1,9 @@
-import type { InputHandler, AttackInputCallback, DashInputCallback } from './interfaces/inputHandler';
+import type {
+  InputHandler,
+  AttackInputCallback,
+  DashInputCallback,
+  SwitchArmInputCallback,
+} from './interfaces/inputHandler';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
 import type { ControlBindings } from './gameSettings';
 
@@ -8,12 +13,14 @@ export class PlayerInputHandler implements InputHandler {
   private readonly keys: Set<string> = new Set();
   private attackCallback: AttackInputCallback;
   private dashCallback: DashInputCallback;
+  private switchArmCallback: SwitchArmInputCallback;
 
   constructor(canvas: HTMLCanvasElement, bindings: ControlBindings) {
     this.canvas = canvas;
     this.bindings = bindings;
     this.attackCallback = (_) => {};
     this.dashCallback = () => {};
+    this.switchArmCallback = () => {};
   }
 
   isUpPressed(): boolean {
@@ -40,12 +47,17 @@ export class PlayerInputHandler implements InputHandler {
     return this.isAnyBound(this.bindings.rotateRight);
   }
 
-  setup(attackCallback: AttackInputCallback, dashCallback: DashInputCallback): void {
+  setup(
+    attackCallback: AttackInputCallback,
+    dashCallback: DashInputCallback,
+    switchArmCallback: SwitchArmInputCallback,
+  ): void {
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
     this.canvas.addEventListener('click', this.handleClick);
     this.attackCallback = attackCallback;
     this.dashCallback = dashCallback;
+    this.switchArmCallback = switchArmCallback;
   }
 
   cleanup(): void {
@@ -55,6 +67,7 @@ export class PlayerInputHandler implements InputHandler {
     this.keys.clear();
     this.attackCallback = (_) => {};
     this.dashCallback = () => {};
+    this.switchArmCallback = () => {};
   }
 
   private isAnyBound(keys: string[]): boolean {
@@ -77,6 +90,9 @@ export class PlayerInputHandler implements InputHandler {
     }
     if (this.bindings.meleeAttack.includes(keyLower)) {
       this.attackCallback(AttackTypeValue.Melee);
+    }
+    if (this.bindings.switchArm.includes(keyLower)) {
+      this.switchArmCallback();
     }
   };
 

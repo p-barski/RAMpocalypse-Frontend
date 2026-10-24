@@ -11,6 +11,8 @@ export interface Animation {
   readonly looping: boolean;
   readonly steps: AnimationStep[];
   readonly startTime: number;
+  // Offsets are expressed in the parent's frame without its facing angle applied
+  readonly ignoresParentAngle?: boolean;
 }
 
 export interface LegLifts {
@@ -22,6 +24,7 @@ export interface AnimationController {
   createMeleeAttackAnimation(playerId: string): void;
   createProjectileAttackAnimation(playerId: string): void;
   createSpecialAttackAnimation(playerId: string): void;
+  createArmSwitchAnimation(playerId: string): void;
   getAnimatedEntity(entity: Entity, parentAngle?: number): Entity;
   getWalkingLegLifts(player: Entity): LegLifts;
   resetWalkState(entityId: string): void;

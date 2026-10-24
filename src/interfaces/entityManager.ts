@@ -1,6 +1,8 @@
 import type { Entity } from './entity';
 import type { Position, SpriteData, SubEntity } from './messageInterfaces';
 
+export type Arm = 'left' | 'right';
+
 export interface EntityManager {
   getEntities(): Entity[];
   getEntityById(id: string): Entity | undefined;
@@ -20,4 +22,6 @@ export interface EntityManager {
   removeRemotePlayer(playerId: string): void;
   hidePlayer(playerId: string): void;
   showPlayer(playerId: string, position: Position): void;
+  switchWeaponArm(playerId: string): void;
+  setWeaponArm(playerId: string, arm: Arm): void;
 }

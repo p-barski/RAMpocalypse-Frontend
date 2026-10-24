@@ -25,6 +25,7 @@ export class PlayerAttackController implements AttackController {
   private readonly attacks: Map<string, AttackEntity> = new Map();
   private readonly ownProjectiles: Map<string, AttackEntity> = new Map();
   private sharedAttackCooldownEnd = 0;
+  private armSwitchEnd = 0;
 
   constructor(
     gameConfig: GameConfig,
@@ -63,16 +64,26 @@ export class PlayerAttackController implements AttackController {
     this.communicationService.performSpecialAttack();
   }
 
+  switchArm(): void {
+    if (this.isBlocked()) return;
+
+    this.armSwitchEnd = this.time.frameTimestamp + this.gameConfig.armSwitchDurationMs;
+    this.communicationService.switchArm();
+  }
+
+  getArmSwitchCdRemaining(): number {
+    return Math.max(0, this.armSwitchEnd - this.time.frameTimestamp);
+  }
+
   getCooldownRemaining(attackType: AttackType): number {
     const cooldownEnd = this.attackCooldowns.get(attackType) as number;
     const cooldownRemaining = cooldownEnd - this.time.frameTimestamp;
     const sharedCooldownRemaining = this.sharedAttackCooldownEnd - this.time.frameTimestamp;
-    return Math.max(0, cooldownRemaining, sharedCooldownRemaining);
+    return Math.max(0, cooldownRemaining, sharedCooldownRemaining, this.getArmSwitchCdRemaining());
   }
 
   canPerformAttack(attackType: AttackType): boolean {
-    if (!this.gameStateManager.isPlaying()) return false;
-    if (this.time.frameTimestamp < this.sharedAttackCooldownEnd) return false;
+    if (this.isBlocked()) return false;
 
     const cooldownEnd = this.attackCooldowns.get(attackType) as number;
     return this.time.frameTimestamp >= cooldownEnd;
@@ -165,5 +176,12 @@ export class PlayerAttackController implements AttackController {
     const cooldownDuration = this.COOLDOWNS_MAP.get(attackType) as number;
     this.attackCooldowns.set(attackType, this.time.frameTimestamp + cooldownDuration);
     this.sharedAttackCooldownEnd = this.time.frameTimestamp + this.gameConfig.sharedAttackCooldownMs;
+  }
+
+  private isBlocked(): boolean {
+    if (!this.gameStateManager.isPlaying()) return true;
+    if (this.time.frameTimestamp < this.sharedAttackCooldownEnd) return true;
+    if (this.time.frameTimestamp < this.armSwitchEnd) return true;
+    return false;
   }
 }

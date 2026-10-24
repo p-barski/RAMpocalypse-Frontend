@@ -25,6 +25,7 @@ export class SignalRService implements CommunicationService {
     this.connection.on('PlayerPositionUpdated', callbacksHandler.onOtherPlayerPositionUpdated);
     this.connection.on('PositionCorrected', callbacksHandler.onPositionCorrected);
     this.connection.on('AttackPerformed', callbacksHandler.onAttackPerformed);
+    this.connection.on('ArmSwitched', callbacksHandler.onArmSwitched);
     this.connection.on('PlayerDamaged', callbacksHandler.onPlayerDamaged);
     this.connection.on('PlayerDied', callbacksHandler.onPlayerDied);
     this.connection.on('PlayerRespawned', callbacksHandler.onPlayerRespawned);
@@ -129,6 +130,14 @@ export class SignalRService implements CommunicationService {
       if (this.isConnected()) await this.connection.invoke('SpecialExplosion', attackId);
     } catch (error) {
       console.error('SignalR: Failed to report special explosion', error);
+    }
+  }
+
+  async switchArm(): Promise<void> {
+    try {
+      if (this.isConnected()) await this.connection.invoke('SwitchArm');
+    } catch (error) {
+      console.error('SignalR: Failed to switch arm', error);
     }
   }
 

@@ -11,6 +11,7 @@ export interface GameConfig {
   readonly projectileCooldownMs: number;
   readonly specialCooldownMs: number;
   readonly sharedAttackCooldownMs: number;
+  readonly armSwitchDurationMs: number;
   readonly specialRange: number;
   readonly meleeRange: number;
   readonly projectileSpeed: number;

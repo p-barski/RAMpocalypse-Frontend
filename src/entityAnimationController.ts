@@ -28,6 +28,9 @@ export class EntityAnimationController implements AnimationController {
   private readonly WALK_STOP_DELAY_MS = 150;
   private readonly WALK_BLEND_S = 0.05;
 
+  private readonly ARM_SWITCH_SEGMENTS = 8;
+  private readonly ARM_SWITCH_LIFT_RATIO = 0.5;
+
   private readonly MELEE_WINDUP_END = 0.3;
   private readonly MELEE_SWEEP_END = 0.7;
   private readonly MELEE_SWEEP_SEGMENTS = 6;
@@ -62,26 +65,12 @@ export class EntityAnimationController implements AnimationController {
     }));
     sweepKeyframes.push({ percent: 1, position: { x: 0, y: 0, angle: 0 } satisfies Position });
 
-    const steps: AnimationStep[] = [];
-    let previous: Position = { x: 0, y: 0, angle: 0 };
-    for (const { percent, position } of sweepKeyframes) {
-      steps.push({
-        position: {
-          x: position.x - previous.x,
-          y: position.y - previous.y,
-          angle: position.angle - previous.angle,
-        } satisfies Position,
-        percent,
-      });
-      previous = position;
-    }
-
     const animation: Animation = {
       entity: weapon,
       durationMiliseconds: this.gameConfig.sharedAttackCooldownMs,
       looping: false,
       startTime: this.time.frameTimestamp,
-      steps,
+      steps: this.toAnimationSteps(sweepKeyframes),
     };
     this.animations.set(weapon.id, animation);
   }
@@ -111,6 +100,35 @@ export class EntityAnimationController implements AnimationController {
     this.createProjectileAttackAnimation(playerId);
   }
 
+  createArmSwitchAnimation(playerId: string): void {
+    const found = this.getWeaponForPlayer(playerId);
+    if (found === undefined) {
+      return;
+    }
+    const weapon = found.weapon;
+    // Weapon is expected to already be in the new arm
+    const startX = -2 * weapon.position.x;
+    const lift = weapon.height * this.ARM_SWITCH_LIFT_RATIO;
+    const spin = Math.sign(weapon.position.x) * TAU;
+    const tossKeyframes: AnimationStep[] = Array.from({ length: this.ARM_SWITCH_SEGMENTS + 1 }, (_, i) => {
+      const t = i / this.ARM_SWITCH_SEGMENTS;
+      return {
+        percent: t,
+        position: { x: startX * (1 - t), y: -4 * lift * t * (1 - t), angle: spin * t } satisfies Position,
+      };
+    });
+
+    const animation: Animation = {
+      entity: weapon,
+      durationMiliseconds: this.gameConfig.armSwitchDurationMs,
+      looping: false,
+      startTime: this.time.frameTimestamp,
+      steps: this.toAnimationSteps(tossKeyframes),
+      ignoresParentAngle: true,
+    };
+    this.animations.set(weapon.id, animation);
+  }
+
   // parentAngle - angle of the frame animation offsets are expressed in, on top of entity's own angle
   getAnimatedEntity(entity: Entity, parentAngle = 0): Entity {
     const animation = this.animations.get(entity.id);
@@ -137,7 +155,8 @@ export class EntityAnimationController implements AnimationController {
       offsetX += currentStep.position.x;
       offsetY += currentStep.position.y;
       offsetAngle += currentStep.position.angle;
-      if (animationProgressPercent <= step.percent) {
+      // Step at the same percent as the previous one is an instant offset, e.g. a starting offset at 0%
+      if (animationProgressPercent <= step.percent && step.percent > currentStep.percent) {
         break;
       }
     }
@@ -147,8 +166,9 @@ export class EntityAnimationController implements AnimationController {
     offsetX += nextStep.position.x * stepProgressPercent;
     offsetY += nextStep.position.y * stepProgressPercent;
     offsetAngle += nextStep.position.angle * stepProgressPercent;
-    const cos = Math.cos(parentAngle + entity.position.angle);
-    const sin = Math.sin(parentAngle + entity.position.angle);
+    const frameAngle = animation.ignoresParentAngle ? 0 : parentAngle + entity.position.angle;
+    const cos = Math.cos(frameAngle);
+    const sin = Math.sin(frameAngle);
     const newPosition: Position = {
       x: entity.position.x + (offsetX * cos - offsetY * sin),
       y: entity.position.y + (offsetX * sin + offsetY * cos),
@@ -194,6 +214,23 @@ export class EntityAnimationController implements AnimationController {
       state.phase = (state.phase + (this.time.deltaTime / this.WALK_CYCLE_S) * TAU) % TAU;
     }
     return state;
+  }
+
+  private toAnimationSteps(keyframes: AnimationStep[]): AnimationStep[] {
+    const steps: AnimationStep[] = [];
+    let previous: Position = { x: 0, y: 0, angle: 0 };
+    for (const { percent, position } of keyframes) {
+      steps.push({
+        position: {
+          x: position.x - previous.x,
+          y: position.y - previous.y,
+          angle: position.angle - previous.angle,
+        } satisfies Position,
+        percent,
+      });
+      previous = position;
+    }
+    return steps;
   }
 
   private getWeaponForPlayer(playerId: string): { player: Entity; weapon: Entity } | undefined {

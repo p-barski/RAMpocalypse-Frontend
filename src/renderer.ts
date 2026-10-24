@@ -213,7 +213,7 @@ export class Renderer implements RenderingService {
     const animatedWeapon = this.animationController.getAnimatedEntity(weapon, facingAngle);
     const cos = Math.cos(offsetAngle);
     const sin = Math.sin(offsetAngle);
-    const shoulderX = player.width * this.SHOULDER_X_RATIO;
+    const shoulderX = (Math.sign(animatedWeapon.position.x) || 1) * player.width * this.SHOULDER_X_RATIO;
     const shoulderY = player.height * this.SHOULDER_Y_RATIO;
     const shoulder = { x: (shoulderX * cos - shoulderY * sin) * scale, y: (shoulderX * sin + shoulderY * cos) * scale };
 
@@ -534,6 +534,8 @@ export class Renderer implements RenderingService {
     y = this.drawAttackCooldownLine('Melee', this.controls.meleeAttack, AttackTypeValue.Melee, y);
     y = this.drawAttackCooldownLine('Projectile', this.controls.projectileAttack, AttackTypeValue.Projectile, y);
     y = this.drawAttackCooldownLine('Special', this.controls.specialAttack, AttackTypeValue.Special, y);
+    const armSwitchRemaining = this.attackController.getArmSwitchCdRemaining();
+    y = this.drawCooldownLine(this.formatActionLabel('Switch arm', this.controls.switchArm), armSwitchRemaining, y);
     const dashCooldown = this.movementController.getDashCooldownRemaining();
     y = this.drawCooldownLine(this.formatActionLabel('Dash', this.controls.dash), dashCooldown, y);
     this.ctx.fillText(`FPS: ${~~(1 / this.time.averageFrameTime)}`, 10, y);

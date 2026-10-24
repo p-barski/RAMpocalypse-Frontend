@@ -122,6 +122,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
     entityManager,
     getCreationTime: () => gameTime.frameTimestamp,
     applyAttackEffects: game.applyAttackPerformedEffects,
+    applyArmSwitchEffects: game.applyArmSwitchEffects,
   });
   callbacksHandler.handler = game;
   return game;

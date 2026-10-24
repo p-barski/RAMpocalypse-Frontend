@@ -9,6 +9,7 @@ export interface CallbacksHandler {
   onPlayerLeftLobby: (playerId: string) => void;
   onPositionCorrected: (correctedPosition: Position) => void;
   onAttackPerformed: (attackEntities: AttackEntity[]) => void;
+  onArmSwitched: (playerId: string) => void;
   onPlayerDamaged: (playerId: string, damage: number, newHealth: number) => void;
   onPlayerDied: (playerId: string) => void;
   onPlayerRespawned: (playerId: string, position: Position) => void;

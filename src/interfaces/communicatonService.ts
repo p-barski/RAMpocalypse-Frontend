@@ -14,5 +14,6 @@ export interface CommunicationService {
   performSpecialAttack: () => Promise<void>;
   projectileHitPlayer: (projectileId: string, hitPlayerId: string) => Promise<void>;
   specialExplosion: (attackId: string) => Promise<void>;
+  switchArm: () => Promise<void>;
   leaveGame: () => Promise<void>;
 }

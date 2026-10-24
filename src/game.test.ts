@@ -166,6 +166,38 @@ describe('Game', () => {
     });
   });
 
+  describe('onPlayerRespawned', () => {
+    it('puts the weapon in the right arm when respawning on the left side', async () => {
+      await sut.onPlayerRespawned('remote', { x: mockGameConfig.gameWidth / 4, y: 5, angle: 0 });
+
+      expect(mockEntityManager.setWeaponArm).toHaveBeenCalledWith('remote', 'right');
+    });
+
+    it('puts the weapon in the left arm when respawning on the right side', async () => {
+      await sut.onPlayerRespawned('remote', { x: (mockGameConfig.gameWidth * 3) / 4, y: 5, angle: 0 });
+
+      expect(mockEntityManager.setWeaponArm).toHaveBeenCalledWith('remote', 'left');
+    });
+  });
+
+  describe('onArmSwitched', () => {
+    it('ignores switches of players whose entity has not been revealed yet', async () => {
+      mockEntityManager.getEntityById.mockReturnValue(undefined);
+
+      await sut.onArmSwitched('remote');
+
+      expect(mockEntityManager.switchWeaponArm).not.toHaveBeenCalled();
+    });
+
+    it('moves the weapon to the other arm', async () => {
+      mockEntityManager.getEntityById.mockReturnValue({ id: 'remote' } as Entity);
+
+      await sut.onArmSwitched('remote');
+
+      expect(mockEntityManager.switchWeaponArm).toHaveBeenCalledWith('remote');
+    });
+  });
+
   describe('connect', () => {
     it('does not send a name to the server when none is configured', async () => {
       await sut.connect();

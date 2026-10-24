@@ -1,4 +1,4 @@
-import type { EntityManager } from './interfaces/entityManager';
+import type { Arm, EntityManager } from './interfaces/entityManager';
 import type { SpriteManager } from './interfaces/spriteManager';
 import type { Entity } from './interfaces/entity';
 import type { Position, SpriteData, SubEntity } from './interfaces/messageInterfaces';
@@ -144,6 +144,25 @@ export class PlayerEntityManager implements EntityManager {
         this.entities.push(entity);
       }
     }
+  }
+
+  switchWeaponArm(playerId: string): void {
+    const weapon = this.getWeapon(playerId);
+    if (weapon) {
+      weapon.position = { ...weapon.position, x: -weapon.position.x };
+    }
+  }
+
+  setWeaponArm(playerId: string, arm: Arm): void {
+    const weapon = this.getWeapon(playerId);
+    if (weapon) {
+      const offsetX = Math.abs(weapon.position.x);
+      weapon.position = { ...weapon.position, x: arm === 'right' ? offsetX : -offsetX };
+    }
+  }
+
+  private getWeapon(playerId: string): Entity | undefined {
+    return this.getEntityById(playerId)?.subEntities.find((subEntity) => subEntity.id.startsWith('weapon_'));
   }
 
   private removeEntity(entity: Entity): void {

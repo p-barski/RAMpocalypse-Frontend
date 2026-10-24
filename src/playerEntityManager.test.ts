@@ -62,4 +62,38 @@ describe('PlayerEntityManager', () => {
       expect(remoteEntity?.position).toStrictEqual({ x: 5, y: 6, angle: 0 });
     });
   });
+
+  describe('weapon arm', () => {
+    const weaponSpriteData: SpriteData = { url: '/weapon.png', width: 10, height: 10, scaleFactor: 1 };
+
+    async function getLocalWeapon() {
+      await sut.addDefaultWeaponToLocalPlayer(weaponSpriteData);
+      return sut.getLocalPlayerEntity().subEntities[0];
+    }
+
+    it('mirrors the weapon to the other side of the body on switch', async () => {
+      const weapon = await getLocalWeapon();
+      const restPosition = { ...weapon.position };
+
+      sut.switchWeaponArm(sut.getLocalPlayerEntity().id);
+
+      expect(sut.getLocalPlayerEntity().subEntities[0].position).toStrictEqual({
+        ...restPosition,
+        x: -restPosition.x,
+      });
+    });
+
+    it('puts the weapon in the requested arm regardless of the current one', async () => {
+      const weapon = await getLocalWeapon();
+      const offsetX = weapon.position.x;
+      const localId = sut.getLocalPlayerEntity().id;
+
+      sut.setWeaponArm(localId, 'left');
+      expect(sut.getLocalPlayerEntity().subEntities[0].position.x).toBe(-offsetX);
+      sut.setWeaponArm(localId, 'left');
+      expect(sut.getLocalPlayerEntity().subEntities[0].position.x).toBe(-offsetX);
+      sut.setWeaponArm(localId, 'right');
+      expect(sut.getLocalPlayerEntity().subEntities[0].position.x).toBe(offsetX);
+    });
+  });
 });

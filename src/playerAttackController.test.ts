@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, type Mocked } from 'vitest';
 import { PlayerAttackController } from './playerAttackController';
+import { AttackTypeValue } from './interfaces/messageInterfaces';
 import type { EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
 import type { CommunicationService } from './interfaces/communicatonService';
@@ -67,6 +68,65 @@ describe('PlayerAttackController', () => {
 
       expect(mockCommunicationService.performMeleeAttack).toHaveBeenCalledTimes(1);
       expect(mockCommunicationService.performProjectileAttack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('switchArm', () => {
+    beforeEach(() => {
+      mockGameStateManager.isPlaying.mockReturnValue(true);
+      mockGameConfig.armSwitchDurationMs = 100;
+    });
+
+    it('should not switch when game is not playing', () => {
+      mockGameStateManager.isPlaying.mockReturnValue(false);
+
+      sut.switchArm();
+
+      expect(mockCommunicationService.switchArm).not.toHaveBeenCalled();
+    });
+
+    it('should block attacks for the duration of the switch', () => {
+      sut.switchArm();
+      mockTime.frameTimestamp = 99;
+      sut.performMeleeAttack();
+      sut.performProjectileAttack();
+      sut.performSpecialAttack();
+
+      expect(mockCommunicationService.switchArm).toHaveBeenCalledTimes(1);
+      expect(mockCommunicationService.performMeleeAttack).not.toHaveBeenCalled();
+      expect(mockCommunicationService.performProjectileAttack).not.toHaveBeenCalled();
+      expect(mockCommunicationService.performSpecialAttack).not.toHaveBeenCalled();
+      expect(sut.getCooldownRemaining(AttackTypeValue.Melee)).toBe(1);
+    });
+
+    it('should allow attacks once the switch finishes', () => {
+      sut.switchArm();
+      mockTime.frameTimestamp = 100;
+      sut.performMeleeAttack();
+
+      expect(mockCommunicationService.performMeleeAttack).toHaveBeenCalledTimes(1);
+      expect(sut.getArmSwitchCdRemaining()).toBe(0);
+    });
+
+    it('should not switch again while switching', () => {
+      sut.switchArm();
+      mockTime.frameTimestamp = 50;
+      sut.switchArm();
+
+      expect(mockCommunicationService.switchArm).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not switch in the middle of an attack', () => {
+      mockGameConfig.sharedAttackCooldownMs = 50;
+      sut.performMeleeAttack();
+      mockTime.frameTimestamp = 25;
+      sut.switchArm();
+
+      expect(mockCommunicationService.switchArm).not.toHaveBeenCalled();
+
+      mockTime.frameTimestamp = 50;
+      sut.switchArm();
+      expect(mockCommunicationService.switchArm).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PlayerInputHandler } from './playerInputHandler';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
-import type { AttackInputCallback, DashInputCallback } from './interfaces/inputHandler';
+import type { AttackInputCallback, DashInputCallback, SwitchArmInputCallback } from './interfaces/inputHandler';
 import type { ControlBindings } from './gameSettings';
 import { DEFAULT_GAME_SETTINGS } from './gameSettings';
 
@@ -20,12 +20,14 @@ describe('PlayerInputHandler', () => {
   let canvas: HTMLCanvasElement;
   let attackCallback: ReturnType<typeof vi.fn<AttackInputCallback>>;
   let dashCallback: ReturnType<typeof vi.fn<DashInputCallback>>;
+  let switchArmCallback: ReturnType<typeof vi.fn<SwitchArmInputCallback>>;
 
   beforeEach(() => {
     canvas = document.createElement('canvas');
     document.body.appendChild(canvas);
     attackCallback = vi.fn<AttackInputCallback>();
     dashCallback = vi.fn<DashInputCallback>();
+    switchArmCallback = vi.fn<SwitchArmInputCallback>();
   });
 
   afterEach(() => {
@@ -35,7 +37,7 @@ describe('PlayerInputHandler', () => {
 
   function setup(bindings?: ControlBindings) {
     sut = new PlayerInputHandler(canvas, bindings ?? createBindings());
-    sut.setup(attackCallback, dashCallback);
+    sut.setup(attackCallback, dashCallback, switchArmCallback);
   }
 
   function pressKey(key: string, target: EventTarget = canvas) {
@@ -110,6 +112,15 @@ describe('PlayerInputHandler', () => {
 
       pressKey('f');
       expect(attackCallback).toHaveBeenCalledWith(AttackTypeValue.Melee);
+    });
+
+    it('fires switch arm callback for the switch arm key', () => {
+      setup();
+
+      pressKey('T');
+
+      expect(switchArmCallback).toHaveBeenCalledTimes(1);
+      expect(attackCallback).not.toHaveBeenCalled();
     });
 
     it('fires melee attack on canvas click', () => {

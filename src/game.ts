@@ -10,7 +10,7 @@ import { AttackTypeValue } from './interfaces/messageInterfaces';
 import type { CallbacksHandler } from './interfaces/callbacksHandler';
 import type { GameConfig } from './interfaces/gameConfig';
 import type { CommunicationService } from './interfaces/communicatonService';
-import type { EntityManager } from './interfaces/entityManager';
+import type { Arm, EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
 import type { InputHandler } from './interfaces/inputHandler';
 import type { ViewportManager } from './interfaces/viewportManager';
@@ -71,7 +71,7 @@ export class Game implements CallbacksHandler {
     this.animationController = animationController;
     this.time = time;
     this.playerName = playerName;
-    this.inputHandler.setup(this.handleAttackInput, this.movementController.dash);
+    this.inputHandler.setup(this.handleAttackInput, this.movementController.dash, this.handleSwitchArmInput);
   }
 
   start(): void {
@@ -279,6 +279,16 @@ export class Game implements CallbacksHandler {
     this.audioController.playShortRunningSound('/app/attack_swing.mp3');
   };
 
+  onArmSwitched = async (playerId: string): Promise<void> => {
+    this.applyArmSwitchEffects(playerId);
+  };
+
+  applyArmSwitchEffects = (playerId: string): void => {
+    if (!this.entityManager.getEntityById(playerId)) return;
+    this.entityManager.switchWeaponArm(playerId);
+    this.animationController.createArmSwitchAnimation(playerId);
+  };
+
   onPlayerDamaged = async (playerId: string, _damage: number, newHealth: number): Promise<void> => {
     this.audioController.playShortRunningSound('/app/attack_damage.mp3', 0.4);
     this.gameStateManager.updatePlayerHealth(playerId, newHealth);
@@ -299,6 +309,7 @@ export class Game implements CallbacksHandler {
     }
     this.gameStateManager.setPlayerDeathTime(playerId, undefined);
     this.entityManager.showPlayer(playerId, position);
+    this.entityManager.setWeaponArm(playerId, this.calculateArmPointingTowardsCenter(position));
     this.animationController.resetWalkState(playerId);
     console.log('Player respawned:', { playerId, position });
   };
@@ -326,6 +337,15 @@ export class Game implements CallbacksHandler {
         break;
     }
   };
+
+  private handleSwitchArmInput = (): void => {
+    if (!this.gameStateManager.isPlaying()) return;
+    this.attackController.switchArm();
+  };
+
+  private calculateArmPointingTowardsCenter(position: Position): Arm {
+    return position.x < this.gameConfig.gameWidth / 2 ? 'right' : 'left';
+  }
 
   private gameLoop(): void {
     this.time.update();

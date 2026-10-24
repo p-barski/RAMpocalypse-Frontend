@@ -15,6 +15,7 @@ export const CONTROL_BINDING_KEYS = [
   'projectileAttack',
   'specialAttack',
   'meleeAttack',
+  'switchArm',
 ] as const;
 
 export type ControlBindingKey = (typeof CONTROL_BINDING_KEYS)[number];
@@ -45,6 +46,7 @@ const DEFAULT_CONTROLS: ControlBindings = {
   projectileAttack: ['e'],
   specialAttack: ['q'],
   meleeAttack: ['f'],
+  switchArm: ['t'],
 };
 
 const DEFAULT_AUDIO: AudioSettings = {

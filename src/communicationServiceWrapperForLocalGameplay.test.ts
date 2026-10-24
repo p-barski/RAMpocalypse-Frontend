@@ -91,6 +91,7 @@ describe('CommunicationServiceWrapperForLocalGameplay', () => {
         entityManager: mockEntityManager as unknown as EntityManager,
         getCreationTime: () => creationTime,
         applyAttackEffects: applyAttackSpy as LocalAttackBridge['applyAttackEffects'],
+        applyArmSwitchEffects: vi.fn(),
       };
       sut.attachLocalAttackBridge(bridge);
       vi.spyOn(localAttackFactory, 'createMeleeAttack');

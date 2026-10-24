@@ -23,6 +23,7 @@ export class MockGameConfig implements GameConfig {
   dashDurationMs = 250;
   meleeCooldownMs = 100;
   sharedAttackCooldownMs = 50;
+  armSwitchDurationMs = 150;
   projectileCooldownMs = 200;
   specialCooldownMs = 300;
   specialRange = 100;
@@ -81,6 +82,8 @@ export function createMockEntityManager(): Mocked<EntityManager> {
     removeRemotePlayer: vi.fn(),
     hidePlayer: vi.fn(),
     showPlayer: vi.fn(),
+    switchWeaponArm: vi.fn(),
+    setWeaponArm: vi.fn(),
   };
 }
 
@@ -99,6 +102,7 @@ export function createMockCommunicationService(): Mocked<CommunicationService> {
     performSpecialAttack: vi.fn(),
     projectileHitPlayer: vi.fn(),
     specialExplosion: vi.fn(),
+    switchArm: vi.fn(),
     leaveGame: vi.fn(),
   };
 }
@@ -154,6 +158,8 @@ export function createMockAttackController(): Mocked<AttackController> {
     performMeleeAttack: vi.fn(),
     performProjectileAttack: vi.fn(),
     performSpecialAttack: vi.fn(),
+    switchArm: vi.fn(),
+    getArmSwitchCdRemaining: vi.fn(),
     getCooldownRemaining: vi.fn(),
     addAttack: vi.fn(),
     getAttacks: vi.fn(),
@@ -182,6 +188,7 @@ export function createMockAnimationController(): Mocked<AnimationController> {
     createMeleeAttackAnimation: vi.fn(),
     createProjectileAttackAnimation: vi.fn(),
     createSpecialAttackAnimation: vi.fn(),
+    createArmSwitchAnimation: vi.fn(),
     getAnimatedEntity: vi.fn(),
     getWalkingLegLifts: vi.fn(),
     resetWalkState: vi.fn(),
