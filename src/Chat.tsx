@@ -120,6 +120,19 @@ function Chat({
     registerOnClearLobbyChat(onClearLobbyChat);
     window.addEventListener('keydown', handleKeyDown);
 
+    const canvas = canvasRef.current;
+
+    const handleCanvasClick = () => {
+      if (isChatActiveRef.current) {
+        canvas?.focus();
+        setIsChatActiveState(false);
+      }
+    };
+
+    if (canvas) {
+      canvas.addEventListener('click', handleCanvasClick);
+    }
+
     (async () => {
       try {
         const response = await fetch(`${serverUrl}/api/globalChatHistory`);
@@ -136,6 +149,7 @@ function Chat({
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      canvas?.removeEventListener('click', handleCanvasClick);
       clearTimeout(noConnectionWarningTimeoutRef.current);
     };
   }, [registerOnClearLobbyChat, registerOnMessageReceived, canvasRef, serverUrl, setIsChatActiveState]);
