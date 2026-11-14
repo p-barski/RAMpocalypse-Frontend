@@ -11,6 +11,7 @@ export class SignalRCallbacksHandler implements CallbacksHandler {
     this.handler.onOtherPlayerPositionUpdated(playerId, position);
   onPlayerLeftLobby = (playerId: string) => this.handler.onPlayerLeftLobby(playerId);
   onPositionCorrected = (correctedPosition: Position) => this.handler.onPositionCorrected(correctedPosition);
+  onCollisionDetected = (corrections: Record<string, Position>) => this.handler.onCollisionDetected(corrections);
   onAttackPerformed = (attackEntities: AttackEntity[]) => this.handler.onAttackPerformed(attackEntities);
   onArmSwitched = (playerId: string) => this.handler.onArmSwitched(playerId);
   onPlayerDamaged = (playerId: string, damage: number, newHealth: number) =>

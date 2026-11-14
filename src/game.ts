@@ -255,6 +255,18 @@ export class Game implements CallbacksHandler {
     console.log('Position corrected by server:', correctedPosition);
   };
 
+  onCollisionDetected = async (corrections: Record<string, Position>): Promise<void> => {
+    const playerId = this.entityManager.getLocalPlayerEntity().id;
+
+    for (const [otherPlayerId, position] of Object.entries(corrections)) {
+      if (otherPlayerId !== playerId) {
+        this.entityManager.updateEntityPosition(otherPlayerId, position);
+      } else {
+        this.movementController.onPositionCorrected(position);
+      }
+    }
+  };
+
   onAttackPerformed = async (attackEntities: AttackEntity[]): Promise<void> => {
     this.applyAttackPerformedEffects(attackEntities);
   };

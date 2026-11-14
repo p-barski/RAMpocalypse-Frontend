@@ -30,6 +30,7 @@ export class SignalRService implements CommunicationService {
     this.connection.on('PlayerDied', callbacksHandler.onPlayerDied);
     this.connection.on('PlayerRespawned', callbacksHandler.onPlayerRespawned);
     this.connection.on('GameEnded', callbacksHandler.onGameEnded);
+    this.connection.on('CollisionDetected', callbacksHandler.onCollisionDetected);
   }
 
   async connect(): Promise<string> {

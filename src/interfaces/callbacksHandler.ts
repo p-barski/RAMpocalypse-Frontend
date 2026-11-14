@@ -8,6 +8,7 @@ export interface CallbacksHandler {
   onOtherPlayerPositionUpdated: (playerId: string, position: Position) => void;
   onPlayerLeftLobby: (playerId: string) => void;
   onPositionCorrected: (correctedPosition: Position) => void;
+  onCollisionDetected: (corrections: Record<string, Position>) => void;
   onAttackPerformed: (attackEntities: AttackEntity[]) => void;
   onArmSwitched: (playerId: string) => void;
   onPlayerDamaged: (playerId: string, damage: number, newHealth: number) => void;
