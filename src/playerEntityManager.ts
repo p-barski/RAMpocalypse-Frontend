@@ -105,23 +105,23 @@ export class PlayerEntityManager implements EntityManager {
     if (existingEntity) {
       existingEntity.position = position;
     } else {
-      console.error(`PlayerEntityManager.updatePlayerPosition: Player with id ${id} not found`);
+      console.error(`PlayerEntityManager.updateEntityrPosition: Entity with id ${id} not found`);
     }
   }
 
-  async createRemotePlayer(
-    playerId: string,
+  async createRemoteEntity(
+    id: string,
     position: Position,
     spriteData: SpriteData,
     subEntities: SubEntity[] = [],
   ): Promise<void> {
-    const entity = await this.createEntityInternal(playerId, position, spriteData, subEntities);
-    this.remoteEntities.set(playerId, entity);
+    const entity = await this.createEntityInternal(id, position, spriteData, subEntities);
+    this.remoteEntities.set(id, entity);
     this.entities.splice(this.entities.length - 1, 0, entity);
   }
 
-  removeRemotePlayer(playerId: string): void {
-    const entity = this.remoteEntities.get(playerId);
+  removeRemoteEntity(id: string): void {
+    const entity = this.remoteEntities.get(id);
     if (entity) this.removeEntity(entity);
   }
 

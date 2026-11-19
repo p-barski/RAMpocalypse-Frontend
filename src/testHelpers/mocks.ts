@@ -33,6 +33,7 @@ export class MockGameConfig implements GameConfig {
   meleeLifetime = 200;
   projectileLifetime = 3000;
   specialLifetime = 1000;
+  explosionLifetimeMs = 50;
   meleeDamage = 10;
   projectileDamage = 15;
   specialDamage = 20;
@@ -78,8 +79,8 @@ export function createMockEntityManager(): Mocked<EntityManager> {
     updateLocalPlayerSubEntities: vi.fn(),
     updateLocalPlayerSprite: vi.fn(),
     updateEntityPosition: vi.fn(),
-    createRemotePlayer: vi.fn(),
-    removeRemotePlayer: vi.fn(),
+    createRemoteEntity: vi.fn(),
+    removeRemoteEntity: vi.fn(),
     hidePlayer: vi.fn(),
     showPlayer: vi.fn(),
     switchWeaponArm: vi.fn(),
@@ -189,6 +190,7 @@ export function createMockAnimationController(): Mocked<AnimationController> {
     createProjectileAttackAnimation: vi.fn(),
     createSpecialAttackAnimation: vi.fn(),
     createArmSwitchAnimation: vi.fn(),
+    createExplosionAnimation: vi.fn(),
     getAnimatedEntity: vi.fn(),
     getWalkingLegLifts: vi.fn(),
     resetWalkState: vi.fn(),

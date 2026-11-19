@@ -65,7 +65,7 @@ describe('Game', () => {
     const remotePlayer: Player = {
       id: 'remote',
       position: { x: 1, y: 2, angle: 0 },
-      spriteData: { url: '/sprite.png', width: 10, height: 10, scaleFactor: 1 },
+      spriteData: { url: '/sprite.png', width: 10, height: 10, scaleFactor: 1, opacity: 1 },
       subEntities: [],
       health: 100,
       maxHealth: 100,
@@ -76,7 +76,7 @@ describe('Game', () => {
       const promise = sut.onPlayerJoinedLobby(remotePlayer);
 
       expect(mockGameStateManager.addPlayer).toHaveBeenCalledWith(remotePlayer);
-      expect(mockEntityManager.createRemotePlayer).not.toHaveBeenCalled();
+      expect(mockEntityManager.createRemoteEntity).not.toHaveBeenCalled();
 
       await vi.advanceTimersByTimeAsync(mockGameConfig.spawnProtectionMs);
       await promise;
@@ -87,12 +87,12 @@ describe('Game', () => {
       const promise = sut.onPlayerJoinedLobby(remotePlayer);
 
       await vi.advanceTimersByTimeAsync(mockGameConfig.spawnProtectionMs - 1);
-      expect(mockEntityManager.createRemotePlayer).not.toHaveBeenCalled();
+      expect(mockEntityManager.createRemoteEntity).not.toHaveBeenCalled();
 
       await vi.advanceTimersByTimeAsync(1);
       await promise;
 
-      expect(mockEntityManager.createRemotePlayer).toHaveBeenCalledWith(
+      expect(mockEntityManager.createRemoteEntity).toHaveBeenCalledWith(
         remotePlayer.id,
         remotePlayer.position,
         remotePlayer.spriteData,
@@ -107,14 +107,14 @@ describe('Game', () => {
       await vi.advanceTimersByTimeAsync(mockGameConfig.spawnProtectionMs);
       await promise;
 
-      expect(mockEntityManager.createRemotePlayer).not.toHaveBeenCalled();
+      expect(mockEntityManager.createRemoteEntity).not.toHaveBeenCalled();
     });
 
     it('does nothing for the local player themselves', async () => {
       await sut.onPlayerJoinedLobby({ ...remotePlayer, id: 'local' });
 
       expect(mockGameStateManager.addPlayer).not.toHaveBeenCalled();
-      expect(mockEntityManager.createRemotePlayer).not.toHaveBeenCalled();
+      expect(mockEntityManager.createRemoteEntity).not.toHaveBeenCalled();
     });
   });
 

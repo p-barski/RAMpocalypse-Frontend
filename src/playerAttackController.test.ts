@@ -4,10 +4,12 @@ import { AttackTypeValue } from './interfaces/messageInterfaces';
 import type { EntityManager } from './interfaces/entityManager';
 import type { StateManager } from './interfaces/stateManager';
 import type { CommunicationService } from './interfaces/communicatonService';
+import type { AnimationController } from './interfaces/animationController';
 import {
   createMockCommunicationService,
   createMockEntityManager,
   createMockStateManager,
+  createMockAnimationController,
   MockGameConfig,
   MockTime,
 } from './testHelpers/mocks';
@@ -18,6 +20,7 @@ describe('PlayerAttackController', () => {
   let mockCommunicationService: Mocked<CommunicationService>;
   let mockGameStateManager: Mocked<StateManager>;
   let mockTime: MockTime;
+  let mockAnimationController: Mocked<AnimationController>;
   let mockGameConfig: MockGameConfig;
 
   beforeEach(() => {
@@ -26,13 +29,16 @@ describe('PlayerAttackController', () => {
     mockGameStateManager = createMockStateManager();
     mockTime = new MockTime();
     mockGameConfig = new MockGameConfig();
+    mockAnimationController = createMockAnimationController();
 
     sut = new PlayerAttackController(
       mockGameConfig,
       mockEntityManager,
       mockCommunicationService,
       mockGameStateManager,
+      mockAnimationController,
       mockTime,
+      new Map(),
     );
   });
 

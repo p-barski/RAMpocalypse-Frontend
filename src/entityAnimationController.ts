@@ -6,7 +6,8 @@ import type { Entity } from './interfaces/entity';
 import type { GameConfig } from './interfaces/gameConfig';
 import { clamp, HALF_PI, TAU } from './mathUtils';
 
-const STEP_ZERO: AnimationStep = { position: { x: 0, y: 0, angle: 0 } satisfies Position, percent: 0 };
+const STEP_ZERO: AnimationStep = { percent: 0, position: { x: 0, y: 0, angle: 0 }, opacity: 0, scaling: 0 };
+const EXPLOSION_ANIMATION_STEPS: AnimationStep[] = [{ ...STEP_ZERO, percent: 1, opacity: -1, scaling: 0.6 }];
 
 interface WalkState {
   x: number;
@@ -60,10 +61,11 @@ export class EntityAnimationController implements AnimationController {
     // that matches melee hit-detection area
     const pivotDistance = this.gameConfig.meleeRange - weapon.height;
     const sweepKeyframes: AnimationStep[] = this.MELEE_SWEEP_DIRECTIONS.map(({ percent, angle, sin, cos }) => ({
+      ...STEP_ZERO,
       percent,
-      position: { x: pivotDistance * sin, y: -weapon.height - pivotDistance * cos, angle } satisfies Position,
+      position: { x: pivotDistance * sin, y: -weapon.height - pivotDistance * cos, angle },
     }));
-    sweepKeyframes.push({ percent: 1, position: { x: 0, y: 0, angle: 0 } satisfies Position });
+    sweepKeyframes.push({ ...STEP_ZERO, percent: 1 });
 
     const animation: Animation = {
       entity: weapon,
@@ -82,10 +84,11 @@ export class EntityAnimationController implements AnimationController {
     }
     const weapon = found.weapon;
     const fivePercentOfWeaponHeight = weapon.height * 0.05;
+    const p0: Position = { x: 0, y: 0, angle: 0 };
     const steps: AnimationStep[] = [
-      { position: { x: 0, y: -2 * fivePercentOfWeaponHeight, angle: 0 } satisfies Position, percent: 0.125 },
-      { position: { x: 0, y: -fivePercentOfWeaponHeight, angle: 0 } satisfies Position, percent: 0.25 },
-      { position: { x: 0, y: 3 * fivePercentOfWeaponHeight, angle: 0 } satisfies Position, percent: 1 },
+      { ...STEP_ZERO, percent: 0.125, position: { ...p0, y: -2 * fivePercentOfWeaponHeight } },
+      { ...STEP_ZERO, percent: 0.25, position: { ...p0, y: -fivePercentOfWeaponHeight } },
+      { ...STEP_ZERO, percent: 1, position: { ...p0, y: 3 * fivePercentOfWeaponHeight } },
     ];
     const animation: Animation = {
       entity: weapon,
@@ -113,8 +116,9 @@ export class EntityAnimationController implements AnimationController {
     const tossKeyframes: AnimationStep[] = Array.from({ length: this.ARM_SWITCH_SEGMENTS + 1 }, (_, i) => {
       const t = i / this.ARM_SWITCH_SEGMENTS;
       return {
+        ...STEP_ZERO,
         percent: t,
-        position: { x: startX * (1 - t), y: -4 * lift * t * (1 - t), angle: spin * t } satisfies Position,
+        position: { x: startX * (1 - t), y: -4 * lift * t * (1 - t), angle: spin * t },
       };
     });
 
@@ -149,12 +153,16 @@ export class EntityAnimationController implements AnimationController {
     let offsetX = 0;
     let offsetY = 0;
     let offsetAngle = 0;
+    let offsetOpacity = 0;
+    let offsetScaling = 0;
     for (const step of animation.steps) {
       currentStep = nextStep;
       nextStep = step;
       offsetX += currentStep.position.x;
       offsetY += currentStep.position.y;
       offsetAngle += currentStep.position.angle;
+      offsetOpacity += currentStep.opacity;
+      offsetScaling += currentStep.scaling;
       // Step at the same percent as the previous one is an instant offset, e.g. a starting offset at 0%
       if (animationProgressPercent <= step.percent && step.percent > currentStep.percent) {
         break;
@@ -166,6 +174,8 @@ export class EntityAnimationController implements AnimationController {
     offsetX += nextStep.position.x * stepProgressPercent;
     offsetY += nextStep.position.y * stepProgressPercent;
     offsetAngle += nextStep.position.angle * stepProgressPercent;
+    offsetOpacity += nextStep.opacity * stepProgressPercent;
+    offsetScaling += nextStep.scaling * stepProgressPercent;
     const frameAngle = animation.ignoresParentAngle ? 0 : parentAngle + entity.position.angle;
     const cos = Math.cos(frameAngle);
     const sin = Math.sin(frameAngle);
@@ -176,8 +186,13 @@ export class EntityAnimationController implements AnimationController {
     };
     const newEntity: Entity = {
       ...entity,
+      position: newPosition,
+      spriteData: {
+        ...entity.spriteData,
+        scaleFactor: entity.spriteData.scaleFactor + offsetScaling,
+        opacity: entity.spriteData.opacity + offsetOpacity,
+      },
     };
-    newEntity.position = newPosition;
     return newEntity;
   }
 
@@ -192,6 +207,23 @@ export class EntityAnimationController implements AnimationController {
 
   resetWalkState(entityId: string): void {
     this.walkStates.delete(entityId);
+  }
+
+  createExplosionAnimation(id: string): void {
+    const entity = this.entityManager.getEntityById(id);
+    if (!entity) {
+      console.error(`EntityAnimationController.createExplosionAnimation: Could not find entity of id ${id}`);
+      return;
+    }
+
+    const animation: Animation = {
+      entity: entity,
+      durationMiliseconds: this.gameConfig.explosionLifetimeMs,
+      looping: false,
+      startTime: this.time.frameTimestamp,
+      steps: EXPLOSION_ANIMATION_STEPS,
+    };
+    this.animations.set(id, animation);
   }
 
   private updateWalkState(player: Entity): WalkState {
@@ -221,12 +253,9 @@ export class EntityAnimationController implements AnimationController {
     let previous: Position = { x: 0, y: 0, angle: 0 };
     for (const { percent, position } of keyframes) {
       steps.push({
-        position: {
-          x: position.x - previous.x,
-          y: position.y - previous.y,
-          angle: position.angle - previous.angle,
-        } satisfies Position,
+        ...STEP_ZERO,
         percent,
+        position: { x: position.x - previous.x, y: position.y - previous.y, angle: position.angle - previous.angle },
       });
       previous = position;
     }

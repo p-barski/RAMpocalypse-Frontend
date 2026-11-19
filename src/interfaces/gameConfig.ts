@@ -19,6 +19,7 @@ export interface GameConfig {
   readonly meleeLifetime: number;
   readonly projectileLifetime: number;
   readonly specialLifetime: number;
+  readonly explosionLifetimeMs: number;
   readonly meleeDamage: number;
   readonly projectileDamage: number;
   readonly specialDamage: number;

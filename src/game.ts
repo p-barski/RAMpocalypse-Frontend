@@ -217,7 +217,7 @@ export class Game implements CallbacksHandler {
 
     for (const player of players) {
       if (player.id !== playerId) {
-        await this.entityManager.createRemotePlayer(player.id, player.position, player.spriteData, player.subEntities);
+        await this.entityManager.createRemoteEntity(player.id, player.position, player.spriteData, player.subEntities);
         this.animationController.resetWalkState(player.id);
       }
     }
@@ -233,7 +233,7 @@ export class Game implements CallbacksHandler {
     await sleepAsync(this.gameConfig.spawnProtectionMs);
     // Check in case player left
     if (!this.gameStateManager.getPlayer(player.id)) return;
-    await this.entityManager.createRemotePlayer(player.id, player.position, player.spriteData, player.subEntities);
+    await this.entityManager.createRemoteEntity(player.id, player.position, player.spriteData, player.subEntities);
     this.animationController.resetWalkState(player.id);
   };
 
@@ -243,7 +243,7 @@ export class Game implements CallbacksHandler {
   };
 
   onPlayerLeftLobby = async (playerId: string): Promise<void> => {
-    this.entityManager.removeRemotePlayer(playerId);
+    this.entityManager.removeRemoteEntity(playerId);
     this.gameStateManager.removePlayer(playerId);
     if (this.gameStateManager.getAllPlayers().size === 1) {
       this.enterLocalSandbox();

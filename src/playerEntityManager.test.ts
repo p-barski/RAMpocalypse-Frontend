@@ -3,7 +3,7 @@ import { PlayerEntityManager } from './playerEntityManager';
 import type { SpriteManager } from './interfaces/spriteManager';
 import type { Position, SpriteData } from './interfaces/messageInterfaces';
 
-const spriteData: SpriteData = { url: '/sprite.png', width: 10, height: 10, scaleFactor: 1 };
+const spriteData: SpriteData = { url: '/sprite.png', width: 10, height: 10, scaleFactor: 1, opacity: 1 };
 const position: Position = { x: 0, y: 0, angle: 0 };
 const fakeSprite = { width: 10, height: 10 } as ImageBitmap;
 
@@ -50,7 +50,7 @@ describe('PlayerEntityManager', () => {
 
   describe('hidePlayer / showPlayer for a remote player', () => {
     it('hide and show remote player returns the same instance and changes position', async () => {
-      await sut.createRemotePlayer('remote_1', position, spriteData);
+      await sut.createRemoteEntity('remote_1', position, spriteData);
       const remoteEntity = sut.getEntityById('remote_1');
       expect(remoteEntity).toBeDefined();
 
@@ -64,7 +64,7 @@ describe('PlayerEntityManager', () => {
   });
 
   describe('weapon arm', () => {
-    const weaponSpriteData: SpriteData = { url: '/weapon.png', width: 10, height: 10, scaleFactor: 1 };
+    const weaponSpriteData: SpriteData = { url: '/weapon.png', width: 10, height: 10, scaleFactor: 1, opacity: 1 };
 
     async function getLocalWeapon() {
       await sut.addDefaultWeaponToLocalPlayer(weaponSpriteData);

@@ -2,8 +2,10 @@ import type { Entity } from './entity';
 import type { Position } from './messageInterfaces';
 
 export interface AnimationStep {
-  position: Position;
   percent: number; // percentage from 0 to 1
+  position: Position;
+  opacity: number;
+  scaling: number;
 }
 export interface Animation {
   readonly entity: Entity;
@@ -25,6 +27,7 @@ export interface AnimationController {
   createProjectileAttackAnimation(playerId: string): void;
   createSpecialAttackAnimation(playerId: string): void;
   createArmSwitchAnimation(playerId: string): void;
+  createExplosionAnimation(entityId: string): void;
   getAnimatedEntity(entity: Entity, parentAngle?: number): Entity;
   getWalkingLegLifts(player: Entity): LegLifts;
   resetWalkState(entityId: string): void;

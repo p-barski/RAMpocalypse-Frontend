@@ -16,6 +16,7 @@ export function createTestWeapon(
       width: sprite.width,
       height: sprite.height,
       scaleFactor: sprite.scaleFactor,
+      opacity: 1,
     },
     subEntities: [],
     image,
@@ -38,7 +39,7 @@ export function createTestLocalPlayerWithWeapon(
     image,
     width,
     height,
-    spriteData: { url: 'player_test.png', width, height, scaleFactor: 1 },
+    spriteData: { url: 'player_test.png', width, height, scaleFactor: 1, opacity: 1 },
     subEntities: [weapon],
   };
 }

@@ -4,9 +4,10 @@ import type { StateManager } from './interfaces/stateManager';
 import type { Time } from './interfaces/time';
 import type { CommunicationService } from './interfaces/communicatonService';
 import type { GameConfig } from './interfaces/gameConfig';
-import type { AttackType, AttackEntity } from './interfaces/messageInterfaces';
+import type { AttackType, AttackEntity, SpriteData } from './interfaces/messageInterfaces';
 import { AttackTypeValue } from './interfaces/messageInterfaces';
 import { clamp } from './mathUtils';
+import type { AnimationController } from './interfaces/animationController';
 
 export class PlayerAttackController implements AttackController {
   private readonly COOLDOWNS_MAP: ReadonlyMap<AttackType, number>;
@@ -14,6 +15,8 @@ export class PlayerAttackController implements AttackController {
   private readonly entityManager: EntityManager;
   private readonly communicationService: CommunicationService;
   private readonly gameStateManager: StateManager;
+  private readonly animationController: AnimationController;
+  private readonly attackSprites: Map<AttackType, SpriteData>;
   private readonly time: Time;
 
   private readonly attackCooldowns: Map<AttackType, number> = new Map([
@@ -32,13 +35,17 @@ export class PlayerAttackController implements AttackController {
     entityManager: EntityManager,
     communicationService: CommunicationService,
     gameStateManager: StateManager,
+    animationController: AnimationController,
     time: Time,
+    attackSprites: Map<AttackType, SpriteData>,
   ) {
     this.gameConfig = gameConfig;
     this.entityManager = entityManager;
     this.communicationService = communicationService;
     this.gameStateManager = gameStateManager;
+    this.animationController = animationController;
     this.time = time;
+    this.attackSprites = attackSprites;
     this.COOLDOWNS_MAP = new Map([
       [AttackTypeValue.Melee, this.gameConfig.meleeCooldownMs],
       [AttackTypeValue.Projectile, this.gameConfig.projectileCooldownMs],
@@ -93,6 +100,8 @@ export class PlayerAttackController implements AttackController {
     switch (attackEntity.type) {
       case AttackTypeValue.ProjectileHit:
         this.attacks.delete(attackEntity.id);
+        this.entityManager.removeRemoteEntity(attackEntity.id);
+        //TODO add hit and animation idk
         return;
       // @ts-expect-error fallthrough
       case AttackTypeValue.Projectile:
@@ -106,6 +115,12 @@ export class PlayerAttackController implements AttackController {
         break;
       }
     }
+    this.entityManager.createRemoteEntity(
+      attackEntity.id,
+      attackEntity.currentPosition,
+      this.attackSprites.get(attackEntity.type)!,
+      [],
+    );
     this.attacks.set(attackEntity.id, attackEntity);
   }
 
@@ -114,12 +129,12 @@ export class PlayerAttackController implements AttackController {
   }
 
   update(): void {
-    const toRemove: string[] = [];
+    const toRemove: AttackEntity[] = [];
 
     for (const [id, attack] of this.attacks) {
       const age = this.time.frameTimestamp - attack.creationTime;
       if (age >= attack.lifetime) {
-        toRemove.push(id);
+        toRemove.push(attack);
         if (attack.type === AttackTypeValue.Special && attack.ownerId === this.entityManager.getLocalPlayerEntity().id)
           this.communicationService.specialExplosion(id);
         continue;
@@ -139,8 +154,9 @@ export class PlayerAttackController implements AttackController {
         attack.currentPosition.x < 0 ||
         attack.currentPosition.y < 0;
       if (isOutsidePlayableArea) {
-        toRemove.push(id);
+        toRemove.push(attack);
       }
+      this.entityManager.updateEntityPosition(attack.id, attack.currentPosition);
     }
 
     if (this.ownProjectiles.size > 0) {
@@ -150,21 +166,29 @@ export class PlayerAttackController implements AttackController {
         if (entity.id != localPlayer.id && entity.id.startsWith('player_')) {
           const halfWidth = entity.width / 2;
           const halfHeight = entity.height / 2;
-          for (const [id, attack] of this.ownProjectiles) {
+          for (const [_, attack] of this.ownProjectiles) {
             const dx = attack.currentPosition.x - entity.position.x;
             const dy = attack.currentPosition.y - entity.position.y;
             if (Math.abs(dx) <= halfWidth && Math.abs(dy) <= halfHeight) {
               this.communicationService.projectileHitPlayer(attack.id, entity.id);
-              toRemove.push(id);
+              toRemove.push(attack);
             }
           }
         }
       }
     }
 
-    for (const id of toRemove) {
-      this.attacks.delete(id);
-      this.ownProjectiles.delete(id);
+    for (const attack of toRemove) {
+      if (attack.type === AttackTypeValue.Special) {
+        this.animationController.createExplosionAnimation(attack.id);
+        setTimeout(() => {
+          this.entityManager.removeRemoteEntity(attack.id);
+        }, this.gameConfig.explosionLifetimeMs);
+      } else {
+        this.entityManager.removeRemoteEntity(attack.id);
+      }
+      this.attacks.delete(attack.id);
+      this.ownProjectiles.delete(attack.id);
     }
   }
 

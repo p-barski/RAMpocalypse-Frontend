@@ -12,14 +12,9 @@ export interface EntityManager {
   updateLocalPlayerPosition(position: Position): void;
   updateLocalPlayerSubEntities(subEntities: SubEntity[]): Promise<void>;
   updateLocalPlayerSprite(spriteData: SpriteData): Promise<void>;
-  updateEntityPosition(playerId: string, position: Position): void;
-  createRemotePlayer(
-    playerId: string,
-    position: Position,
-    spriteData: SpriteData,
-    subEntities: SubEntity[],
-  ): Promise<void>;
-  removeRemotePlayer(playerId: string): void;
+  updateEntityPosition(id: string, position: Position): void;
+  createRemoteEntity(id: string, position: Position, spriteData: SpriteData, subEntities: SubEntity[]): Promise<void>;
+  removeRemoteEntity(id: string): void;
   hidePlayer(playerId: string): void;
   showPlayer(playerId: string, position: Position): void;
   switchWeaponArm(playerId: string): void;

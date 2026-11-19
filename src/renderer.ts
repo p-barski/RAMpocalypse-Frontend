@@ -30,9 +30,6 @@ export class Renderer implements RenderingService {
   private readonly HEALTH_BAR_OFFSET_Y = 20;
   private readonly HEALTH_BAR_BORDER_SIZE = 3;
 
-  private readonly MELEE_RADIUS = 30;
-  private readonly PROJECTILE_RADIUS = 10;
-
   // Googly eye geometry, as fractions of the sprite's drawn width/height
   private readonly EYE_RADIUS_RATIO = 0.09;
   private readonly EYE_SPACING_RATIO = 0.15;
@@ -59,9 +56,6 @@ export class Renderer implements RenderingService {
   private readonly COLOR_BORDER = '#ffffff';
   private readonly COLOR_HEALTH_BG = '#ff0000';
   private readonly COLOR_HEALTH_FG = '#00ff00';
-  private readonly COLOR_MELEE = '#ffff00';
-  private readonly COLOR_PROJECTILE = '#00ffff';
-  private readonly COLOR_SPECIAL = '#ff00ff';
   private readonly COLOR_UI_TEXT = '#ffffff';
   private readonly COLOR_OVERLAY_BG = 'rgba(0, 0, 0, 0.7)';
   private readonly COLOR_BACKGROUND = '#282c34';
@@ -101,7 +95,6 @@ export class Renderer implements RenderingService {
     for (const entity of this.entityManager.getEntities()) {
       this.drawEntity(entity);
     }
-    this.drawAttacks();
 
     // Clip sprites outside of playable area
     this.ctx.fillStyle = this.COLOR_BACKGROUND;
@@ -161,7 +154,9 @@ export class Renderer implements RenderingService {
     if (isPlayer) {
       this.drawLegs(entity, canvasX, canvasY, worldAngle, this.animationController.getWalkingLegLifts(entity));
     }
+    this.ctx.globalAlpha = entity.spriteData.opacity;
     this.drawImageToCanvas(entity.image, canvasX, canvasY, canvasScale, isPlayer ? offsetAngle : worldAngle);
+    this.ctx.globalAlpha = 1;
     if (isPlayer) {
       this.drawGooglyEyes(canvasX, canvasY, drawWidth, drawHeight, worldAngle);
     }
@@ -403,50 +398,6 @@ export class Renderer implements RenderingService {
       width * healthPercent - twiceScaledBorderSize,
       scaledHeight - twiceScaledBorderSize,
     );
-  }
-
-  private drawAttacks(): void {
-    const attacks = this.attackController.getAttacks();
-    const scale = this.viewportManager.scale;
-    for (const attack of attacks) {
-      const canvasX = Math.round(this.viewportManager.gameToCanvasX(attack.currentPosition.x));
-      const canvasY = Math.round(this.viewportManager.gameToCanvasY(attack.currentPosition.y));
-
-      switch (attack.type) {
-        case AttackTypeValue.Melee:
-          this.drawMeleeAttack(canvasX, canvasY, scale);
-          break;
-        case AttackTypeValue.Projectile:
-          this.drawProjectileAttack(canvasX, canvasY, scale);
-          break;
-        case AttackTypeValue.Special:
-          this.drawSpecialAttack(canvasX, canvasY, scale);
-          break;
-      }
-    }
-  }
-
-  private drawMeleeAttack(canvasX: number, canvasY: number, scaleX: number): void {
-    this.ctx.strokeStyle = this.COLOR_MELEE;
-    this.ctx.lineWidth = 3;
-    this.ctx.beginPath();
-    this.ctx.arc(canvasX, canvasY, this.MELEE_RADIUS * scaleX, 0, TAU);
-    this.ctx.stroke();
-  }
-
-  private drawProjectileAttack(canvasX: number, canvasY: number, scaleX: number): void {
-    this.ctx.fillStyle = this.COLOR_PROJECTILE;
-    this.ctx.beginPath();
-    this.ctx.arc(canvasX, canvasY, this.PROJECTILE_RADIUS * scaleX, 0, TAU);
-    this.ctx.fill();
-  }
-
-  private drawSpecialAttack(canvasX: number, canvasY: number, scaleX: number): void {
-    this.ctx.strokeStyle = this.COLOR_SPECIAL;
-    this.ctx.lineWidth = 4;
-    this.ctx.beginPath();
-    this.ctx.arc(canvasX, canvasY, this.gameConfig.specialRange * scaleX, 0, TAU);
-    this.ctx.stroke();
   }
 
   private drawMatchmakingStatus(): void {

@@ -4,7 +4,7 @@ import type { EntityManager } from './interfaces/entityManager';
 import type { Entity } from './interfaces/entity';
 import type { LegLifts } from './interfaces/animationController';
 import { createMockEntityManager, MockGameConfig, MockTime } from './testHelpers/mocks';
-import { createTestLocalPlayerWithWeapon } from './testHelpers/entityTestFactories';
+import { createTestLocalPlayerWithWeapon, EMPTY_IMAGE_BITMAP } from './testHelpers/entityTestFactories';
 import { HALF_PI } from './mathUtils';
 
 function createPlayerAndWeapon(angle: number, weaponHeight = 16): { player: Entity; weapon: Entity } {
@@ -264,6 +264,46 @@ describe('EntityAnimationController', () => {
       const { weapon } = createSwitchedPlayerAndWeapon(0);
       const animated = getAnimatedAt(weapon, 1);
       expect(animated.position).toStrictEqual(weapon.position);
+    });
+  });
+
+  describe('explosionAnimation', () => {
+    function createExplosionEntity(): Entity {
+      return {
+        id: 'explosion_test',
+        position: { x: 0, y: 0, angle: 0 },
+        spriteData: {
+          url: 'explosion_test.png',
+          width: 32,
+          height: 16,
+          scaleFactor: 0.45,
+          opacity: 1,
+        },
+        subEntities: [],
+        image: EMPTY_IMAGE_BITMAP,
+        width: 32 * 0.45,
+        height: 16 * 0.45,
+      } as Entity;
+    }
+
+    it('has opacity 0.5 and scaleFactor 0.75 at half of the total explosion time', () => {
+      const entity = createExplosionEntity();
+      mockEntityManager.getEntityById.mockReturnValue(entity);
+      sut.createExplosionAnimation(entity.id);
+      mockTime.frameTimestamp = mockGameConfig.explosionLifetimeMs / 2;
+      const animated = sut.getAnimatedEntity(entity);
+      expect(animated.spriteData.opacity).toBe(0.5);
+      expect(animated.spriteData.scaleFactor).toBe(0.75);
+    });
+
+    it('has opacity 0.0 and scaleFactor 1.05 at the total explosion time', () => {
+      const entity = createExplosionEntity();
+      mockEntityManager.getEntityById.mockReturnValue(entity);
+      sut.createExplosionAnimation(entity.id);
+      mockTime.frameTimestamp = mockGameConfig.explosionLifetimeMs * 0.999;
+      const animated = sut.getAnimatedEntity(entity);
+      expect(animated.spriteData.opacity).toBeCloseTo(0.0, 1);
+      expect(animated.spriteData.scaleFactor).toBeCloseTo(1.05, 1);
     });
   });
 });

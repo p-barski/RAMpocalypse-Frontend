@@ -14,6 +14,7 @@ export interface SpriteData {
   width: number;
   height: number;
   scaleFactor: number;
+  opacity: number;
 }
 
 export interface SubEntity {

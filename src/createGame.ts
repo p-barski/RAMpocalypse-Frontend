@@ -15,6 +15,7 @@ import { EntityAnimationController } from './entityAnimationController';
 import { GameTime } from './gameTime';
 import { SignalRCallbacksHandler } from './signalRCallbacksHandler';
 import type { GameSettings } from './gameSettings';
+import { AttackTypeValue, type AttackType, type SpriteData } from './interfaces/messageInterfaces';
 
 export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, settings: GameSettings): Promise<Game> {
   const ctx = canvas.getContext('2d');
@@ -26,19 +27,48 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
     width: 420,
     height: 128,
     scaleFactor: 1.0,
+    opacity: 1,
   };
   const arenaSpriteData = {
     url: '/app/arena.png',
     width: 1920,
     height: 1080,
-    scaleFactor: 1,
+    scaleFactor: 1.0,
+    opacity: 1,
   };
   const weaponSpriteData = {
-    url: '/app/lightning_1.png',
-    width: 17,
-    height: 53,
-    scaleFactor: 3,
+    url: '/app/weapon_1.png',
+    width: 79,
+    height: 232,
+    scaleFactor: 0.646,
+    opacity: 1,
   };
+  const specialAttackSpriteData = {
+    url: '/app/special_attack.png',
+    width: 222,
+    height: 222,
+    scaleFactor: 0.45,
+    opacity: 1,
+  };
+  const projectileSpriteData = {
+    url: '/app/projectile.png',
+    width: 64,
+    height: 64,
+    scaleFactor: 0.6,
+    opacity: 1,
+  };
+  const meleeSpriteData = {
+    url: '/app/melee.png',
+    width: 222,
+    height: 222,
+    scaleFactor: 1.0,
+    opacity: 1,
+  };
+  const attackSprites = new Map<AttackType, SpriteData>([
+    [AttackTypeValue.Melee, meleeSpriteData],
+    [AttackTypeValue.Projectile, projectileSpriteData],
+    [AttackTypeValue.Special, specialAttackSpriteData],
+  ]);
   const missingSprite = await SpriteLoader.loadMissingSprite();
   const gameConfig = await loadGameConfig();
 
@@ -51,6 +81,10 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
   const gameSession = { isOnlineMatch: false };
   const communicationServiceWrapper = new CommunicationServiceWrapperForLocalGameplay(signalRService, gameSession);
   const spriteManager = new SpriteLoader(missingSprite);
+  // Load to cache
+  for (const [_, spriteData] of attackSprites) {
+    spriteManager.getSpriteImage(spriteData);
+  }
   const localPlayerSprite = await spriteManager.getSpriteImage(playerSpriteData);
   const localPlayerPosition = { x: gameConfig.gameWidth / 2, y: gameConfig.gameHeight / 2, angle: 0 };
   const entityManager = new PlayerEntityManager(
@@ -86,7 +120,9 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
     entityManager,
     communicationServiceWrapper,
     gameStateManager,
+    animationController,
     gameTime,
+    attackSprites,
   );
   const renderingService = new Renderer(
     ctx,
