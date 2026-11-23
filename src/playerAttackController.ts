@@ -8,6 +8,7 @@ import type { AttackType, AttackEntity, SpriteData } from './interfaces/messageI
 import { AttackTypeValue } from './interfaces/messageInterfaces';
 import { clamp } from './mathUtils';
 import type { AnimationController } from './interfaces/animationController';
+import type { AudioController } from './interfaces/audioController';
 
 export class PlayerAttackController implements AttackController {
   private readonly COOLDOWNS_MAP: ReadonlyMap<AttackType, number>;
@@ -16,6 +17,7 @@ export class PlayerAttackController implements AttackController {
   private readonly communicationService: CommunicationService;
   private readonly gameStateManager: StateManager;
   private readonly animationController: AnimationController;
+  private readonly audioController: AudioController;
   private readonly attackSprites: Map<AttackType, SpriteData>;
   private readonly time: Time;
 
@@ -36,6 +38,7 @@ export class PlayerAttackController implements AttackController {
     communicationService: CommunicationService,
     gameStateManager: StateManager,
     animationController: AnimationController,
+    audioController: AudioController,
     time: Time,
     attackSprites: Map<AttackType, SpriteData>,
   ) {
@@ -44,6 +47,7 @@ export class PlayerAttackController implements AttackController {
     this.communicationService = communicationService;
     this.gameStateManager = gameStateManager;
     this.animationController = animationController;
+    this.audioController = audioController;
     this.time = time;
     this.attackSprites = attackSprites;
     this.COOLDOWNS_MAP = new Map([
@@ -180,6 +184,7 @@ export class PlayerAttackController implements AttackController {
 
     for (const attack of toRemove) {
       if (attack.type === AttackTypeValue.Special) {
+        this.audioController.playShortRunningSound('/app/special_explosion.mp3', 0.3);
         this.animationController.createExplosionAnimation(attack.id);
         setTimeout(() => {
           this.entityManager.removeRemoteEntity(attack.id);

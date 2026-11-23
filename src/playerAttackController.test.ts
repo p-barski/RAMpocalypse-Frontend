@@ -12,7 +12,9 @@ import {
   createMockAnimationController,
   MockGameConfig,
   MockTime,
+  createMockAudioController,
 } from './testHelpers/mocks';
+import type { AudioController } from './interfaces/audioController';
 
 describe('PlayerAttackController', () => {
   let sut: PlayerAttackController;
@@ -22,6 +24,7 @@ describe('PlayerAttackController', () => {
   let mockTime: MockTime;
   let mockAnimationController: Mocked<AnimationController>;
   let mockGameConfig: MockGameConfig;
+  let mockAudioController: AudioController;
 
   beforeEach(() => {
     mockEntityManager = createMockEntityManager();
@@ -30,6 +33,7 @@ describe('PlayerAttackController', () => {
     mockTime = new MockTime();
     mockGameConfig = new MockGameConfig();
     mockAnimationController = createMockAnimationController();
+    mockAudioController = createMockAudioController();
 
     sut = new PlayerAttackController(
       mockGameConfig,
@@ -37,6 +41,7 @@ describe('PlayerAttackController', () => {
       mockCommunicationService,
       mockGameStateManager,
       mockAnimationController,
+      mockAudioController,
       mockTime,
       new Map(),
     );

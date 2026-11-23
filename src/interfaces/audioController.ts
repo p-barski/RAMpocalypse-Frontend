@@ -5,4 +5,5 @@ export interface AudioController {
   playLongRunningSound(sound: string, volume?: number, category?: AudioCategory): Promise<void>;
   stopSound(sound: string): Promise<void>;
   cleanup(): void;
+  settingsUpdated(): void;
 }

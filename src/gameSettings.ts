@@ -188,6 +188,7 @@ export function setAudioSetting<K extends keyof AudioSettings>(
   value: AudioSettings[K],
 ): void {
   settings.audio[field] = value;
+  window.game?.audioController.settingsUpdated();
 }
 
 export function setPlayerName(settings: GameSettings, playerName: string): void {

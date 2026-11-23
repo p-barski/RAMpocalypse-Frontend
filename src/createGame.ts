@@ -121,6 +121,7 @@ export async function createGame(serverUrl: string, canvas: HTMLCanvasElement, s
     communicationServiceWrapper,
     gameStateManager,
     animationController,
+    audioController,
     gameTime,
     attackSprites,
   );

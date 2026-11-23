@@ -76,6 +76,7 @@ export class Game implements CallbacksHandler {
 
   start(): void {
     if (this.animationFrameId === null) {
+      this.audioController.playLongRunningSound('/app/Cloud Dancer.mp3', 0.1, 'music');
       this.gameLoop();
     }
   }
@@ -288,7 +289,7 @@ export class Game implements CallbacksHandler {
           break;
       }
     }
-    this.audioController.playShortRunningSound('/app/attack_swing.mp3');
+    this.audioController.playShortRunningSound('/app/attack_swing.mp3', 0.5);
   };
 
   onArmSwitched = async (playerId: string): Promise<void> => {
@@ -302,12 +303,12 @@ export class Game implements CallbacksHandler {
   };
 
   onPlayerDamaged = async (playerId: string, _damage: number, newHealth: number): Promise<void> => {
-    this.audioController.playShortRunningSound('/app/attack_damage.mp3', 0.4);
+    this.audioController.playShortRunningSound('/app/attack_damage.mp3', 0.3);
     this.gameStateManager.updatePlayerHealth(playerId, newHealth);
   };
 
   onPlayerDied = async (playerId: string): Promise<void> => {
-    this.audioController.playShortRunningSound('/app/attack_damage.mp3', 0.4);
+    this.audioController.playShortRunningSound('/app/attack_damage.mp3', 0.2);
     this.audioController.playShortRunningSound('/app/player_death.mp3', 0.7);
     this.gameStateManager.updatePlayerHealth(playerId, 0, false);
     this.gameStateManager.setPlayerDeathTime(playerId, this.time.frameTimestamp);

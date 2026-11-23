@@ -78,6 +78,7 @@ HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, cont
 } as typeof HTMLCanvasElement.prototype.getContext;
 
 class StubAudioContext {
+  currentTime = 0;
   destination = {};
   createBufferSource() {
     return {
@@ -89,7 +90,7 @@ class StubAudioContext {
     };
   }
   createGain() {
-    return { gain: { value: 1 }, connect: noop };
+    return { gain: { value: 1, setTargetAtTime: noop }, connect: noop };
   }
   async decodeAudioData(): Promise<AudioBuffer> {
     return {

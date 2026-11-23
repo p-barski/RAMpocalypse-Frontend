@@ -181,6 +181,7 @@ export function createMockAudioController(): Mocked<AudioController> {
     playLongRunningSound: vi.fn(),
     stopSound: vi.fn(),
     cleanup: vi.fn(),
+    settingsUpdated: vi.fn(),
   };
 }
 
